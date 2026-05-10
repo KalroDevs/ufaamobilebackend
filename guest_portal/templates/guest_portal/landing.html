@@ -1,0 +1,498 @@
+{% extends "guest_portal/base_ufaa.html" %}
+{% load static %}
+
+{% block title %}UFAA Kenya - Reuniting You with Your Unclaimed Financial Assets{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero {
+        position: relative;
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,107,63,0.05) 100%);
+    }
+    
+    .hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(193,39,45,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(46,125,50,0.08) 0%, transparent 50%);
+        z-index: 0;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+    
+    .hero-text h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .hero-text p {
+        font-size: 1.125rem;
+        color: var(--gray-600);
+        margin-bottom: 2rem;
+    }
+    
+    .hero-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .stat {
+        text-align: left;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary-red);
+    }
+    
+    .stat-label {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+    }
+    
+    /* Search Section */
+    .search-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-xl);
+        margin: 2rem 0;
+    }
+    
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .search-input-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .search-input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+    
+    .search-input-group input,
+    .search-input-group select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 0.5rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input-group input:focus,
+    .search-input-group select:focus {
+        outline: none;
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(193,39,45,0.1);
+    }
+    
+    .search-results {
+        margin-top: 2rem;
+        display: none;
+    }
+    
+    .asset-card {
+        background: var(--gray-50);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary-green);
+        transition: all 0.3s ease;
+    }
+    
+    .asset-card:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* Features Section */
+    .features {
+        padding: 5rem 0;
+        background: white;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .feature-card {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        border: 1px solid var(--gray-200);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: transparent;
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--gradient-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .feature-icon i {
+        font-size: 2.5rem;
+        color: var(--primary-red);
+    }
+    
+    /* How It Works */
+    .how-it-works {
+        padding: 5rem 0;
+        background: var(--gradient-light);
+    }
+    
+    .steps-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .step {
+        text-align: center;
+        position: relative;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1rem;
+    }
+    
+    /* Mobile App Section */
+    .mobile-app {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+    
+    .app-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+    
+    .app-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .app-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: rgba(255,255,255,0.1);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .app-btn:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+    }
+    
+    /* FAQ Section */
+    .faq {
+        padding: 5rem 0;
+        background: white;
+    }
+    
+    .faq-grid {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .faq-item {
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .faq-question {
+        padding: 1.25rem;
+        background: var(--gray-50);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+    }
+    
+    .faq-question:hover {
+        background: var(--gray-100);
+    }
+    
+    .faq-answer {
+        padding: 0 1.25rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .faq-item.active .faq-answer {
+        padding: 1.25rem;
+        max-height: 500px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 968px) {
+        .hero-content,
+        .app-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .hero-text h1 {
+            font-size: 2.5rem;
+        }
+        
+        .hero-image {
+            order: -1;
+        }
+        
+        .search-form {
+            flex-direction: column;
+        }
+        
+        .search-input-group {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .desktop-nav {
+            display: none !important;
+        }
+        
+        .mobile-menu-btn {
+            display: block !important;
+        }
+        
+        .hero-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="hero-background"></div>
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text animate-slideInLeft">
+                <h1>Reuniting You with Your Unclaimed Financial Assets</h1>
+                <p>UFAA Kenya helps you search, claim, and recover your unclaimed financial assets including bank accounts, SACCOS, insurance policies, pensions, and more.</p>
+                <a href="#mobile-app" class="btn btn-primary" style="font-size: 1.125rem;">
+                    <i class="fas fa-search"></i> Mobile App
+                </a>
+                &nbsp;
+                <a href="https://reunify.ufaa.go.ke/" class="btn btn-primary" style="font-size: 1.125rem;">
+                    <i class="fas fa-search"></i> Web App
+                </a>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">KES 50B+</div>
+                        <div class="stat-label">Unclaimed Assets</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">500K+</div>
+                        <div class="stat-label">Claimants Reunited</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Institutions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image animate-slideInRight">
+                <div style="background: var(--gradient-primary); border-radius: 1.5rem; padding: 2rem; text-align: center;">
+                    <i class="fas fa-hand-holding-heart" style="font-size: 4rem; color: white;"></i>
+                    <h3 style="color: white; margin-top: 1rem;">Claim What's Yours</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Free asset search and claim service</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works" id="how-it-works">
+    <div class="container">
+        <h2 class="section-title scroll-animate">How to Claim Your Assets</h2>
+        <p class="section-subtitle scroll-animate">Simple 4-step process to reunite with your assets</p>
+        
+        <div class="steps-container">
+            <div class="step scroll-animate">
+                <div class="step-number">1</div>
+                <h3>Search</h3>
+                <p>Enter your ID number to search for unclaimed assets in our database</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">2</div>
+                <h3>Verify</h3>
+                <p>Verify your identity and confirm ownership of the assets</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">3</div>
+                <h3>Claim</h3>
+                <p>Submit your claim online or visit our offices with required documents</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">4</div>
+                <h3>Receive</h3>
+                <p>Get your assets disbursed to your bank account or mobile money</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About UFAA -->
+<section class="features" id="about">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+            <div class="scroll-animate">
+                <h2 class="section-title" style="text-align: left; -webkit-text-fill-color: initial; color: var(--primary-red);">About UFAA Kenya</h2>
+                <p style="margin-bottom: 1rem;">The Unclaimed Financial Assets Authority (UFAA) is a State Corporation established under the Unclaimed Financial Assets Act No. 40 of 2011.</p>
+                <p style="margin-bottom: 1rem;">Our mandate is to receive unclaimed financial assets from financial institutions, safeguard them, and reunite them with their rightful owners.</p>
+                <ul style="list-style: none; margin-top: 1.5rem;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <i class="fas fa-check-circle" style="color: var(--primary-green); margin-right: 0.5rem;"></i>
+                        Regulated by the Government of Kenya
+                    </li>
+                    <li style="margin-bottom: 0.75rem;">
+                        <i class="fas fa-check-circle" style="color: var(--primary-green); margin-right: 0.5rem;"></i>
+                        Free asset search and claim service
+                    </li>
+                    <li style="margin-bottom: 0.75rem;">
+                        <i class="fas fa-check-circle" style="color: var(--primary-green); margin-right: 0.5rem;"></i>
+                        Support for claimants
+                    </li>
+                </ul>
+                <a href="https://ufaa.go.ke/" class="btn btn-outline" style="margin-top: 1rem;">
+                    <i class="fas fa-info-circle"></i> Learn More About UFAA
+                </a>
+            </div>
+            <div class="scroll-animate" style="background: var(--gradient-light); padding: 2rem; border-radius: 1rem; text-align: center;">
+                <i class="fas fa-gavel" style="font-size: 4rem; color: var(--primary-red);"></i>
+                <h3 style="margin: 1rem 0;">Our Vision</h3>
+                <p>A trusted institution in the management of unclaimed assets.</p>
+                <hr style="margin: 1.5rem 0; border-color: var(--gray-300);">
+                <h3 style="margin: 1rem 0;">Our Mission</h3>
+                <p>To Receive, Safeguard and Re-unite Unclaimed Financial Assets for Socio- economic Prosperity.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mobile App Section -->
+<section class="mobile-app" id="mobile-app">
+    <div class="container">
+        <div class="app-grid">
+            <div class="scroll-animate">
+                <i class="fas fa-mobile-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Claim on the Go</h2>
+                <p style="margin-bottom: 1.5rem;">Download our mobile app to search and claim your unclaimed assets anytime, anywhere. Available for both Android and iOS devices.</p>
+                <div class="app-buttons">
+                    <a href="#" class="app-btn">
+                        <i class="fab fa-google-play" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <small>GET IT ON</small>
+                            <div><strong>Google Play</strong></div>
+                        </div>
+                    </a>
+                    <a href="#" class="app-btn">
+                        <i class="fab fa-apple" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <small>Download on the</small>
+                            <div><strong>App Store</strong></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="scroll-animate" style="text-align: center;">
+                <div style="background: white; border-radius: 2rem; padding: 1rem; display: inline-block; box-shadow: var(--shadow-xl);">
+                    <i class="fas fa-qrcode" style="font-size: 6rem; color: var(--primary-red);"></i>
+                    <p style="margin-top: 1rem; color: var(--gray-700);">Scan to download app</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+  
+    // FAQ Toggle Function
+    function toggleFAQ(element) {
+        const faqItem = element.closest('.faq-item');
+        faqItem.classList.toggle('active');
+        const icon = element.querySelector('i');
+        if (faqItem.classList.contains('active')) {
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+</script>
+{% endblock %}

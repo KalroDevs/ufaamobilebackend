@@ -1,0 +1,245 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --indigo-50: #eef2ff;
+        --indigo-100: #e0e7ff;
+        --indigo-200: #c7d2fe;
+        --indigo-300: #a5b4fc;
+        --indigo-400: #818cf8;
+        --indigo-500: #6366f1;
+        --indigo-600: #4f46e5;
+        --indigo-700: #4338ca;
+        --indigo-800: #3730a3;
+        --indigo-900: #312e81;
+    }
+    
+    .dashboard-welcome {
+        background: linear-gradient(135deg, var(--indigo-600) 0%, var(--indigo-800) 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    
+    .dashboard-welcome h1 {
+        color: white;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+    }
+    
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid var(--indigo-600);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--indigo-600);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stat-icon {
+        float: right;
+        font-size: 2rem;
+        color: var(--indigo-200);
+    }
+    
+    .recent-users {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    }
+    
+    .recent-users h3 {
+        margin-bottom: 1rem;
+        color: #374151;
+        font-size: 1.25rem;
+    }
+    
+    .user-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .user-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--indigo-500) 0%, var(--indigo-700) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .user-info {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .user-email {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .user-date {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .action-btn {
+        background: white;
+        padding: 1rem;
+        text-align: center;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .action-btn:hover {
+        background: var(--indigo-50);
+        border-color: var(--indigo-300);
+        transform: translateY(-2px);
+    }
+    
+    .action-btn i {
+        font-size: 1.5rem;
+        color: var(--indigo-600);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Dashboard | Admin Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-welcome">
+    <h1>Welcome back, {% firstof user.get_short_name user.get_username %}! 👋</h1>
+    <p>Here's what's happening with your dashboard today.</p>
+    <small>{{ current_time|date:"l, F j, Y" }} at {{ current_time|time:"g:i A" }}</small>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">{{ active_users }}</div>
+        <div class="stat-label">Active Users (30 days)</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">🆕</div>
+        <div class="stat-number">{{ new_users_today }}</div>
+        <div class="stat-label">New Users Today</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-number">{{ new_users_week }}</div>
+        <div class="stat-label">New Users (7 days)</div>
+    </div>
+</div>
+
+<div class="recent-users">
+    <h3>📋 Recent Users</h3>
+    {% if recent_users %}
+        <ul class="user-list">
+            {% for user in recent_users %}
+            <li>
+                <div class="user-avatar">
+                    {{ user.username|first|upper }}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                </div>
+                <div class="user-date">
+                    Joined {{ user.date_joined|date:"M d, Y" }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No users found.</p>
+    {% endif %}
+</div>
+
+<div class="quick-actions">
+    <a href="{% url 'admin:auth_user_add' %}" class="action-btn">
+        <i class="fas fa-user-plus"></i>
+        Add New User
+    </a>
+    <a href="{% url 'admin:index' %}" class="action-btn">
+        <i class="fas fa-cog"></i>
+        Full Admin Panel
+    </a>
+    <a href="{% url 'admin:auth_user_changelist' %}" class="action-btn">
+        <i class="fas fa-users"></i>
+        Manage Users
+    </a>
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

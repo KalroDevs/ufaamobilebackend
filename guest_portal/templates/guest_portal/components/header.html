@@ -1,0 +1,72 @@
+<header style="background: rgba(255, 255, 255, 0.98); box-shadow: var(--shadow-sm); position: fixed; width: 100%; top: 0; z-index: 1000; transition: all 0.3s ease;">
+    <div class="container">
+        <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Kenya Coat of Arms / UFAA Logo placeholder -->
+                <div style="width: 50px; height: 50px; background: var(--gradient-kenya); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md);">
+                    <i class="fas fa-landmark" style="color: var(--kenya-white); font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <span style="font-size: 1.25rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block;">
+                        Mobile App Administration
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--gray-500);">Unclaimed Financial Assets Authority</span>
+                </div>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="mobile-menu-btn" style="display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Desktop Navigation -->
+            <div class="desktop-nav" style="display: flex; gap: 2rem; align-items: center;">
+                <a href="#home" style="text-decoration: none; color: var(--gray-700); font-weight: 500; transition: color 0.3s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color='var(--gray-700)'">Home</a>
+                <a href="#how-it-works" style="text-decoration: none; color: var(--gray-700); font-weight: 500; transition: color 0.3s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color='var(--gray-700)'">How It Works</a>
+                <a href="#about" style="text-decoration: none; color: var(--gray-700); font-weight: 500; transition: color 0.3s;" onmouseover="this.style.color='var(--primary-red)'" onmouseout="this.style.color='var(--gray-700)'">About UFAA</a>
+                <a href="{% url 'admin:index' %}" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" style="display: none; position: fixed; top: 80px; left: 0; right: 0; background: white; padding: 1rem; box-shadow: var(--shadow-md); z-index: 999;">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <a href="#home" style="text-decoration: none; color: var(--gray-700); padding: 0.5rem;">Home</a>
+            <a href="#search" style="text-decoration: none; color: var(--gray-700); padding: 0.5rem;">Search Assets</a>
+            <a href="#how-it-works" style="text-decoration: none; color: var(--gray-700); padding: 0.5rem;">How It Works</a>
+            <a href="#about" style="text-decoration: none; color: var(--gray-700); padding: 0.5rem;">About UFAA</a>
+            <a href="#faq" style="text-decoration: none; color: var(--gray-700); padding: 0.5rem;">FAQ</a>
+            <a href="{% url 'admin:index' %}" class="btn btn-primary" style="text-align: center;">Agent Login</a>
+        </div>
+    </div>
+</header>
+
+<div style="height: 80px;"></div>
+
+<script>
+    function toggleMobileMenu() {
+        const mobileNav = document.querySelector('.mobile-nav');
+        if (mobileNav.style.display === 'none' || mobileNav.style.display === '') {
+            mobileNav.style.display = 'block';
+        } else {
+            mobileNav.style.display = 'none';
+        }
+    }
+    
+    // Close mobile menu on window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            document.querySelector('.mobile-nav').style.display = 'none';
+        }
+    });
+    
+    // Hide mobile menu on link click
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelector('.mobile-nav').style.display = 'none';
+        });
+    });
+</script>

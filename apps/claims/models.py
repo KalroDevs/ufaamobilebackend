@@ -1,0 +1,600 @@
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from apps.accounts.models import User
+from apps.assets.models import Asset
+
+
+class Claim(models.Model):
+    """Main Claim Model"""
+    
+    # Claim Category from WSDL
+    CATEGORY_CHOICES = [
+        ('', 'Blank'),
+        ('Original_Owner', 'Original Owner'),
+        ('Beneficiary', 'Beneficiary'),
+        ('Business_Entity', 'Business Entity'),
+        ('Agent_of_the_Owner', 'Agent of the Owner'),
+    ]
+    
+    CLAIM_TYPE_CHOICES = [
+        ('', 'Blank'),
+        ('Cash', 'Cash'),
+        ('Non_Cash', 'Non Cash'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('Draft', 'Draft'),
+        ('Pending', 'Pending Review'),
+        ('Under_Review', 'Under Review'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Paid', 'Payment Processed'),
+        ('Completed', 'Completed'),
+        ('Archived', 'Archived'),
+    ]
+    
+    PAYMENT_CATEGORY_CHOICES = [
+        ('', 'Blank'),
+        ('Local_Bank', 'Local Bank'),
+        ('International', 'International'),
+        ('Mpesa', 'Mpesa'),
+        ('Sacco', 'Sacco'),
+    ]
+    
+    CLAIM_ORIGIN_CHOICES = [
+        ('', 'Blank'),
+        ('OnlinePortal', 'Online Portal'),
+        ('Android_Mobile_App', 'Android Mobile App'),
+        ('iOS_Mobile_App', 'iOS Mobile App'),
+        ('Reception', 'Reception'),
+        ('Emails', 'Emails'),
+        ('Reunification_Clinics', 'Reunification Clinics'),
+        ('Huduma', 'Huduma'),
+        ('Registrars', 'Registrars'),
+    ]
+    
+    LOCATION_SOURCE_CHOICES = [
+        ('', 'Blank'),
+        ('Initiator', 'Initiator'),
+        ('Document_Verification', 'Document Verification'),
+        ('Examiner', 'Examiner'),
+        ('Authorizer', 'Authorizer'),
+        ('Publisher', 'Publisher'),
+        ('Executive_Officer', 'Executive Officer'),
+        ('Finance', 'Finance'),
+        ('Draft', 'Draft'),
+    ]
+    
+    # Primary claim fields
+    no = models.CharField(max_length=50, unique=True, db_index=True, blank=True)
+    document_date = models.DateField(null=True, blank=True)
+    processing_date = models.DateField(null=True, blank=True)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, blank=True, default='')
+    sub_category = models.CharField(max_length=100, blank=True)
+    agent_name = models.CharField(max_length=200, blank=True)
+    claim_type = models.CharField(max_length=20, choices=CLAIM_TYPE_CHOICES, blank=True, default='')
+    currency = models.CharField(max_length=10, blank=True, default='KES')
+    asset_no = models.CharField(max_length=50, blank=True)
+    
+    # Claimant information
+    residence = models.CharField(max_length=20, blank=True)
+    id_number = models.CharField(max_length=20, db_index=True, blank=True)
+    name = models.CharField(max_length=200, blank=True)
+    iprs_name = models.CharField(max_length=200, blank=True)
+    claimant_birth_date = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    person_living_with_disability = models.BooleanField(default=False)
+    passport_no = models.CharField(max_length=20, blank=True)
+    claim_origin = models.CharField(max_length=30, choices=CLAIM_ORIGIN_CHOICES, blank=True, default='')
+    county_code = models.CharField(max_length=20, blank=True)
+    county_name = models.CharField(max_length=100, blank=True)
+    kra_pin = models.CharField(max_length=20, blank=True)
+    business_registration_no = models.CharField(max_length=50, blank=True)
+    address = models.TextField(blank=True)
+    address_2 = models.TextField(blank=True)
+    phone_no = models.CharField(max_length=20, blank=True)
+    secondary_phone_no = models.CharField(max_length=20, blank=True)
+    post_code = models.CharField(max_length=20, blank=True)
+    county = models.CharField(max_length=50, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    home_county = models.CharField(max_length=50, blank=True)
+    e_mail = models.EmailField(blank=True)
+    posting_date = models.DateField(null=True, blank=True)
+    
+    # Asset amounts
+    amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=0)
+    amount_lcy = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    shares = models.IntegerField(null=True, blank=True, default=0)
+    safe_deposit = models.IntegerField(null=True, blank=True, default=0)
+    
+    # Location tracking
+    location = models.CharField(max_length=200, blank=True)
+    location_sent_to = models.CharField(max_length=200, blank=True)
+    location_sent_to_name = models.CharField(max_length=200, blank=True)
+    location_source = models.CharField(max_length=30, choices=LOCATION_SOURCE_CHOICES, blank=True, default='')
+    profile_id = models.CharField(max_length=50, blank=True)
+    submit = models.BooleanField(default=False)
+    claimant_action_required = models.BooleanField(default=False)
+    
+    # Staff tracking
+    created_by = models.CharField(max_length=100, blank=True)
+    customer_care_id = models.CharField(max_length=50, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    rejected = models.BooleanField(default=False)
+    
+    # Comments and remarks
+    send_remarks_to_claimant = models.TextField(blank=True)
+    portal_comments = models.TextField(blank=True)
+    internal_remarks = models.TextField(blank=True)
+    internal_comments = models.TextField(blank=True)
+    draft_remarks = models.TextField(blank=True)
+    rejection_reason = models.TextField(blank=True)
+    approval_notes = models.TextField(blank=True)
+    
+    # Payment information
+    payment_category = models.CharField(max_length=30, choices=PAYMENT_CATEGORY_CHOICES, blank=True, default='')
+    bank_code = models.CharField(max_length=50, blank=True)
+    bank_account_no = models.CharField(max_length=50, blank=True)
+    bank_account_name = models.CharField(max_length=200, blank=True)
+    bank_name = models.CharField(max_length=200, blank=True)
+    branch_code = models.CharField(max_length=50, blank=True)
+    branch_name = models.CharField(max_length=200, blank=True)
+    account_currency = models.CharField(max_length=10, blank=True)
+    swift_code = models.CharField(max_length=20, blank=True)
+    international_payment = models.BooleanField(default=False)
+    international_bank_name = models.CharField(max_length=200, blank=True)
+    international_branch_name = models.CharField(max_length=200, blank=True)
+    sort_code = models.CharField(max_length=20, blank=True)
+    country_region_code = models.CharField(max_length=10, blank=True)
+    mpesa_mobile_no = models.CharField(max_length=20, blank=True)
+    
+    # Joint ownership fields
+    has_joint_owners = models.BooleanField(default=False)
+    joint_owners_consent_status = models.CharField(max_length=20, default='not_applicable')
+    joint_owners_consent_received_date = models.DateTimeField(null=True, blank=True)
+    
+    # No Objection Letter
+    no_objection_letter_required = models.BooleanField(default=False)
+    no_objection_letter_uploaded = models.BooleanField(default=False)
+    no_objection_letter_path = models.CharField(max_length=500, blank=True)
+    
+    # Joint bank account
+    is_joint_bank_account = models.BooleanField(default=False)
+    joint_bank_account_name = models.CharField(max_length=200, blank=True)
+    joint_bank_account_number = models.CharField(max_length=50, blank=True)
+    joint_bank_name = models.CharField(max_length=200, blank=True)
+    
+    # Additional fields
+    type_field = models.CharField(max_length=50, blank=True, db_column='type')
+    type_description = models.CharField(max_length=200, blank=True)
+    date_signed_by_hod = models.DateField(null=True, blank=True)
+    title = models.CharField(max_length=100, blank=True)
+    title_description = models.CharField(max_length=200, blank=True)
+    institution = models.CharField(max_length=200, blank=True)
+    organization_name = models.CharField(max_length=200, blank=True)
+    postal_address = models.TextField(blank=True)
+    address_to_city = models.CharField(max_length=100, blank=True)
+    verification_region = models.CharField(max_length=100, blank=True)
+    address_to = models.TextField(blank=True)
+    address_to_2 = models.TextField(blank=True)
+    estate_name = models.CharField(max_length=200, blank=True)
+    citizenship = models.CharField(max_length=50, blank=True)
+    doc_verification_remarks = models.TextField(blank=True)
+    name_of_deceased = models.CharField(max_length=200, blank=True)
+    district = models.CharField(max_length=100, blank=True)
+    entry_no = models.CharField(max_length=50, blank=True)
+    serial_no = models.CharField(max_length=50, blank=True)
+    issuing_no = models.CharField(max_length=50, blank=True)
+    cause_no = models.CharField(max_length=50, blank=True)
+    business_owner = models.CharField(max_length=200, blank=True)
+    donor = models.CharField(max_length=200, blank=True)
+    donee = models.CharField(max_length=200, blank=True)
+    rpa_ipa_no = models.CharField(max_length=50, blank=True)
+    user_id = models.CharField(max_length=100, blank=True)
+    
+    # Relationships
+    claimant = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='claims')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_claims', blank=True)
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='approved_claims', blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'claims'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['no']),
+            models.Index(fields=['status']),
+            models.Index(fields=['id_number']),
+            models.Index(fields=['phone_no']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['category']),
+            models.Index(fields=['claimant']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        """Auto-generate claim number if not provided"""
+        if not self.no:
+            self.no = self.generate_claim_number()
+        super().save(*args, **kwargs)
+    
+    def generate_claim_number(self):
+        """Generate claim number in format: CM-YYYY-XXXXX"""
+        import random
+        year = timezone.now().year
+        last_claim = Claim.objects.filter(
+            no__startswith=f'CM-{year}'
+        ).order_by('-no').first()
+        
+        if last_claim and last_claim.no:
+            parts = last_claim.no.split('-')
+            if len(parts) == 3:
+                try:
+                    last_num = int(parts[2])
+                    new_num = last_num + 1
+                except ValueError:
+                    new_num = 1
+            else:
+                new_num = 1
+        else:
+            new_num = 1
+        
+        return f"CM-{year}-{new_num:05d}"
+    
+    def __str__(self):
+        return f"{self.no} - {self.name} - {self.status}"
+    
+    @property
+    def status_display(self):
+        status_map = {
+            'Draft': 'Draft',
+            'Pending': 'Pending Review',
+            'Under_Review': 'Under Review',
+            'Approved': 'Approved',
+            'Rejected': 'Rejected',
+            'Paid': 'Payment Processed',
+            'Completed': 'Completed',
+            'Archived': 'Archived',
+        }
+        return status_map.get(self.status, self.status)
+    
+    @property
+    def progress_percentage(self):
+        progress_map = {
+            'Draft': 10,
+            'Pending': 25,
+            'Under_Review': 50,
+            'Approved': 75,
+            'Paid': 90,
+            'Completed': 100,
+            'Rejected': 0,
+            'Archived': 100,
+        }
+        return progress_map.get(self.status, 0)
+    
+    def get_total_assets_value(self):
+        return self.claim_assets.aggregate(total=models.Sum('value'))['total'] or 0
+    
+    def get_uploaded_documents_count(self):
+        return self.documents.count()
+    
+    def get_verified_documents_count(self):
+        return self.documents.filter(is_verified=True).count()
+
+
+class JointOwner(models.Model):
+    """Joint Owner Model"""
+    
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+    ]
+    
+    NATIONALITY_CHOICES = [
+        ('Kenyan', 'Kenyan'),
+        ('Non_Kenyan', 'Non-Kenyan'),
+    ]
+    
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='joint_owners')
+    
+    # Personal Information
+    surname = models.CharField(max_length=100)
+    given_name = models.CharField(max_length=100)
+    full_name = models.CharField(max_length=200, blank=True)
+    id_number = models.CharField(max_length=20)
+    kra_pin = models.CharField(max_length=20, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    nationality = models.CharField(max_length=20, choices=NATIONALITY_CHOICES, default='Kenyan')
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    
+    # Address
+    physical_address = models.TextField(blank=True)
+    postal_address = models.CharField(max_length=100, blank=True)
+    county = models.CharField(max_length=50, blank=True)
+    
+    # Disability
+    has_disability = models.BooleanField(default=False)
+    disability_category = models.CharField(max_length=100, blank=True)
+    
+    # Joint ownership details
+    ownership_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    is_primary_claimant = models.BooleanField(default=False)
+    
+    # Consent
+    has_consented = models.BooleanField(default=False)
+    consent_date = models.DateTimeField(null=True, blank=True)
+    consent_form_uploaded = models.BooleanField(default=False)
+    consent_form_path = models.CharField(max_length=500, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'joint_owners'
+        unique_together = ['claim', 'id_number']
+        indexes = [
+            models.Index(fields=['claim', 'id_number']),
+            models.Index(fields=['id_number']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        self.full_name = f"{self.surname} {self.given_name}".strip()
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.full_name} - {self.id_number}"
+
+
+class JointOwnerConsent(models.Model):
+    """Joint Owner Consent Model"""
+    
+    CONSENT_STATUS = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('expired', 'Expired'),
+    ]
+    
+    joint_owner = models.ForeignKey(JointOwner, on_delete=models.CASCADE, related_name='consents')
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='joint_owner_consents')
+    
+    # Consent details
+    status = models.CharField(max_length=20, choices=CONSENT_STATUS, default='pending')
+    consent_token = models.CharField(max_length=100, unique=True, blank=True)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    # Notification tracking
+    notification_sent = models.BooleanField(default=False)
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
+    reminder_sent = models.BooleanField(default=False)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    # Response details
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    device_fingerprint = models.CharField(max_length=255, blank=True)
+    
+    class Meta:
+        db_table = 'joint_owner_consents'
+        indexes = [
+            models.Index(fields=['consent_token']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.joint_owner.full_name} - {self.status}"
+
+
+class JointPaymentInstruction(models.Model):
+    """Joint Payment Instruction Model"""
+    
+    PAYMENT_METHODS = [
+        ('single', 'Pay to Primary Claimant'),
+        ('split', 'Split Among Joint Owners'),
+        ('joint_account', 'Pay to Joint Account'),
+        ('nominee', 'Nominate One Owner'),
+    ]
+    
+    claim = models.OneToOneField(Claim, on_delete=models.CASCADE, related_name='joint_payment_instruction')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='single')
+    
+    # For split payments
+    split_percentages = models.JSONField(default=dict, blank=True)
+    
+    # For joint account
+    joint_account_name = models.CharField(max_length=200, blank=True)
+    joint_account_number = models.CharField(max_length=50, blank=True)
+    joint_bank_name = models.CharField(max_length=200, blank=True)
+    joint_branch_name = models.CharField(max_length=200, blank=True)
+    
+    # For nominee
+    nominee_owner_id = models.IntegerField(null=True, blank=True)
+    nominee_consent_received = models.BooleanField(default=False)
+    no_objection_letter_path = models.CharField(max_length=500, blank=True)
+    
+    # Additional documents
+    joint_consent_form_path = models.CharField(max_length=500, blank=True)
+    additional_notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'joint_payment_instructions'
+    
+    def __str__(self):
+        return f"Payment instruction for claim {self.claim.no} - {self.payment_method}"
+
+
+class ClaimAsset(models.Model):
+    """Junction table for Claim-Asset relationship"""
+    
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='claim_assets')
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='claim_assets')
+    is_selected = models.BooleanField(default=True)
+    
+    # Asset snapshot at claim time
+    asset_snapshot = models.JSONField(default=dict, blank=True)
+    value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    holder_name = models.CharField(max_length=200, blank=True)
+    asset_type = models.CharField(max_length=20, blank=True)
+    source = models.CharField(max_length=50, blank=True)
+    
+    # Additional fields
+    key = models.CharField(max_length=100, blank=True)
+    rejected = models.BooleanField(default=False)
+    asset_no = models.CharField(max_length=50, blank=True)
+    class_code = models.CharField(max_length=50, blank=True)
+    class_field = models.CharField(max_length=50, blank=True, db_column='class')
+    asset_code = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    name = models.CharField(max_length=200, blank=True)
+    id_number = models.CharField(max_length=20, blank=True)
+    
+    # CDS Account fields for non-cash assets - Allow NULL
+    cds_account_no = models.CharField(max_length=50, null=True, blank=True)
+    broker_name = models.CharField(max_length=200, null=True, blank=True)
+    broker_code = models.CharField(max_length=50, null=True, blank=True)
+    stock_exchange = models.CharField(max_length=100, null=True, blank=True)
+    
+    added_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'claim_assets'
+        unique_together = ['claim', 'asset']
+        indexes = [
+            models.Index(fields=['claim', 'asset']),
+            models.Index(fields=['asset_no']),
+        ]
+    
+    def __str__(self):
+        return f"{self.claim.no} - {self.asset.asset_no if self.asset else 'No Asset'}"
+
+class ClaimDocument(models.Model):
+    """Claim documents model"""
+    
+    DOCUMENT_TYPES = [
+        ('form4a', 'Form 4A - Original Owner Claim'),
+        ('form4b', 'Form 4B - Beneficiary Claim'),
+        ('form4c', 'Form 4C - Business Entity Claim'),
+        ('form4d', 'Form 4D - Agent Claim'),
+        ('form5', 'Form 5 - Indemnity Agreement'),
+        ('id_copy', 'Certified ID Copy'),
+        ('kra_pin', 'KRA PIN Certificate'),
+        ('death_certificate', 'Death Certificate'),
+        ('grant_certificate', 'Certificate of Confirmation of Grant'),
+        ('holder_letter', 'Holder Confirmation Letter'),
+        ('bank_statement', 'Bank/M-Pesa Statement'),
+        ('affidavit', 'Original Affidavit'),
+        ('policy_document', 'Policy Document'),
+        ('power_of_attorney', 'Power of Attorney'),
+        ('guardianship_deed', 'Guardianship Deed'),
+        ('cr12', 'CR12 Form'),
+        ('incorporation', 'Certificate of Incorporation'),
+        ('directors_ids', 'Directors ID Copies'),
+        ('payment_form', 'Payment Form'),
+        ('other', 'Other Document'),
+    ]
+    
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='documents')
+    document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
+    document_name = models.CharField(max_length=200)
+    file_path = models.CharField(max_length=500)
+    file_size = models.IntegerField(help_text="File size in bytes", default=0)
+    file_extension = models.CharField(max_length=10, blank=True)
+    
+    # Document metadata
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_documents')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    # Verification status
+    is_verified = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='verified_documents')
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verification_notes = models.TextField(blank=True)
+    
+    # Rejection info
+    is_rejected = models.BooleanField(default=False)
+    rejection_reason = models.TextField(blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='rejected_documents')
+    
+    # Version control
+    version = models.IntegerField(default=1)
+    is_latest = models.BooleanField(default=True)
+    previous_version = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        db_table = 'claim_documents'
+        ordering = ['-uploaded_at']
+        indexes = [
+            models.Index(fields=['claim', 'document_type']),
+            models.Index(fields=['uploaded_at']),
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['claim', 'is_latest']),
+        ]
+    
+    def __str__(self):
+        return f"{self.claim.no} - {self.get_document_type_display()} - {self.document_name}"
+
+
+class ClaimNote(models.Model):
+    """Internal notes on claims"""
+    
+    NOTE_TYPES = [
+        ('internal', 'Internal Note'),
+        ('claimant', 'Claimant Communication'),
+        ('system', 'System Note'),
+        ('reminder', 'Reminder'),
+        ('alert', 'Alert'),
+    ]
+    
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='notes')
+    note_type = models.CharField(max_length=20, choices=NOTE_TYPES, default='internal')
+    content = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='claim_notes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = 'claim_notes'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['claim']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.claim.no} - {self.note_type} - {self.created_at}"
+
+
+class ClaimStatusHistory(models.Model):
+    """Track claim status changes"""
+    
+    claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='status_history')
+    previous_status = models.CharField(max_length=20, blank=True)
+    new_status = models.CharField(max_length=20)
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    reason = models.TextField(blank=True)
+    changed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'claim_status_history'
+        ordering = ['-changed_at']
+        indexes = [
+            models.Index(fields=['claim']),
+            models.Index(fields=['changed_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.claim.no} - {self.previous_status} -> {self.new_status} at {self.changed_at}"
