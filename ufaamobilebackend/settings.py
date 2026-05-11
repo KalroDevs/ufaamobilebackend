@@ -91,11 +91,13 @@ AUTHENTICATION_BACKENDS = [
 
 # CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000', cast=Csv())
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:64086",  # Flutter web dev server
-    "http://localhost:56097",  # Flutter web dev server
+CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:64086",  # Flutter web dev server
+#     "http://localhost:56097",  # Flutter web dev server
     
-]
+# ]
 
 
 CORS_ALLOW_CREDENTIALS = True
