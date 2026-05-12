@@ -1293,3 +1293,294 @@ WARNING 2026-05-11 10:56:13,473 log 38228 42520 "POST /api/auth/login/ HTTP/1.1"
 INFO 2026-05-11 11:00:26,219 autoreload 38228 16692 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\ufaamobilebackend\urls.py changed, reloading.
 INFO 2026-05-11 11:00:28,589 autoreload 53432 31656 Watching for file changes with StatReloader
 INFO 2026-05-11 11:22:11,700 autoreload 34868 40340 Watching for file changes with StatReloader
+WARNING 2026-05-11 11:23:17,817 log 34868 29084 Unauthorized: /api/auth/login/
+WARNING 2026-05-11 11:23:17,818 log 34868 29084 "POST /api/auth/login/ HTTP/1.1" 401 98
+INFO 2026-05-11 11:23:54,399 log 34868 55412 "GET / HTTP/1.1" 302 0
+INFO 2026-05-11 11:23:54,555 log 34868 55412 "GET /admin/ HTTP/1.1" 200 35142
+INFO 2026-05-11 11:23:54,584 log 34868 55412 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,585 log 34868 22420 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,592 log 34868 55412 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,659 log 34868 22420 "GET /static/admin_interface/css/admin-interface.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,660 log 34868 55412 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,667 log 34868 55412 "GET /static/admin_interface/css/changelist.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,673 log 34868 55412 "GET /static/admin_interface/css/change-form.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,673 log 34868 22420 "GET /static/admin_interface/css/fieldsets.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,676 log 34868 55412 "GET /static/admin_interface/css/file-upload.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,682 log 34868 55412 "GET /static/admin_interface/css/header.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,684 log 34868 22420 "GET /static/admin_interface/css/inlines.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,685 log 34868 55412 "GET /static/admin_interface/css/jquery.ui.tabs.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,689 log 34868 55412 "GET /static/admin_interface/css/language-chooser.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,693 log 34868 22420 "GET /static/admin_interface/css/list-filter.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,695 log 34868 55412 "GET /static/admin_interface/css/list-filter-dropdown.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,698 log 34868 22420 "GET /static/admin_interface/css/login.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,702 log 34868 22420 "GET /static/admin_interface/css/modules.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,707 log 34868 55412 "GET /static/admin_interface/css/nav-sidebar.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,707 log 34868 22420 "GET /static/admin_interface/css/paginator.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,713 log 34868 22420 "GET /static/admin_interface/css/object-tools.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,720 log 34868 22420 "GET /static/admin_interface/css/rtl.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,722 log 34868 55412 "GET /static/admin_interface/css/sticky-form-controls.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,723 log 34868 22420 "GET /static/admin_interface/css/tabbed-changeform.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,729 log 34868 22420 "GET /static/admin_interface/css/widgets.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,734 log 34868 55412 "GET /static/admin_interface/css/third-party/ckeditor.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,737 log 34868 22420 "GET /static/admin_interface/css/third-party/import-export.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,739 log 34868 55412 "GET /static/admin_interface/css/third-party/json-widget.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,745 log 34868 55412 "GET /static/admin_interface/css/third-party/modeltranslation.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,751 log 34868 55412 "GET /static/admin_interface/css/third-party/rangefilter.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,753 log 34868 22420 "GET /static/admin_interface/css/third-party/sorl-thumbnail.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,757 log 34868 22420 "GET /static/admin_interface/css/third-party/streamfield.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,762 log 34868 55412 "GET /static/admin_interface/css/third-party/tinymce.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,766 log 34868 22420 "GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,770 log 34868 22420 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,776 log 34868 55412 "GET /static/admin/css/responsive.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,780 log 34868 22420 "GET /static/admin/css/responsive_rtl.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,783 log 34868 55412 "GET /static/admin_interface/foldable-apps/foldable-apps.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,790 log 34868 55412 "GET /static/admin_interface/magnific-popup/magnific-popup.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,793 log 34868 22420 "GET /static/admin_interface/related-modal/related-modal.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,796 log 34868 55412 "GET /static/admin_interface/favico/favico-0.3.10-patched.min.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,802 log 34868 55412 "GET /static/admin_interface/favico/favico-env.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,807 log 34868 22420 "GET /static/admin_interface/foldable-apps/foldable-apps.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,808 log 34868 55412 "GET /static/admin_interface/magnific-popup/jquery.magnific-popup.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,814 log 34868 22420 "GET /static/admin_interface/related-modal/related-modal.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,815 log 34868 55412 "GET /media/admin-interface/logo/ufaa_logo_2.png HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,824 log 34868 55412 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,834 log 34868 55412 "GET /media/admin-interface/favicon/court_of_arms.png HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,841 log 34868 22420 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,841 log 34868 55412 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:54,848 log 34868 55412 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:56,821 log 34868 55412 "GET /admin/ HTTP/1.1" 200 35142
+INFO 2026-05-11 11:23:59,400 log 34868 55412 "GET /admin/accounts/user/ HTTP/1.1" 200 39181
+INFO 2026-05-11 11:23:59,449 log 34868 55412 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,450 log 34868 15152 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,450 log 34868 12848 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,450 log 34868 25544 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,453 log 34868 49752 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,455 log 34868 55412 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,457 log 34868 12848 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,458 log 34868 25544 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,459 log 34868 15152 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,468 log 34868 15152 "GET /static/admin_interface/dropdown-filter/dropdown-filter.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,468 log 34868 25544 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,474 log 34868 15152 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,475 log 34868 25544 "GET /static/admin/img/icon-no.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,481 log 34868 25544 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,524 log 34868 22420 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 11:23:59,559 log 34868 22420 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:23:59,563 log 34868 22420 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,025 log 34868 22420 "GET /admin/accounts/user/1/change/ HTTP/1.1" 200 79211
+INFO 2026-05-11 11:24:01,098 log 34868 55412 "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,098 log 34868 25544 "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,100 log 34868 49752 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,102 log 34868 22420 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 11:24:01,104 log 34868 49752 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,109 log 34868 22420 "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,369 log 34868 15152 "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2026-05-11 11:24:01,369 log 34868 12848 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 16428
+INFO 2026-05-11 11:24:01,375 log 34868 15152 "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,514 log 34868 15152 "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2026-05-11 11:24:01,516 log 34868 12848 "GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 2387
+INFO 2026-05-11 11:24:01,517 log 34868 22420 "GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 805
+INFO 2026-05-11 11:24:48,946 log 34868 12848 "POST /admin/accounts/user/1/change/ HTTP/1.1" 302 0
+INFO 2026-05-11 11:24:49,008 log 34868 12848 "GET /admin/accounts/user/ HTTP/1.1" 200 39408
+INFO 2026-05-11 11:24:49,064 log 34868 12848 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 11:24:53,875 log 34868 12848 "GET /admin/accounts/user/add/ HTTP/1.1" 200 36681
+INFO 2026-05-11 11:24:53,928 log 34868 22420 "GET /static/admin/css/unusable_password_field.css HTTP/1.1" 200 663
+INFO 2026-05-11 11:24:53,931 log 34868 12848 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 11:27:41,426 log 34868 12848 "POST /admin/accounts/user/add/ HTTP/1.1" 302 0
+INFO 2026-05-11 11:27:41,600 log 34868 12848 "GET /admin/accounts/user/2/change/ HTTP/1.1" 200 79389
+INFO 2026-05-11 11:27:41,677 log 34868 12848 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 11:27:58,620 log 34868 29084 "POST /api/auth/login/ HTTP/1.1" 200 1220
+WARNING 2026-05-11 15:40:07,669 log 34868 60068 Method Not Allowed: /api/assets/search/
+WARNING 2026-05-11 15:40:07,683 log 34868 60068 "GET /api/assets/search/ HTTP/1.1" 405 40
+INFO 2026-05-11 15:40:26,830 log 34868 49920 "GET /admin/accounts/staffprofile/ HTTP/1.1" 200 37695
+WARNING 2026-05-11 15:40:28,743 log 34868 49920 Not Found: /api/live/search/assets/
+WARNING 2026-05-11 15:40:28,745 log 34868 49920 "GET /api/live/search/assets/ HTTP/1.1" 404 27074
+INFO 2026-05-11 15:40:36,753 log 34868 49920 "GET /admin/accounts/user/2/change/ HTTP/1.1" 200 79159
+INFO 2026-05-11 16:43:05,485 log 34868 51872 "OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+WARNING 2026-05-11 16:43:06,006 log 34868 51872 Bad Request: /api/auth/register/
+WARNING 2026-05-11 16:43:06,007 log 34868 51872 "POST /api/auth/register/ HTTP/1.1" 400 90
+WARNING 2026-05-11 16:43:45,794 log 34868 51872 Bad Request: /api/auth/register/
+WARNING 2026-05-11 16:43:45,798 log 34868 51872 "POST /api/auth/register/ HTTP/1.1" 400 90
+WARNING 2026-05-11 16:44:27,985 log 34868 51872 Bad Request: /api/auth/register/
+WARNING 2026-05-11 16:44:27,987 log 34868 51872 "POST /api/auth/register/ HTTP/1.1" 400 90
+WARNING 2026-05-11 16:45:02,803 log 34868 51872 Bad Request: /api/auth/register/
+WARNING 2026-05-11 16:45:02,807 log 34868 51872 "POST /api/auth/register/ HTTP/1.1" 400 90
+INFO 2026-05-11 17:06:21,245 autoreload 34868 40340 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:06:25,809 autoreload 56884 33664 Watching for file changes with StatReloader
+INFO 2026-05-11 17:08:40,714 autoreload 56884 33664 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:08:43,173 autoreload 39228 24636 Watching for file changes with StatReloader
+INFO 2026-05-11 17:13:48,566 autoreload 39228 24636 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:13:50,966 autoreload 1184 1136 Watching for file changes with StatReloader
+INFO 2026-05-11 17:28:37,705 autoreload 1184 1136 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\serializers.py changed, reloading.
+INFO 2026-05-11 17:28:41,586 autoreload 35828 56908 Watching for file changes with StatReloader
+INFO 2026-05-11 17:30:15,442 autoreload 35828 56908 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\views.py changed, reloading.
+INFO 2026-05-11 17:30:17,788 autoreload 10364 35860 Watching for file changes with StatReloader
+INFO 2026-05-11 17:30:19,962 autoreload 10364 35860 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\views.py changed, reloading.
+INFO 2026-05-11 17:30:21,592 autoreload 49692 24340 Watching for file changes with StatReloader
+INFO 2026-05-11 17:30:25,024 autoreload 49692 24340 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\views.py changed, reloading.
+INFO 2026-05-11 17:30:26,713 autoreload 52540 59200 Watching for file changes with StatReloader
+INFO 2026-05-11 17:31:40,234 autoreload 52540 59200 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:31:42,253 autoreload 54084 34608 Watching for file changes with StatReloader
+INFO 2026-05-11 17:31:46,335 autoreload 54084 34608 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:31:48,221 autoreload 59604 45984 Watching for file changes with StatReloader
+INFO 2026-05-11 17:47:52,714 autoreload 59604 45984 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\accounts\models.py changed, reloading.
+INFO 2026-05-11 17:47:56,284 autoreload 57800 43624 Watching for file changes with StatReloader
+INFO 2026-05-11 17:53:13,640 autoreload 57800 43624 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\ufaamobilebackend\urls.py changed, reloading.
+INFO 2026-05-11 17:53:15,863 autoreload 50420 51008 Watching for file changes with StatReloader
+INFO 2026-05-11 17:53:59,323 autoreload 50420 51008 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\urls.py changed, reloading.
+INFO 2026-05-11 17:54:01,008 autoreload 8184 53484 Watching for file changes with StatReloader
+INFO 2026-05-11 17:54:05,163 autoreload 8184 53484 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\urls.py changed, reloading.
+INFO 2026-05-11 17:54:06,442 autoreload 57536 56980 Watching for file changes with StatReloader
+INFO 2026-05-11 17:54:35,828 autoreload 57536 56980 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\urls.py changed, reloading.
+INFO 2026-05-11 17:54:37,689 autoreload 28860 52732 Watching for file changes with StatReloader
+INFO 2026-05-11 17:54:43,065 autoreload 28860 52732 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\ufaamobilebackend\urls.py changed, reloading.
+INFO 2026-05-11 17:54:44,398 autoreload 54984 32180 Watching for file changes with StatReloader
+INFO 2026-05-11 17:54:48,454 autoreload 54984 32180 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\ufaamobilebackend\urls.py changed, reloading.
+INFO 2026-05-11 17:54:49,959 autoreload 59936 24968 Watching for file changes with StatReloader
+INFO 2026-05-11 17:58:52,206 autoreload 59936 24968 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\apps\api\urls.py changed, reloading.
+INFO 2026-05-11 17:58:54,054 autoreload 23520 57620 Watching for file changes with StatReloader
+WARNING 2026-05-11 18:00:52,406 log 23520 54360 Bad Request: /api/auth/register/
+WARNING 2026-05-11 18:00:52,408 log 23520 54360 "POST /api/auth/register/ HTTP/1.1" 400 90
+WARNING 2026-05-11 18:05:48,032 log 23520 43440 Method Not Allowed: /api/auth/register/
+WARNING 2026-05-11 18:05:48,035 log 23520 43440 "GET /api/auth/register/ HTTP/1.1" 405 40
+INFO 2026-05-11 18:08:42,294 log 23520 20652 "POST /api/auth/register/ HTTP/1.1" 201 1385
+INFO 2026-05-11 18:09:50,353 log 23520 57968 "GET /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2026-05-11 18:09:50,717 log 23520 57968 "GET /admin/ HTTP/1.1" 200 35844
+INFO 2026-05-11 18:09:50,877 log 23520 38336 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,878 log 23520 57968 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,878 log 23520 48192 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,883 log 23520 38336 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,885 log 23520 57968 "GET /static/admin_interface/css/admin-interface.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,886 log 23520 48192 "GET /static/admin_interface/css/fieldsets.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,889 log 23520 38336 "GET /static/admin_interface/css/change-form.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,890 log 23520 48192 "GET /static/admin_interface/css/file-upload.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,891 log 23520 57968 "GET /static/admin_interface/css/changelist.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,895 log 23520 38336 "GET /static/admin_interface/css/header.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,896 log 23520 48192 "GET /static/admin_interface/css/inlines.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,896 log 23520 57968 "GET /static/admin_interface/css/jquery.ui.tabs.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,902 log 23520 38336 "GET /static/admin_interface/css/language-chooser.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,903 log 23520 48192 "GET /static/admin_interface/css/list-filter.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,905 log 23520 57968 "GET /static/admin_interface/css/list-filter-dropdown.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,908 log 23520 38336 "GET /static/admin_interface/css/login.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,911 log 23520 48192 "GET /static/admin_interface/css/modules.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,911 log 23520 57968 "GET /static/admin_interface/css/paginator.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,913 log 23520 38336 "GET /static/admin_interface/css/nav-sidebar.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,917 log 23520 48192 "GET /static/admin_interface/css/object-tools.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,920 log 23520 57968 "GET /static/admin_interface/css/rtl.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,921 log 23520 38336 "GET /static/admin_interface/css/sticky-form-controls.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,922 log 23520 48192 "GET /static/admin_interface/css/tabbed-changeform.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,927 log 23520 57968 "GET /static/admin_interface/css/widgets.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,928 log 23520 38336 "GET /static/admin_interface/css/third-party/ckeditor.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,931 log 23520 48192 "GET /static/admin_interface/css/third-party/import-export.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,934 log 23520 57968 "GET /static/admin_interface/css/third-party/json-widget.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,935 log 23520 38336 "GET /static/admin_interface/css/third-party/modeltranslation.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,937 log 23520 48192 "GET /static/admin_interface/css/third-party/rangefilter.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,940 log 23520 57968 "GET /static/admin_interface/css/third-party/sorl-thumbnail.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,942 log 23520 38336 "GET /static/admin_interface/css/third-party/streamfield.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,943 log 23520 48192 "GET /static/admin_interface/css/third-party/tinymce.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,946 log 23520 57968 "GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,949 log 23520 38336 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,951 log 23520 48192 "GET /static/admin/css/responsive.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,953 log 23520 57968 "GET /static/admin/css/responsive_rtl.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,955 log 23520 38336 "GET /static/admin_interface/foldable-apps/foldable-apps.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,956 log 23520 48192 "GET /static/admin_interface/magnific-popup/magnific-popup.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,960 log 23520 57968 "GET /static/admin_interface/related-modal/related-modal.css?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,962 log 23520 38336 "GET /static/admin_interface/favico/favico-env.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,962 log 23520 48192 "GET /static/admin_interface/favico/favico-0.3.10-patched.min.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,967 log 23520 57968 "GET /static/admin_interface/foldable-apps/foldable-apps.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,968 log 23520 38336 "GET /static/admin_interface/related-modal/related-modal.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,969 log 23520 48192 "GET /static/admin_interface/magnific-popup/jquery.magnific-popup.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,976 log 23520 48192 "GET /media/admin-interface/logo/ufaa_logo_2.png HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,996 log 23520 48192 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,997 log 23520 38336 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:50,998 log 23520 57968 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:51,000 log 23520 48192 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:51,082 log 23520 48192 "GET /media/admin-interface/favicon/court_of_arms.png HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,193 log 23520 48192 "GET /admin/accounts/user/ HTTP/1.1" 200 40470
+INFO 2026-05-11 18:09:53,269 log 23520 48192 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,280 log 23520 48656 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,281 log 23520 57968 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,282 log 23520 48192 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,282 log 23520 15332 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,283 log 23520 54796 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,289 log 23520 57968 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,289 log 23520 48656 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,291 log 23520 48192 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,297 log 23520 57968 "GET /static/admin_interface/dropdown-filter/dropdown-filter.js?v=fbf73b4c3a05e7b27c0ed71177534234cb431fc7becc666773c1f652 HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,299 log 23520 48192 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,305 log 23520 48192 "GET /static/admin/img/icon-no.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,307 log 23520 57968 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,318 log 23520 57968 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,368 log 23520 38336 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 18:09:53,400 log 23520 38336 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:09:53,403 log 23520 38336 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:16:28,697 log 23520 60336 "POST /api/auth/register/ HTTP/1.1" 201 1418
+INFO 2026-05-11 18:16:40,124 log 23520 48044 "GET /admin/accounts/user/ HTTP/1.1" 200 41136
+INFO 2026-05-11 18:16:40,300 log 23520 48044 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 18:17:23,440 log 23520 48044 "GET /admin/accounts/user/4/change/ HTTP/1.1" 200 81005
+INFO 2026-05-11 18:17:23,538 log 23520 56800 "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:23,541 log 23520 15096 "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:23,541 log 23520 48044 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 18:17:23,549 log 23520 48044 "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:23,551 log 23520 48044 "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:23,555 log 23520 48044 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:23,865 log 23520 56800 "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2026-05-11 18:17:23,867 log 23520 15096 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 16428
+INFO 2026-05-11 18:17:23,876 log 23520 15096 "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:24,034 log 23520 48044 "GET /static/admin/img/icon-clock.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:24,034 log 23520 15096 "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:24,035 log 23520 56800 "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2026-05-11 18:17:48,129 log 23520 56800 "GET /admin/accounts/user/ HTTP/1.1" 200 41136
+INFO 2026-05-11 18:17:59,349 log 23520 56800 "GET /admin/accounts/user/2/change/ HTTP/1.1" 200 80854
+INFO 2026-05-11 18:17:59,415 log 23520 56800 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 18:18:05,652 log 23520 60336 "OPTIONS /api/claims/?page=1&page_size=100 HTTP/1.1" 200 0
+INFO 2026-05-11 18:18:05,654 log 23520 60336 "OPTIONS /api/auth/profile/ HTTP/1.1" 200 0
+INFO 2026-05-11 18:18:05,755 log 23520 60336 "GET /api/claims/?page=1&page_size=100 HTTP/1.1" 200 52
+INFO 2026-05-11 18:18:05,774 log 23520 60336 "GET /api/auth/profile/ HTTP/1.1" 200 884
+INFO 2026-05-11 18:18:06,125 log 23520 60336 "OPTIONS /api/claims/?page=1&page_size=5 HTTP/1.1" 200 0
+INFO 2026-05-11 18:18:06,145 log 23520 60336 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 200 52
+INFO 2026-05-11 18:18:10,247 log 23520 60336 "OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+WARNING 2026-05-11 18:18:10,258 log 23520 60336 Bad Request: /api/auth/logout/
+WARNING 2026-05-11 18:18:10,259 log 23520 60336 "POST /api/auth/logout/ HTTP/1.1" 400 62
+WARNING 2026-05-11 18:19:55,774 log 23520 60336 Bad Request: /api/auth/register/
+WARNING 2026-05-11 18:19:55,775 log 23520 60336 "POST /api/auth/register/ HTTP/1.1" 400 56
+WARNING 2026-05-11 18:20:04,804 log 23520 60336 Bad Request: /api/auth/register/
+WARNING 2026-05-11 18:20:04,805 log 23520 60336 "POST /api/auth/register/ HTTP/1.1" 400 56
+INFO 2026-05-11 18:20:12,652 log 23520 56800 "GET /admin/accounts/user/ HTTP/1.1" 200 41136
+INFO 2026-05-11 18:20:12,748 log 23520 56800 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2026-05-11 18:27:45,091 log 23520 11764 Bad Request: /api/auth/register/
+WARNING 2026-05-11 18:27:45,103 log 23520 11764 "POST /api/auth/register/ HTTP/1.1" 400 56
+INFO 2026-05-11 18:28:58,260 log 23520 11764 "POST /api/auth/register/ HTTP/1.1" 201 1414
+INFO 2026-05-11 18:38:15,229 log 23520 18804 "GET /api/claims/?page=1&page_size=100 HTTP/1.1" 200 52
+INFO 2026-05-11 18:38:15,265 log 23520 59548 "GET /api/auth/profile/ HTTP/1.1" 200 880
+INFO 2026-05-11 18:38:19,769 log 23520 59548 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 200 52
+WARNING 2026-05-11 18:38:23,268 log 23520 59548 Bad Request: /api/auth/logout/
+WARNING 2026-05-11 18:38:23,269 log 23520 59548 "POST /api/auth/logout/ HTTP/1.1" 400 62
+INFO 2026-05-11 18:39:42,155 log 23520 59548 "POST /api/auth/register/ HTTP/1.1" 201 1403
+INFO 2026-05-11 18:39:55,479 log 23520 18804 "GET /api/auth/profile/ HTTP/1.1" 200 869
+INFO 2026-05-11 18:39:55,480 log 23520 59548 "GET /api/claims/?page=1&page_size=100 HTTP/1.1" 200 52
+INFO 2026-05-11 18:39:55,752 log 23520 18804 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 200 52
+INFO 2026-05-11 18:40:29,788 log 23520 39184 "GET /admin/accounts/user/ HTTP/1.1" 200 42456
+INFO 2026-05-11 18:40:29,900 log 23520 39184 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 18:40:37,759 log 23520 39184 "GET /admin/accounts/user/6/change/ HTTP/1.1" 200 80985
+INFO 2026-05-11 18:40:37,843 log 23520 39184 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2026-05-11 20:49:42,970 log 23520 15280 "OPTIONS /api/claims/?page=1&page_size=5 HTTP/1.1" 200 0
+WARNING 2026-05-11 20:49:43,174 log 23520 15280 Unauthorized: /api/claims/
+WARNING 2026-05-11 20:49:43,177 log 23520 15280 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 401 172
+INFO 2026-05-11 20:51:59,424 log 23520 15280 "OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+WARNING 2026-05-11 20:51:59,442 log 23520 15280 Unauthorized: /api/auth/logout/
+WARNING 2026-05-11 20:51:59,444 log 23520 15280 "POST /api/auth/logout/ HTTP/1.1" 401 172
+INFO 2026-05-12 05:55:16,510 log 23520 50736 "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2026-05-12 05:55:19,039 log 23520 50736 "POST /api/auth/login/ HTTP/1.1" 200 1384
+INFO 2026-05-12 06:28:45,072 log 23520 36600 "OPTIONS /api/claims/?page=1&page_size=100 HTTP/1.1" 200 0
+INFO 2026-05-12 06:28:45,083 log 23520 25116 "OPTIONS /api/auth/profile/ HTTP/1.1" 200 0
+INFO 2026-05-12 06:28:45,775 log 23520 25116 "GET /api/auth/profile/ HTTP/1.1" 200 847
+INFO 2026-05-12 06:28:45,835 log 23520 36600 "GET /api/claims/?page=1&page_size=100 HTTP/1.1" 200 52
+INFO 2026-05-12 06:28:46,079 log 23520 36600 "OPTIONS /api/claims/?page=1&page_size=5 HTTP/1.1" 200 0
+INFO 2026-05-12 06:28:46,099 log 23520 36600 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 200 52
+INFO 2026-05-12 06:28:46,489 log 23520 36600 "GET /api/claims/?page=1&page_size=5 HTTP/1.1" 200 52
+INFO 2026-05-12 06:28:50,975 log 23520 36600 "OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+WARNING 2026-05-12 06:28:50,989 log 23520 36600 Bad Request: /api/auth/logout/
+WARNING 2026-05-12 06:28:50,991 log 23520 36600 "POST /api/auth/logout/ HTTP/1.1" 400 62
+INFO 2026-05-12 06:29:03,525 log 23520 36600 "POST /api/auth/login/ HTTP/1.1" 200 1384
+INFO 2026-05-12 06:31:36,303 autoreload 23520 57620 D:\Documents\UFAA\code\ufaa_prod_backend\ufaamobilebackend\ufaamobilebackend\urls.py changed, reloading.
+INFO 2026-05-12 06:31:40,608 autoreload 32788 36508 Watching for file changes with StatReloader

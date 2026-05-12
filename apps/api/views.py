@@ -32,11 +32,10 @@ from apps.claims.serializers import (
 
 
 class AuthViewSet(viewsets.GenericViewSet):
-    """Authentication ViewSet for user registration, login, and password management"""
-    
+    """Authentication ViewSet for user registration, login, and password management"""    
     permission_classes = [AllowAny]
-    serializer_class = None
-    
+    serializer_class = None    
+
     @action(detail=False, methods=['post'])
     def register(self, request):
         """Register a new user"""
@@ -60,7 +59,12 @@ class AuthViewSet(viewsets.GenericViewSet):
                 'access': str(refresh.access_token),
                 'message': 'Registration successful!'
             }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Return detailed error messages
+        errors = serializer.errors
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
     
     @method_decorator(axes_dispatch)
     @action(detail=False, methods=['post'])

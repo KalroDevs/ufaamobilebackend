@@ -9,25 +9,10 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from apps.api.views import AuthViewSet, AssetViewSet, ClaimViewSet, StaffAssetTrackerViewSet
-
-
-
-# Create router with basenames
-router = DefaultRouter()
-router.register(r'auth', AuthViewSet, basename='auth')
-router.register(r'assets', AssetViewSet, basename='asset')
-router.register(r'claims', ClaimViewSet, basename='claim')
-router.register(r'staff/assets', StaffAssetTrackerViewSet, basename='staff-asset')
-
-
 
 admin.site.site_header = "UFAA Reunify Mobile Admin"  
 admin.site.site_title = "UFAA Reunify Mobile Admin"         
 admin.site.index_title = "Welcome to the UFAA Mobile Dashboard" 
-
-
-
 
 
 schema_view = get_schema_view(
@@ -47,10 +32,10 @@ urlpatterns = [
     path('', include('guest_portal.urls')),
     path('admin/logout/', auth_views.LogoutView.as_view(), name='admin_logout'),
     path('admin/', admin.site.urls),
-    path('api-live/', include('apps.live_operations.urls')),
+    path('api/live/', include('apps.live_operations.urls')),
 
      # REST API endpoints
-    path('api/', include(router.urls)),
+    path('api/', include('apps.api.urls')),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Claims REST API endpoints
