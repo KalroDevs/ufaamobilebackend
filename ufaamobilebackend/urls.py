@@ -29,6 +29,8 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
+   # path('oidc/', include('oauth2_authcodeflow.urls')),
+    path('oidc/', include('apps.oidc.urls')),
     path('', include('guest_portal.urls')),
     path('admin/logout/', auth_views.LogoutView.as_view(), name='admin_logout'),
     path('admin/', admin.site.urls),

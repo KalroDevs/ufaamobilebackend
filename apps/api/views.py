@@ -12,6 +12,13 @@ from axes.decorators import axes_dispatch
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework.views import APIView
+from django.urls import reverse
+from django.conf import settings
+
+
+
+
 from apps.accounts.models import User, LoginAttempt, UserActivityLog
 from apps.accounts.serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer, 
@@ -36,6 +43,33 @@ class AuthViewSet(viewsets.GenericViewSet):
     permission_classes = [AllowAny]
     serializer_class = None    
 
+    def _get_client_ip(self, request):
+        """
+        Get client IP address from request headers.
+        Handles cases where the app is behind a proxy (nginx/gunicorn).
+        """
+        # Check for X-Forwarded-For header (when behind a proxy)
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # X-Forwarded-For can be a comma-separated list
+            # The first IP is the client's real IP
+            ip = x_forwarded_for.split(',')[0].strip()
+            if ip:
+                return ip
+        
+        # Check for X-Real-IP header (set by nginx)
+        x_real_ip = request.META.get('HTTP_X_REAL_IP')
+        if x_real_ip:
+            return x_real_ip
+        
+        # Fall back to REMOTE_ADDR
+        remote_addr = request.META.get('REMOTE_ADDR')
+        if remote_addr:
+            return remote_addr
+        
+        # Default if all are empty
+        return '0.0.0.0'
+
     @action(detail=False, methods=['post'])
     def register(self, request):
         """Register a new user"""
@@ -49,7 +83,7 @@ class AuthViewSet(viewsets.GenericViewSet):
                 user=user,
                 activity_type='register',
                 description=f'User registered with ID: {user.id_number}',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
             
@@ -64,12 +98,13 @@ class AuthViewSet(viewsets.GenericViewSet):
         errors = serializer.errors
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
     
-
-    
     @method_decorator(axes_dispatch)
     @action(detail=False, methods=['post'])
     def login(self, request):
         """Login user with ID Number, Email, or Phone Number"""
+        # Get client IP address
+        client_ip = self._get_client_ip(request)
+        
         # Pass the request to the serializer context for axes
         serializer = LoginSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -84,7 +119,7 @@ class AuthViewSet(viewsets.GenericViewSet):
             LoginAttempt.objects.create(
                 user=user,
                 identifier=request.data.get('identifier', ''),
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=client_ip,
                 success=True,
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 device_fingerprint=request.data.get('device_fingerprint', '')
@@ -94,7 +129,7 @@ class AuthViewSet(viewsets.GenericViewSet):
                 user=user,
                 activity_type='login',
                 description=f'User logged in with ID: {user.id_number}',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=client_ip,
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
             
@@ -110,9 +145,10 @@ class AuthViewSet(viewsets.GenericViewSet):
         LoginAttempt.objects.create(
             user=None,
             identifier=request.data.get('identifier', ''),
-            ip_address=request.META.get('REMOTE_ADDR'),
+            ip_address=client_ip,
             success=False,
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            device_fingerprint=request.data.get('device_fingerprint', '')
         )
         
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
@@ -131,7 +167,7 @@ class AuthViewSet(viewsets.GenericViewSet):
                 user=request.user,
                 activity_type='logout',
                 description='User logged out',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
             
@@ -155,7 +191,7 @@ class AuthViewSet(viewsets.GenericViewSet):
                 user=user,
                 activity_type='password_change',
                 description='User changed password',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
             
@@ -211,7 +247,7 @@ class AuthViewSet(viewsets.GenericViewSet):
                 user=request.user,
                 activity_type='profile_update',
                 description='User updated profile',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
             return Response(serializer.data)
@@ -829,3 +865,49 @@ class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
             'transferred': Asset.objects.filter(status='transferred').count(),
         }
         return Response(stats)
+
+
+
+class InitiateECitizenLoginView(APIView):
+    """Returns the eCitizen authorization URL for the mobile app"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        # Build the authorization URL
+        auth_url = request.build_absolute_uri(reverse('oidc_authentication'))
+        
+        # Add next and fail parameters
+        auth_url += f'?next=/api/auth/ecitizen/callback/&fail=/api/auth/ecitizen/fail/'
+        
+        return Response({
+            'authorization_url': auth_url,
+            'redirect_scheme': 'ufaareunite://callback'  # Your app's custom scheme
+        })
+
+class ECitizenCallbackView(APIView):
+    """Handles the OIDC callback after successful authentication"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        # The oauth2_authcodeflow middleware will have already authenticated the user
+        if request.user.is_authenticated:
+            # Generate JWT tokens for the mobile app
+            from rest_framework_simplejwt.tokens import RefreshToken
+            
+            refresh = RefreshToken.for_user(request.user)
+            
+            return Response({
+                'success': True,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': {
+                    'id': request.user.id,
+                    'username': request.user.username,
+                    'email': request.user.email,
+                    'first_name': request.user.first_name,
+                    'last_name': request.user.last_name,
+                    'id_number': getattr(request.user, 'id_number', ''),
+                    'phone_no': getattr(request.user, 'phone_no', ''),
+                }
+            })
+        return Response({'success': False, 'error': 'Authentication failed'}, status=401)

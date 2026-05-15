@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # OAuth2 authcodeflow
+    #'oauth2_authcodeflow',
+    'apps.oidc',  
      # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
@@ -91,7 +94,9 @@ AUTHENTICATION_BACKENDS = [
 
 # CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000', cast=Csv())
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
 
 # CORS_ALLOWED_ORIGINS = [
 #     "http://localhost:64086",  # Flutter web dev server
@@ -99,8 +104,10 @@ CORS_ALLOW_ALL_ORIGINS = True
     
 # ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://mobile.ufaa.go.ke",  # Add your mobile domain
+]
 
-CORS_ALLOW_CREDENTIALS = True
 
 
 
@@ -148,7 +155,6 @@ WSGI_APPLICATION = 'ufaamobilebackend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 
 
 # DATABASES = {
@@ -360,7 +366,7 @@ AXES_COOLOFF_TIME = timedelta(minutes=config('AXES_COOLOFF_TIME_MINUTES', defaul
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = 'axes/lockout.html'
-
+AXES_IPWARE_META_PRECEDENCE_ORDER = ('HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR')
 
 # Logging Configuration
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
@@ -421,6 +427,7 @@ X_FRAME_OPTIONS = 'DENY'
 # Production security settings (enabled only when DEBUG=False)
 if not DEBUG:
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    
     SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
     CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
     SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
@@ -483,3 +490,43 @@ SHAREPOINT_SITE = os.getenv('SHAREPOINT_SITE', '/sites/UFAA')
 SHAREPOINT_DOCUMENT_LIBRARY = os.getenv('SHAREPOINT_DOCUMENT_LIBRARY', 'Claim Documents')
 SHAREPOINT_CLIENT_ID = os.getenv('SHAREPOINT_CLIENT_ID', 'your-client-id')
 SHAREPOINT_CLIENT_SECRET = os.getenv('SHAREPOINT_CLIENT_SECRET', 'your-client-secret')
+
+
+
+
+# eCitizen OIDC Configuration
+# You'll need to register your app with eCitizen to get these credentials
+OIDC_RP_CLIENT_ID = '278f1ef8168611eebdbf0050560101d6'  # From eCitizen registration
+OIDC_RP_CLIENT_SECRET = 'your_ecitizen_client_secret'  # From eCitizen registration
+
+# Use discovery document URL if available (recommended)
+OIDC_OP_DISCOVERY_DOCUMENT_URL = 'https://auth.ecitizen.go.ke/.well-known/openid-configuration'
+
+# Or configure endpoints individually if discovery not available
+OIDC_OP_AUTHORIZATION_URL = 'https://auth.ecitizen.go.ke/authorize'
+OIDC_OP_TOKEN_URL = 'https://auth.ecitizen.go.ke/token'
+OIDC_OP_USERINFO_URL = 'https://auth.ecitizen.go.ke/userinfo'
+OIDC_OP_JWKS_URL = 'https://auth.ecitizen.go.ke/jwks'
+
+# OIDC Scopes - include openid (required), profile, email
+OIDC_RP_SCOPES = 'openid profile email phone'
+
+# Enable PKCE for mobile app security (highly recommended)
+OIDC_RP_USE_PKCE = True
+
+# Fetch user info on login to get user details
+OIDC_OP_FETCH_USER_INFO = True
+
+# Auto-create users from OIDC login
+OIDC_CREATE_USER = True
+
+
+# Session security settings (important for production)
+SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Login URL configuration
+#from django.urls import reverse_lazy
+#from django.utils.text import format_lazy
+#LOGIN_URL = format_lazy('{}?fail=/', url=reverse_lazy('oidc_authentication'))
