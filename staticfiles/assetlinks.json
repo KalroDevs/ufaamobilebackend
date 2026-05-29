@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.ufaa.ereunify_mobile",
+    "sha256_cert_fingerprints": [
+      "44:4D:A2:85:36:74:8B:DC:65:39:D2:D7:93:14:EF:BC:3C:35:9A:9F:42:24:DE:F2:06:4F:01:CB:78:40:B7:87"
+    ]
+  }
+}]

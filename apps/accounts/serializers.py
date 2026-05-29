@@ -38,12 +38,20 @@ class RegisterSerializer(serializers.ModelSerializer):
     surname = serializers.CharField(write_only=True, required=False, allow_blank=True)
     other_names = serializers.CharField(write_only=True, required=False, allow_blank=True)
     nationality = serializers.CharField(write_only=True, required=False, default='Kenyan')
+    
+    # Address fields
     town = serializers.CharField(write_only=True, required=False, allow_blank=True)
     estate_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
     physical_address = serializers.CharField(write_only=True, required=False, allow_blank=True)
     postal_address = serializers.CharField(write_only=True, required=False, allow_blank=True)
     county_of_residence = serializers.CharField(write_only=True, required=False, allow_blank=True)
     alternative_phone = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
+    # NEW FIELDS
+    kra_pin = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    passport_no = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    has_disability = serializers.BooleanField(write_only=True, required=False, default=False)
+    disability_category = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     
     class Meta:
         model = User
@@ -53,7 +61,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             'id_number', 'phone_no', 'alternative_phone',
             'date_of_birth', 'gender', 'nationality',
             'town', 'estate_name', 'physical_address', 'postal_address',
-            'county_of_residence', 'citizenship'
+            'county_of_residence', 'citizenship',
+            # New fields
+            'kra_pin', 'passport_no', 'has_disability', 'disability_category'
         ]
     
     def validate(self, attrs):
@@ -97,16 +107,51 @@ class RegisterSerializer(serializers.ModelSerializer):
         if alternative_phone:
             attrs['secondary_phone_no'] = alternative_phone
         
-        # Validate ID number format for Kenyans
+        # Handle KRA PIN
+        kra_pin = attrs.pop('kra_pin', None)
+        if kra_pin:
+            attrs['kra_pin'] = kra_pin.upper().strip()
+        
+        # Handle Passport Number
+        passport_no = attrs.pop('passport_no', None)
+        if passport_no:
+            attrs['passport_no'] = passport_no.upper().strip()
+        
+        # Handle Disability
+        has_disability = attrs.pop('has_disability', False)
+        attrs['person_living_with_disability'] = has_disability
+        
+        disability_category = attrs.pop('disability_category', None)
+        if has_disability and disability_category:
+            attrs['disability_category'] = disability_category
+        
+        # Validate identification - either ID number or Passport number must be provided
         id_number = attrs.get('id_number')
+        passport_no_final = attrs.get('passport_no')
+        
+        if not id_number and not passport_no_final:
+            raise serializers.ValidationError({
+                "id_number": "Either National ID Number or Passport Number is required"
+            })
+        
+        # Validate ID number format for Kenyans
         if nationality == 'Kenyan' and id_number:
             id_str = str(id_number)
-            if not id_str.isdigit() or len(id_str) != 8:
+            if not id_str.isdigit() or not (7 <= len(id_str) <= 8):
                 raise serializers.ValidationError({"id_number": "ID Number must be 8 digits"})
         
+        # Validate passport number format
+        if passport_no_final:
+            passport_str = str(passport_no_final)
+            if len(passport_str) < 6 or len(passport_str) > 9:
+                raise serializers.ValidationError({"passport_no": "Passport number must be 6-9 characters"})
+        
         # Check for duplicates
-        if User.objects.filter(id_number=attrs.get('id_number')).exists():
+        if id_number and User.objects.filter(id_number=id_number).exists():
             raise serializers.ValidationError({"id_number": "User with this ID Number already exists."})
+        
+        if passport_no_final and User.objects.filter(passport_no=passport_no_final).exists():
+            raise serializers.ValidationError({"passport_no": "User with this Passport Number already exists."})
         
         if User.objects.filter(email=attrs.get('email')).exists():
             raise serializers.ValidationError({"email": "User with this email already exists."})
