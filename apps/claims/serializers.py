@@ -1,3 +1,4 @@
+# apps/claims/serializers.py
 from rest_framework import serializers
 from decimal import Decimal
 from .models import (
@@ -5,6 +6,9 @@ from .models import (
 )
 from apps.assets.models import Asset
 from apps.assets.serializers import AssetSerializer
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ClaimAssetSerializer(serializers.ModelSerializer):
@@ -82,12 +86,18 @@ class ClaimSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
     progress_percentage = serializers.IntegerField(read_only=True)
     
+    # User information fields
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    
     class Meta:
         model = Claim
         fields = '__all__'
         read_only_fields = [
-            'id', 'no', 'created_at', 'updated_at', 'submitted_at', 
-            'approved_at', 'paid_at', 'status_display', 'progress_percentage'
+            'id', 'no', 'user', 'created_at', 'updated_at', 'submitted_at', 
+            'approved_at', 'paid_at', 'status_display', 'progress_percentage',
+            'user_id', 'user_name', 'user_email'
         ]
     
     def to_representation(self, instance):
@@ -101,12 +111,30 @@ class ClaimSerializer(serializers.ModelSerializer):
                 representation['amount'] = 0.0
         return representation
     
+    def validate(self, attrs):
+        """Validate that the claim belongs to the authenticated user"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # For update operations, ensure user owns the claim
+            if self.instance and self.instance.user != request.user:
+                # Staff users can modify claims if they have permission
+                if not (request.user.is_staff or request.user.role in ['staff', 'admin']):
+                    raise serializers.ValidationError(
+                        "You do not have permission to modify this claim."
+                    )
+        return attrs
+    
     def create(self, validated_data):
         asset_ids = validated_data.pop('asset_ids', [])
+        request = self.context.get('request')
         
         # Ensure amount is properly set as Decimal
         if 'amount' in validated_data and validated_data['amount'] is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
+        
+        # Automatically set the user to the authenticated user
+        if request and request.user.is_authenticated:
+            validated_data['user'] = request.user
         
         claim = Claim.objects.create(**validated_data)
         
@@ -133,7 +161,7 @@ class ClaimSerializer(serializers.ModelSerializer):
             claim=claim,
             previous_status='',
             new_status=claim.status,
-            changed_by=self.context.get('request').user if self.context.get('request') else None,
+            changed_by=request.user if request else None,
             reason='Claim created'
         )
         
@@ -142,6 +170,15 @@ class ClaimSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         asset_ids = validated_data.pop('asset_ids', None)
         old_status = instance.status
+        request = self.context.get('request')
+        
+        # Check if user owns the claim before updating
+        if request and request.user.is_authenticated:
+            if instance.user != request.user:
+                if not (request.user.is_staff or request.user.role in ['staff', 'admin']):
+                    raise serializers.ValidationError(
+                        "You do not have permission to modify this claim."
+                    )
         
         # Handle amount update
         if 'amount' in validated_data and validated_data['amount'] is not None:
@@ -156,7 +193,7 @@ class ClaimSerializer(serializers.ModelSerializer):
                 claim=instance,
                 previous_status=old_status,
                 new_status=instance.status,
-                changed_by=self.context.get('request').user if self.context.get('request') else None,
+                changed_by=request.user if request else None,
                 reason=f'Status changed from {old_status} to {instance.status}'
             )
         
@@ -208,8 +245,25 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['no']  # Make 'no' read-only since it's auto-generated
     
+    def validate(self, attrs):
+        """Validate and set the user from request"""
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("Authentication required to create a claim.")
+        return attrs
+    
     def create(self, validated_data):
         asset_ids = validated_data.pop('asset_ids', [])
+        request = self.context.get('request')
+        
+        # Automatically set the user to the authenticated user
+        if request and request.user.is_authenticated:
+            validated_data['user'] = request.user
+        
+        # Handle amount if present
+        if 'amount' in validated_data and validated_data['amount'] is not None:
+            validated_data['amount'] = Decimal(str(validated_data['amount']))
+        
         claim = Claim.objects.create(**validated_data)  # 'no' will be auto-generated
         
         for asset_id in asset_ids:
@@ -228,8 +282,7 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
                 pass
         
         return claim
-    
-    
+
 
 class ClaimStatusSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
@@ -302,9 +355,64 @@ class ClaimSearchSerializer(serializers.Serializer):
         choices=['claim_no', 'id_number', 'phone_no', 'name'],
         required=True
     )
+    
+    def validate(self, attrs):
+        """Ensure the search is for the authenticated user's claims"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # For non-staff users, restrict search to their own claims
+            if not (request.user.is_staff or request.user.role in ['staff', 'admin']):
+                identifier = attrs.get('identifier')
+                search_type = attrs.get('search_type')
+                
+                # Build queryset for user's claims
+                user_claims = Claim.objects.filter(user=request.user)
+                
+                # Perform search within user's claims only
+                if search_type == 'claim_no':
+                    if not user_claims.filter(no=identifier).exists():
+                        raise serializers.ValidationError(
+                            "No claim found with this number for your account."
+                        )
+                elif search_type == 'id_number':
+                    if not user_claims.filter(id_number=identifier).exists():
+                        raise serializers.ValidationError(
+                            "No claim found with this ID number for your account."
+                        )
+                elif search_type == 'phone_no':
+                    if not user_claims.filter(phone_no=identifier).exists():
+                        raise serializers.ValidationError(
+                            "No claim found with this phone number for your account."
+                        )
+                elif search_type == 'name':
+                    if not user_claims.filter(name__icontains=identifier).exists():
+                        raise serializers.ValidationError(
+                            "No claim found with this name for your account."
+                        )
+        return attrs
 
 
 class ClaimDocumentUploadSerializer(serializers.Serializer):
     document_type = serializers.ChoiceField(choices=[choice[0] for choice in ClaimDocument.DOCUMENT_TYPES])
     file = serializers.FileField()
     document_name = serializers.CharField(required=False, allow_blank=True)
+    
+    def validate(self, attrs):
+        """Ensure the claim exists and belongs to the user"""
+        request = self.context.get('request')
+        claim_id = self.context.get('claim_id')
+        
+        if claim_id:
+            try:
+                claim = Claim.objects.get(id=claim_id)
+                # Check if user owns the claim
+                if request and request.user.is_authenticated:
+                    if claim.user != request.user:
+                        if not (request.user.is_staff or request.user.role in ['staff', 'admin']):
+                            raise serializers.ValidationError(
+                                "You do not have permission to upload documents for this claim."
+                            )
+            except Claim.DoesNotExist:
+                raise serializers.ValidationError("Claim does not exist.")
+        
+        return attrs

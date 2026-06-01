@@ -1,7 +1,16 @@
 # api/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AuthViewSet, AssetViewSet, ClaimViewSet, StaffAssetTrackerViewSet
+from .views import *
+
+from apps.api.views import (
+    resend_verification,
+    verify_email,
+    check_verification_status
+)
+
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+
 from django.views.generic import TemplateView
 from apps.oidc.views import (
     InitiateECitizenLoginView, 
@@ -29,5 +38,16 @@ urlpatterns = [
     path('.well-known/assetlinks.json', 
          TemplateView.as_view(template_name='assetlinks.json', content_type='application/json'),
          name='assetlinks'),
+
+
+    path('auth/resend-verification/', resend_verification, name='resend_verification'),
+    path('auth/verify-email/', verify_email, name='verify_email'),
+    path('auth/check-verification/', check_verification_status, name='check_verification_status'),
+
+
+    # JWT Token endpoints
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+
 
 ]

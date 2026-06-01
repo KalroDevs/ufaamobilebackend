@@ -1,10 +1,15 @@
+# apps/accounts/serializers.py
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.crypto import get_random_string
+from django.utils import timezone
 from django.db import models
 from .models import User, StaffProfile
-
-
+import random
+from datetime import timedelta
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,7 +52,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     county_of_residence = serializers.CharField(write_only=True, required=False, allow_blank=True)
     alternative_phone = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
-    # NEW FIELDS
+    # New fields
     kra_pin = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     passport_no = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     has_disability = serializers.BooleanField(write_only=True, required=False, default=False)
@@ -62,7 +67,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             'date_of_birth', 'gender', 'nationality',
             'town', 'estate_name', 'physical_address', 'postal_address',
             'county_of_residence', 'citizenship',
-            # New fields
             'kra_pin', 'passport_no', 'has_disability', 'disability_category'
         ]
     
@@ -137,7 +141,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Validate ID number format for Kenyans
         if nationality == 'Kenyan' and id_number:
             id_str = str(id_number)
-            if not id_str.isdigit() or not (7 <= len(id_str) <= 8):
+            if not id_str.isdigit() or len(id_str) != 8:
                 raise serializers.ValidationError({"id_number": "ID Number must be 8 digits"})
         
         # Validate passport number format
@@ -164,6 +168,175 @@ class RegisterSerializer(serializers.ModelSerializer):
         
         return attrs
     
+    def _generate_verification_code(self):
+        """Generate 6-digit verification code"""
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    
+    def _send_verification_email(self, user, token, code):
+        """Send verification email to user"""
+        try:
+            # Build verification URL
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+            verification_url = f"{frontend_url}/verify-email?token={token}&email={user.email}"
+            
+            # Send email
+            subject = 'Verify Your UFAA Account'
+            html_message = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Verify Your UFAA Account</title>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        margin: 0;
+                        padding: 0;
+                    }}
+                    .container {{
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }}
+                    .header {{
+                        background-color: #262561;
+                        padding: 20px;
+                        text-align: center;
+                        border-radius: 10px 10px 0 0;
+                    }}
+                    .header h1 {{
+                        color: #E4B355;
+                        margin: 0;
+                        font-size: 24px;
+                    }}
+                    .content {{
+                        background-color: #ffffff;
+                        padding: 30px;
+                        border: 1px solid #e0e0e0;
+                        border-top: none;
+                        border-radius: 0 0 10px 10px;
+                    }}
+                    .verification-link {{
+                        background-color: #E4B355;
+                        color: white;
+                        padding: 12px 24px;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        display: inline-block;
+                        margin: 20px 0;
+                    }}
+                    .code-box {{
+                        background-color: #f5f5f5;
+                        padding: 20px;
+                        border-radius: 8px;
+                        text-align: center;
+                        margin: 20px 0;
+                        border: 1px dashed #262561;
+                    }}
+                    .code {{
+                        font-size: 28px;
+                        font-weight: bold;
+                        letter-spacing: 5px;
+                        color: #262561;
+                        font-family: monospace;
+                    }}
+                    .footer {{
+                        text-align: center;
+                        padding: 20px;
+                        font-size: 12px;
+                        color: #666;
+                        border-top: 1px solid #e0e0e0;
+                        margin-top: 20px;
+                    }}
+                    .warning {{
+                        background-color: #fff3cd;
+                        border: 1px solid #ffecb5;
+                        color: #856404;
+                        padding: 12px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                        font-size: 12px;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Welcome to UFAA Reunite</h1>
+                    </div>
+                    <div class="content">
+                        <p>Dear <strong>{user.get_full_name() or user.username}</strong>,</p>
+                        <p>Thank you for registering with the Unclaimed Financial Assets Authority (UFAA). Please verify your email address to activate your account.</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="{verification_url}" class="verification-link">Verify Email Address</a>
+                        </div>
+                        
+                        <div class="code-box">
+                            <p><strong>Or enter this verification code:</strong></p>
+                            <div class="code">{code}</div>
+                            <p style="margin-top: 10px; font-size: 12px;">Enter this code in the UFAA app to verify your email</p>
+                        </div>
+                        
+                        <div class="warning">
+                            <strong>⚠️ Important:</strong> This verification link and code will expire in 24 hours.
+                        </div>
+                        
+                        <p>If you did not create an account with UFAA, please ignore this email.</p>
+                        
+                        <p><strong>Need help?</strong> Contact our support team:<br>
+                        Email: info@ufaa.go.ke<br>
+                        Phone: +254 20 1234567</p>
+                    </div>
+                    <div class="footer">
+                        <p>© {timezone.now().year} Unclaimed Financial Assets Authority. All rights reserved.</p>
+                        <p>This is an automated message, please do not reply.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Plain text fallback
+            plain_message = f"""
+            Welcome to UFAA Reunite!
+            
+            Dear {user.get_full_name() or user.username},
+            
+            Thank you for registering. Please verify your email address to activate your account.
+            
+            Click the link below to verify your email:
+            {verification_url}
+            
+            Or enter this verification code: {code}
+            
+            This verification link and code will expire in 24 hours.
+            
+            If you did not create an account with UFAA, please ignore this email.
+            
+            Need help? Contact our support team:
+            Email: info@ufaa.go.ke
+            Phone: +254 20 1234567
+            
+            © 2024 Unclaimed Financial Assets Authority. All rights reserved.
+            """
+            
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✅ Verification email sent to {user.email}")
+        except Exception as e:
+            # Log error but don't fail registration
+            print(f"❌ Failed to send verification email to {user.email}: {e}")
+    
     def create(self, validated_data):
         validated_data.pop('confirm_password')
         
@@ -180,6 +353,14 @@ class RegisterSerializer(serializers.ModelSerializer):
                 counter += 1
             validated_data['username'] = username
         
+        # Generate verification token and code
+        verification_token = get_random_string(length=64)
+        verification_code = self._generate_verification_code()
+        
+        validated_data['verification_token'] = verification_token
+        validated_data['temporary_verification_code'] = verification_code
+        validated_data['is_verified'] = False  # Email not verified yet
+        
         # Create user
         user = User.objects.create_user(**validated_data)
         
@@ -189,7 +370,186 @@ class RegisterSerializer(serializers.ModelSerializer):
         
         user.save()
         
+        # Send verification email (don't fail registration if email fails)
+        try:
+            self._send_verification_email(user, verification_token, verification_code)
+        except Exception as e:
+            print(f"⚠️ Verification email sending failed but user created: {e}")
+        
         return user
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    token = serializers.CharField(required=False, allow_blank=True)
+    verification_code = serializers.CharField(required=False, allow_blank=True, max_length=6, min_length=6)
+    
+    def validate(self, attrs):
+        email = attrs.get('email')
+        token = attrs.get('token', '')
+        verification_code = attrs.get('verification_code', '')
+        
+        if not token and not verification_code:
+            raise serializers.ValidationError(
+                "Either verification token or code is required"
+            )
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"email": "User with this email does not exist"})
+        
+        if user.is_verified:
+            raise serializers.ValidationError({"email": "Email already verified"})
+        
+        # Check token or code
+        if token and user.verification_token == token:
+            attrs['user'] = user
+            return attrs
+        
+        if verification_code and hasattr(user, 'temporary_verification_code'):
+            if user.temporary_verification_code == verification_code:
+                attrs['user'] = user
+                return attrs
+        
+        raise serializers.ValidationError(
+            "Invalid or expired verification token/code"
+        )
+    
+    def save(self):
+        user = self.validated_data['user']
+        user.is_verified = True
+        user.verification_token = ''
+        user.temporary_verification_code = ''
+        user.save(update_fields=['is_verified', 'verification_token', 'temporary_verification_code'])
+        
+        return user
+
+
+class ResendVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    
+    def _generate_verification_code(self):
+        """Generate 6-digit verification code"""
+        import random
+        return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    
+    def _send_verification_email(self, user, token, code):
+        """Send verification email to user"""
+        try:
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+            verification_url = f"{frontend_url}/verify-email?token={token}&email={user.email}"
+            
+            subject = 'Verify Your UFAA Account - New Verification Link'
+            html_message = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Verify Your UFAA Account</title>
+            </head>
+            <body style="font-family: Arial, sans-serif;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #262561;">Email Verification</h2>
+                    <p>We received a request to resend the verification email.</p>
+                    
+                    <div style="margin: 30px 0;">
+                        <a href="{verification_url}" 
+                           style="background-color: #E4B355; color: white; padding: 12px 24px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email Address
+                        </a>
+                    </div>
+                    
+                    <div style="margin: 30px 0; padding: 20px; background-color: #f5f5f5; border-radius: 5px;">
+                        <h3>Verification Code</h3>
+                        <p style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #262561;">
+                            {code}
+                        </p>
+                        <p>Enter this code in the UFAA app to verify your email.</p>
+                    </div>
+                    
+                    <p>This verification link and code will expire in 24 hours.</p>
+                    
+                    <hr>
+                    <p style="color: #666; font-size: 12px;">
+                        If you didn't request this, please ignore this email.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            plain_message = f"""
+            Email Verification
+            
+            We received a request to resend the verification email.
+            
+            Click the link below to verify your email:
+            {verification_url}
+            
+            Or enter this verification code: {code}
+            
+            This verification link and code will expire in 24 hours.
+            
+            If you didn't request this, please ignore this email.
+            """
+            
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✅ Resent verification email to {user.email}")
+        except Exception as e:
+            print(f"❌ Failed to resend verification email to {user.email}: {e}")
+    
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+            if user.is_verified:
+                raise serializers.ValidationError("Email already verified")
+            self.user = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No user found with this email")
+        return value
+    
+    def save(self):
+        # Generate new verification token and code
+        new_token = get_random_string(length=64)
+        new_code = self._generate_verification_code()
+        
+        self.user.verification_token = new_token
+        self.user.temporary_verification_code = new_code
+        self.user.save(update_fields=['verification_token', 'temporary_verification_code'])
+        
+        # Send new verification email
+        self._send_verification_email(self.user, new_token, new_code)
+        
+        return self.user
+
+
+class CheckVerificationStatusSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+            self.user = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found")
+        return value
+    
+    def to_representation(self, instance):
+        return {
+            'email': self.user.email,
+            'is_verified': self.user.is_verified,
+            'username': self.user.username,
+            'full_name': self.user.get_full_name() or self.user.name or self.user.username,
+        }
 
 
 class LoginSerializer(serializers.Serializer):
@@ -230,14 +590,19 @@ class LoginSerializer(serializers.Serializer):
         
         # Authenticate
         if request:
-            from django.contrib.auth import authenticate
             auth_user = authenticate(request=request, username=user.username, password=password)
         else:
-            from django.contrib.auth import authenticate
             auth_user = authenticate(username=user.username, password=password)
         
         if not auth_user:
             raise serializers.ValidationError("Invalid password.")
+        
+        # Check if email is verified
+        if not auth_user.is_verified:
+            raise serializers.ValidationError(
+                "Please verify your email address before logging in. "
+                "Check your inbox for the verification link."
+            )
         
         if not auth_user.is_active:
             raise serializers.ValidationError("User account is disabled.")

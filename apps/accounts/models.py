@@ -1,8 +1,10 @@
+# apps/accounts/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 
 class User(AbstractUser):
     """Extended User model for UFAA Kenya"""
@@ -118,9 +120,34 @@ class User(AbstractUser):
     # Profile
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
     
+    # ==================== EMAIL VERIFICATION FIELDS ====================
+    is_verified = models.BooleanField(
+        default=False, 
+        help_text="Designates whether the user's email has been verified."
+    )
+    verification_token = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Token for email verification link"
+    )
+    temporary_verification_code = models.CharField(
+        max_length=10, 
+        blank=True, 
+        null=True,
+        help_text="6-digit code for manual email verification"
+    )
+    verification_sent_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Timestamp when verification email was last sent"
+    )
+    verified_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Timestamp when email was verified"
+    )
+    
     # Security
-    is_verified = models.BooleanField(default=False)
-    verification_token = models.CharField(max_length=100, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     device_fingerprint = models.CharField(max_length=255, blank=True)
     
@@ -138,6 +165,9 @@ class User(AbstractUser):
             models.Index(fields=['no']),
             models.Index(fields=['role']),
             models.Index(fields=['email']),
+            models.Index(fields=['is_verified']),  # Index for verification queries
+            models.Index(fields=['verification_token']),  # Index for token lookups
+            models.Index(fields=['verification_sent_at']),  # Index for expiry checks
         ]
     
     def save(self, *args, **kwargs):
@@ -150,7 +180,8 @@ class User(AbstractUser):
     
     def __str__(self):
         identifier = self.id_number or self.passport_no or self.username
-        return f"{self.name or self.username} - {identifier}"
+        verified_status = "✓" if self.is_verified else "✗"
+        return f"{self.name or self.username} - {identifier} [{verified_status}]"
     
     @property
     def is_staff_member(self):
@@ -190,13 +221,52 @@ class User(AbstractUser):
             parts.append(self.county)
         return ", ".join(parts) if parts else "No address provided"
     
+    @property
+    def is_verification_expired(self):
+        """Check if verification token has expired (24 hours)"""
+        if not self.verification_sent_at:
+            return True
+        expiry_time = self.verification_sent_at + timezone.timedelta(hours=24)
+        return timezone.now() > expiry_time
+    
+    @property
+    def verification_status_display(self):
+        """Return human-readable verification status"""
+        if self.is_verified:
+            return "Verified"
+        if self.is_verification_expired:
+            return "Verification Expired"
+        return "Pending Verification"
+    
+    def mark_as_verified(self):
+        """Mark user as verified and clear verification data"""
+        self.is_verified = True
+        self.verified_at = timezone.now()
+        self.verification_token = ''
+        self.temporary_verification_code = ''
+        self.save(update_fields=['is_verified', 'verified_at', 'verification_token', 'temporary_verification_code'])
+    
+    def generate_new_verification_token(self):
+        """Generate new verification token and update timestamp"""
+        from django.utils.crypto import get_random_string
+        self.verification_token = get_random_string(length=64)
+        self.verification_sent_at = timezone.now()
+        self.save(update_fields=['verification_token', 'verification_sent_at'])
+        return self.verification_token
+    
+    def generate_new_verification_code(self):
+        """Generate new 6-digit verification code"""
+        import random
+        self.temporary_verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.save(update_fields=['temporary_verification_code'])
+        return self.temporary_verification_code
+    
     @classmethod
     def get_by_identifier(cls, identifier):
         """Find user by any identifier (ID, email, phone, passport)"""
         if not identifier:
             return None
             
-        
         # Try email
         if '@' in identifier:
             return cls.objects.filter(email=identifier).first()
@@ -214,7 +284,30 @@ class User(AbstractUser):
         
         # Try passport number
         return cls.objects.filter(passport_no=identifier).first()
-
+    
+    @classmethod
+    def get_unverified_users(cls, older_than_hours=24):
+        """Get users who haven't verified their email within time limit"""
+        cutoff_time = timezone.now() - timezone.timedelta(hours=older_than_hours)
+        return cls.objects.filter(
+            is_verified=False,
+            verification_sent_at__lte=cutoff_time
+        )
+    
+    @classmethod
+    def cleanup_expired_verifications(cls):
+        """Delete or cleanup expired unverified users"""
+        expired_users = cls.get_unverified_users()
+        # Option 1: Delete expired unverified users
+        # expired_users.delete()
+        
+        # Option 2: Just clear their verification tokens
+        expired_users.update(
+            verification_token='',
+            temporary_verification_code='',
+            verification_sent_at=None
+        )
+        return expired_users.count()
 
 
 class StaffProfile(models.Model):
@@ -325,6 +418,8 @@ class UserActivityLog(models.Model):
         ('profile_update', 'Profile Update'),
         ('claim_submit', 'Claim Submitted'),
         ('document_upload', 'Document Uploaded'),
+        ('email_verify', 'Email Verified'),
+        ('verification_resend', 'Verification Email Resent'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
@@ -346,7 +441,6 @@ class UserActivityLog(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.activity_type} at {self.created_at}"
-
 
 
 class LoginHistory(models.Model):

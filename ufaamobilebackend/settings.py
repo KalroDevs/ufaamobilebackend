@@ -351,15 +351,56 @@ FILE_UPLOAD_HANDLERS = [
 
 
 # Email Configuration
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@ufaa.go.ke')
-SERVER_EMAIL = config('SERVER_EMAIL', default='admin@ufaa.go.ke')
+# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+# EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+# EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+# EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+# EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@ufaa.go.ke')
+# SERVER_EMAIL = config('SERVER_EMAIL', default='admin@ufaa.go.ke')
+
+
+# ==================== EMAIL CONFIGURATION ====================
+# Email Backend Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Server Configuration (Gmail)
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+# Email Authentication
+EMAIL_HOST_USER = 'kevinkiambe@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'eupgduqhtxldjwxx'  # Replace with your actual app password
+
+# Email Addresses
+DEFAULT_FROM_EMAIL = f'UFAA Reunite <{EMAIL_HOST_USER}>'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+ADMIN_EMAIL = 'https://mobile.ufaa.go.ke/'
+
+# Email Settings
+EMAIL_TIMEOUT = 30  # Timeout in seconds
+EMAIL_SUBJECT_PREFIX = '[UFAA] '  # Prefix for all email subjects
+
+# Email Templates Directory
+EMAIL_TEMPLATES_DIR = BASE_DIR / 'apps'/'accounts' / 'templates' / 'emails'
+
+# Email Verification Settings
+VERIFICATION_EMAIL_EXPIRY_HOURS = 24
+VERIFICATION_CODE_LENGTH = 6
+MAX_VERIFICATION_ATTEMPTS = 3
+RESEND_VERIFICATION_COOLDOWN_SECONDS = 60
+
+# Frontend URL for email links
+FRONTEND_URL = 'https://mobile.ufaa.go.ke/'  # Change to your production URL
+
+
+
+
+
 
 
 # Push Notifications
