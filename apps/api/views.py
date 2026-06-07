@@ -1,3 +1,4 @@
+# apps/api/views.py
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -11,12 +12,9 @@ from django.shortcuts import get_object_or_404
 from axes.decorators import axes_dispatch
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-
 from rest_framework.views import APIView
 from django.urls import reverse
 from django.conf import settings
-
-
 
 from apps.claims.serializers import ClaimSerializer, ClaimCreateSerializer
 from apps.accounts.models import User, LoginAttempt, UserActivityLog
@@ -49,26 +47,20 @@ class AuthViewSet(viewsets.GenericViewSet):
         Get client IP address from request headers.
         Handles cases where the app is behind a proxy (nginx/gunicorn).
         """
-        # Check for X-Forwarded-For header (when behind a proxy)
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            # X-Forwarded-For can be a comma-separated list
-            # The first IP is the client's real IP
             ip = x_forwarded_for.split(',')[0].strip()
             if ip:
                 return ip
         
-        # Check for X-Real-IP header (set by nginx)
         x_real_ip = request.META.get('HTTP_X_REAL_IP')
         if x_real_ip:
             return x_real_ip
         
-        # Fall back to REMOTE_ADDR
         remote_addr = request.META.get('REMOTE_ADDR')
         if remote_addr:
             return remote_addr
         
-        # Default if all are empty
         return '0.0.0.0'
 
     @action(detail=False, methods=['post'])
@@ -79,7 +71,6 @@ class AuthViewSet(viewsets.GenericViewSet):
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
             
-            # Log the registration
             UserActivityLog.objects.create(
                 user=user,
                 activity_type='register',
@@ -95,7 +86,6 @@ class AuthViewSet(viewsets.GenericViewSet):
                 'message': 'Registration successful!'
             }, status=status.HTTP_201_CREATED)
         
-        # Return detailed error messages
         errors = serializer.errors
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -103,20 +93,16 @@ class AuthViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def login(self, request):
         """Login user with ID Number, Email, or Phone Number"""
-        # Get client IP address
         client_ip = self._get_client_ip(request)
         
-        # Pass the request to the serializer context for axes
         serializer = LoginSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.validated_data['user']
             
-            # Update device fingerprint if provided
             if request.data.get('device_fingerprint'):
                 user.device_fingerprint = request.data['device_fingerprint']
                 user.save()
             
-            # Log successful login
             LoginAttempt.objects.create(
                 user=user,
                 identifier=request.data.get('identifier', ''),
@@ -129,7 +115,7 @@ class AuthViewSet(viewsets.GenericViewSet):
             UserActivityLog.objects.create(
                 user=user,
                 activity_type='login',
-                description=f'User logged in with ID: {user.id_number}',
+                description=f'User logged in',
                 ip_address=client_ip,
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
@@ -142,7 +128,6 @@ class AuthViewSet(viewsets.GenericViewSet):
                 'message': f'Welcome back, {user.get_full_name() or user.username}!'
             })
         
-        # Log failed login attempt
         LoginAttempt.objects.create(
             user=None,
             identifier=request.data.get('identifier', ''),
@@ -163,7 +148,6 @@ class AuthViewSet(viewsets.GenericViewSet):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             
-            # Log the logout
             UserActivityLog.objects.create(
                 user=request.user,
                 activity_type='logout',
@@ -201,36 +185,50 @@ class AuthViewSet(viewsets.GenericViewSet):
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def forgot_password(self, request):
-        """Request password reset"""
-        serializer = ForgotPasswordSerializer(data=request.data)
+        """Request password reset using email, ID number, or phone number"""
+        print(f"📝 Forgot password request data: {request.data}")
+        
+        # Create serializer with context
+        serializer = ForgotPasswordSerializer(data=request.data, context={'request': request})
+        
         if serializer.is_valid():
-            id_number = serializer.validated_data['id_number']
-            user = User.objects.get(id_number=id_number)
-            
-            # Generate reset token (simplified - in production use proper token)
-            import hashlib
-            import time
-            token_string = f"{user.id}{time.time()}{user.id_number}"
-            reset_token = hashlib.sha256(token_string.encode()).hexdigest()
-            
-            # In production, send token via email/SMS
+            try:
+                result = serializer.save()
+                return Response({
+                    'success': True,
+                    'message': result.get('message', 'Password reset instructions sent to your email.'),
+                    'email': result.get('email')
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"❌ Error in forgot_password save: {e}")
+                return Response({
+                    'success': False,
+                    'message': f'Error processing request: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            print(f"❌ Serializer errors: {serializer.errors}")
             return Response({
-                'message': f'Password reset instructions sent to {user.email or user.phone_no}',
-                'reset_token': reset_token
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                'success': False,
+                'message': 'Validation failed',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def reset_password(self, request):
         """Reset password using token"""
         serializer = ResetPasswordSerializer(data=request.data)
         if serializer.is_valid():
-            user = User.objects.get(id_number=serializer.validated_data['id_number'])
-            user.set_password(serializer.validated_data['new_password'])
-            user.save()
-            
-            return Response({'message': 'Password reset successfully'})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Password reset successfully. You can now login with your new password.'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'message': 'Failed to reset password',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def profile(self, request):
@@ -269,7 +267,7 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff_member or user.role == 'admin':
+        if user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']:
             return Asset.objects.all()
         return Asset.objects.filter(
             django_models.Q(id_number=user.id_number) |
@@ -323,447 +321,6 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class ClaimViewSetDeleteThis(viewsets.ModelViewSet):
-    """ViewSet for managing claims"""
-    
-    serializer_class = ClaimSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ['no', 'name', 'id_number', 'phone_no', 'e_mail']
-    filterset_fields = ['status', 'category', 'claim_type', 'payment_category']
-    ordering_fields = ['created_at', 'amount', 'no']
-    ordering = ['-created_at']
-    
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff_member or user.role == 'admin':
-            return Claim.objects.all()
-        return Claim.objects.filter(
-            django_models.Q(id_number=user.id_number) |
-            django_models.Q(phone_no=user.phone_no) |
-            django_models.Q(e_mail=user.email) |
-            django_models.Q(claimant=user)
-        )
-    
-    def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(
-            created_by=user.get_full_name() or user.username,
-            id_number=user.id_number,
-            phone_no=user.phone_no,
-            name=user.get_full_name() or user.name
-        )
-    
-    @action(detail=False, methods=['post'])
-    def search(self, request):
-        """Search claims by various criteria"""
-        serializer = ClaimSearchSerializer(data=request.data)
-        if serializer.is_valid():
-            identifier = serializer.validated_data['identifier']
-            search_type = serializer.validated_data['search_type']
-            
-            if search_type == 'claim_no':
-                claims = Claim.objects.filter(no__icontains=identifier)
-            elif search_type == 'id_number':
-                claims = Claim.objects.filter(id_number=identifier)
-            elif search_type == 'phone_no':
-                claims = Claim.objects.filter(phone_no__icontains=identifier)
-            elif search_type == 'name':
-                claims = Claim.objects.filter(name__icontains=identifier)
-            else:
-                claims = Claim.objects.none()
-            
-            result_serializer = ClaimSerializer(claims, many=True)
-            return Response({
-                'count': claims.count(),
-                'results': result_serializer.data
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['post'])
-    def create_claim(self, request):
-        """Create a new claim with assets"""
-        serializer = ClaimCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            claim = serializer.save()
-            return Response(
-                ClaimSerializer(claim).data,
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['post'])
-    def submit(self, request, pk=None):
-        """Submit claim for review"""
-        claim = self.get_object()
-        
-        if claim.status != 'Draft':
-            return Response(
-                {'error': f'Cannot submit claim with status: {claim.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        old_status = claim.status
-        claim.status = 'Pending'
-        claim.submitted_at = timezone.now()
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Pending',
-            changed_by=request.user,
-            reason='Claim submitted for review'
-        )
-        
-        return Response({
-            'message': 'Claim submitted successfully',
-            'claim_no': claim.no,
-            'status': claim.status
-        })
-    
-    @action(detail=True, methods=['post'])
-    def approve(self, request, pk=None):
-        """Approve a claim"""
-        claim = self.get_object()
-        
-        if claim.status not in ['Pending', 'Under_Review']:
-            return Response(
-                {'error': f'Cannot approve claim with status: {claim.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        old_status = claim.status
-        claim.status = 'Approved'
-        claim.approved_at = timezone.now()
-        claim.approved_by = request.user
-        claim.approval_notes = request.data.get('notes', '')
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Approved',
-            changed_by=request.user,
-            reason=request.data.get('reason', 'Claim approved')
-        )
-        
-        return Response({
-            'message': 'Claim approved successfully',
-            'claim_no': claim.no,
-            'status': claim.status
-        })
-    
-    @action(detail=True, methods=['post'])
-    def reject(self, request, pk=None):
-        """Reject a claim"""
-        claim = self.get_object()
-        
-        old_status = claim.status
-        claim.status = 'Rejected'
-        claim.rejected = True
-        claim.rejection_reason = request.data.get('reason', '')
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Rejected',
-            changed_by=request.user,
-            reason=request.data.get('reason', 'Claim rejected')
-        )
-        
-        return Response({
-            'message': 'Claim rejected',
-            'claim_no': claim.no,
-            'reason': claim.rejection_reason
-        })
-    
-    @action(detail=True, methods=['post'])
-    def review(self, request, pk=None):
-        """Move claim to under review"""
-        claim = self.get_object()
-        
-        if claim.status != 'Pending':
-            return Response(
-                {'error': f'Cannot review claim with status: {claim.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        old_status = claim.status
-        claim.status = 'Under_Review'
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Under_Review',
-            changed_by=request.user,
-            reason='Claim moved to under review'
-        )
-        
-        return Response({
-            'message': 'Claim is now under review',
-            'claim_no': claim.no,
-            'status': claim.status
-        })
-    
-    @action(detail=True, methods=['post'])
-    def process_payment(self, request, pk=None):
-        """Mark claim payment as processed"""
-        claim = self.get_object()
-        
-        if claim.status != 'Approved':
-            return Response(
-                {'error': f'Cannot process payment for claim with status: {claim.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        old_status = claim.status
-        claim.status = 'Paid'
-        claim.paid_at = timezone.now()
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Paid',
-            changed_by=request.user,
-            reason='Payment processed'
-        )
-        
-        return Response({
-            'message': 'Payment processed successfully',
-            'claim_no': claim.no,
-            'status': claim.status
-        })
-    
-    @action(detail=True, methods=['post'])
-    def complete(self, request, pk=None):
-        """Complete a claim"""
-        claim = self.get_object()
-        
-        if claim.status != 'Paid':
-            return Response(
-                {'error': f'Cannot complete claim with status: {claim.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        old_status = claim.status
-        claim.status = 'Completed'
-        claim.save()
-        
-        ClaimStatusHistory.objects.create(
-            claim=claim,
-            previous_status=old_status,
-            new_status='Completed',
-            changed_by=request.user,
-            reason='Claim completed'
-        )
-        
-        return Response({
-            'message': 'Claim marked as completed',
-            'claim_no': claim.no,
-            'status': claim.status
-        })
-    
-    @action(detail=False, methods=['get'])
-    def track(self, request):
-        """Track claim status by claim number"""
-        claim_number = request.query_params.get('claim_number')
-        if not claim_number:
-            return Response(
-                {'error': 'claim_number parameter is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            claim = Claim.objects.get(no=claim_number)
-            serializer = ClaimStatusSerializer(claim)
-            return Response(serializer.data)
-        except Claim.DoesNotExist:
-            return Response(
-                {'error': 'Claim not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-    
-    @action(detail=True, methods=['get'])
-    def status(self, request, pk=None):
-        """Get detailed claim status"""
-        claim = self.get_object()
-        serializer = ClaimStatusSerializer(claim)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
-    def timeline(self, request, pk=None):
-        """Get claim timeline"""
-        claim = self.get_object()
-        history = claim.status_history.all()
-        serializer = ClaimStatusHistorySerializer(history, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def add_note(self, request, pk=None):
-        """Add a note to a claim"""
-        claim = self.get_object()
-        serializer = ClaimNoteSerializer(data={
-            'claim': claim.id,
-            'note_type': request.data.get('note_type', 'internal'),
-            'content': request.data.get('content', ''),
-            'is_public': request.data.get('is_public', False)
-        })
-        
-        if serializer.is_valid():
-            serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['get'])
-    def notes(self, request, pk=None):
-        """Get all notes for a claim"""
-        claim = self.get_object()
-        notes = claim.notes.all()
-        serializer = ClaimNoteSerializer(notes, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def upload_document(self, request, pk=None):
-        """Upload a document for a claim"""
-        claim = self.get_object()
-        
-        file = request.FILES.get('file')
-        document_type = request.data.get('document_type')
-        document_name = request.data.get('document_name', file.name if file else '')
-        
-        if not file or not document_type:
-            return Response(
-                {'error': 'file and document_type are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        document = ClaimDocument.objects.create(
-            claim=claim,
-            document_type=document_type,
-            document_name=document_name,
-            file_path=f"documents/{claim.no}/{file.name}",
-            file_size=file.size,
-            file_extension=file.name.split('.')[-1] if '.' in file.name else '',
-            uploaded_by=request.user
-        )
-        
-        serializer = ClaimDocumentSerializer(document)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=True, methods=['get'])
-    def documents(self, request, pk=None):
-        """Get all documents for a claim"""
-        claim = self.get_object()
-        documents = claim.documents.all()
-        serializer = ClaimDocumentSerializer(documents, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def verify_document(self, request, pk=None):
-        """Verify a claim document"""
-        claim = self.get_object()
-        document_id = request.data.get('document_id')
-        
-        try:
-            document = claim.documents.get(id=document_id)
-            document.is_verified = True
-            document.verified_by = request.user
-            document.verified_at = timezone.now()
-            document.verification_notes = request.data.get('notes', '')
-            document.save()
-            
-            serializer = ClaimDocumentSerializer(document)
-            return Response(serializer.data)
-        except ClaimDocument.DoesNotExist:
-            return Response(
-                {'error': 'Document not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-    
-    @action(detail=True, methods=['get'])
-    def summary(self, request, pk=None):
-        """Get claim summary statistics"""
-        claim = self.get_object()
-        
-        summary = {
-            'claim_no': claim.no,
-            'status': claim.status,
-            'total_assets': claim.claim_assets.count(),
-            'total_value': float(claim.get_total_assets_value() or 0),
-            'documents_uploaded': claim.get_uploaded_documents_count(),
-            'documents_verified': claim.get_verified_documents_count(),
-            'created_at': claim.created_at,
-            'submitted_at': claim.submitted_at,
-            'approved_at': claim.approved_at,
-            'paid_at': claim.paid_at
-        }
-        
-        return Response(summary)
-
-
-class StaffClaimViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for staff claim management"""
-    
-    serializer_class = ClaimSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        if not self.request.user.is_staff_member:
-            return Claim.objects.none()
-        return Claim.objects.filter(
-            status__in=['Pending', 'Under_Review', 'Approved']
-        ).order_by('-created_at')
-    
-    @action(detail=True, methods=['post'])
-    def assign_to_me(self, request, pk=None):
-        """Assign claim to current staff member"""
-        claim = self.get_object()
-        claim.assigned_to = request.user
-        claim.save()
-        
-        ClaimNote.objects.create(
-            claim=claim,
-            note_type='internal',
-            content=f"Claim assigned to {request.user.get_full_name()}",
-            created_by=request.user,
-            is_public=False
-        )
-        
-        return Response({'message': f'Claim {claim.no} assigned to you'})
-    
-    @action(detail=False, methods=['get'])
-    def my_assigned(self, request):
-        """Get claims assigned to current staff"""
-        claims = Claim.objects.filter(assigned_to=request.user)
-        serializer = ClaimSerializer(claims, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def pending_review(self, request):
-        """Get claims pending review"""
-        claims = Claim.objects.filter(status='Pending')
-        serializer = ClaimSerializer(claims, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['get'])
-    def statistics(self, request):
-        """Get claim statistics for staff dashboard"""
-        stats = {
-            'total_claims': Claim.objects.count(),
-            'pending_review': Claim.objects.filter(status='Pending').count(),
-            'under_review': Claim.objects.filter(status='Under_Review').count(),
-            'approved': Claim.objects.filter(status='Approved').count(),
-            'rejected': Claim.objects.filter(status='Rejected').count(),
-            'completed': Claim.objects.filter(status='Completed').count(),
-            'total_value': Claim.objects.aggregate(total=django_models.Sum('amount'))['total'] or 0,
-        }
-        return Response(stats)
-
-
 class ClaimViewSet(viewsets.ModelViewSet):
     """ViewSet for managing claims"""
     
@@ -779,12 +336,9 @@ class ClaimViewSet(viewsets.ModelViewSet):
         """Filter claims to only show those belonging to the logged-in user"""
         user = self.request.user
         
-        # Staff users can see all claims
         if user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']:
             return Claim.objects.all()
         
-        # Regular citizens: only show their own claims using 'claimant' field
-        # Also match by id_number, phone_no, email for backward compatibility
         return Claim.objects.filter(
             django_models.Q(claimant=user) |
             django_models.Q(id_number=user.id_number) |
@@ -840,7 +394,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
             identifier = serializer.validated_data['identifier']
             search_type = serializer.validated_data['search_type']
             
-            # Base queryset (user's claims only)
             claims = self.get_queryset()
             
             if search_type == 'claim_no':
@@ -1060,7 +613,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # Only allow tracking of claims belonging to the user
             claim = self.get_queryset().get(no=claim_number)
             serializer = ClaimStatusSerializer(claim)
             return Response(serializer.data)
@@ -1189,6 +741,65 @@ class ClaimViewSet(viewsets.ModelViewSet):
         return Response(summary)
 
 
+class StaffClaimViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for staff claim management"""
+    
+    serializer_class = ClaimSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        if not (self.request.user.is_staff or getattr(self.request.user, 'role', '') in ['staff', 'admin']):
+            return Claim.objects.none()
+        return Claim.objects.filter(
+            status__in=['Pending', 'Under_Review', 'Approved']
+        ).order_by('-created_at')
+    
+    @action(detail=True, methods=['post'])
+    def assign_to_me(self, request, pk=None):
+        """Assign claim to current staff member"""
+        claim = self.get_object()
+        claim.assigned_to = request.user
+        claim.save()
+        
+        ClaimNote.objects.create(
+            claim=claim,
+            note_type='internal',
+            content=f"Claim assigned to {request.user.get_full_name()}",
+            created_by=request.user,
+            is_public=False
+        )
+        
+        return Response({'message': f'Claim {claim.no} assigned to you'})
+    
+    @action(detail=False, methods=['get'])
+    def my_assigned(self, request):
+        """Get claims assigned to current staff"""
+        claims = Claim.objects.filter(assigned_to=request.user)
+        serializer = ClaimSerializer(claims, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def pending_review(self, request):
+        """Get claims pending review"""
+        claims = Claim.objects.filter(status='Pending')
+        serializer = ClaimSerializer(claims, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """Get claim statistics for staff dashboard"""
+        stats = {
+            'total_claims': Claim.objects.count(),
+            'pending_review': Claim.objects.filter(status='Pending').count(),
+            'under_review': Claim.objects.filter(status='Under_Review').count(),
+            'approved': Claim.objects.filter(status='Approved').count(),
+            'rejected': Claim.objects.filter(status='Rejected').count(),
+            'completed': Claim.objects.filter(status='Completed').count(),
+            'total_value': Claim.objects.aggregate(total=django_models.Sum('amount'))['total'] or 0,
+        }
+        return Response(stats)
+
+
 class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
     """ViewSet for staff asset tracking"""
     
@@ -1197,7 +808,7 @@ class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
     queryset = Asset.objects.all()
     
     def get_queryset(self):
-        if not self.request.user.is_staff_member:
+        if not (self.request.user.is_staff or getattr(self.request.user, 'role', '') in ['staff', 'admin']):
             return Asset.objects.none()
         return Asset.objects.all()
     
@@ -1231,7 +842,6 @@ class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
             asset.status = request.data.get('status', asset.status)
             asset.save()
             
-            # Update or create location record
             location, created = AssetLocation.objects.update_or_create(
                 asset=asset,
                 defaults={
@@ -1249,7 +859,6 @@ class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
                 }
             )
             
-            # Create tracking history
             AssetTrackingHistory.objects.create(
                 asset=asset,
                 previous_status=asset.status,
@@ -1293,31 +902,26 @@ class StaffAssetTrackerViewSet(viewsets.GenericViewSet):
         return Response(stats)
 
 
-
 class InitiateECitizenLoginView(APIView):
     """Returns the eCitizen authorization URL for the mobile app"""
     permission_classes = [AllowAny]
     
     def get(self, request):
-        # Build the authorization URL
         auth_url = request.build_absolute_uri(reverse('oidc_authentication'))
-        
-        # Add next and fail parameters
         auth_url += f'?next=/api/auth/ecitizen/callback/&fail=/api/auth/ecitizen/fail/'
         
         return Response({
             'authorization_url': auth_url,
-            'redirect_scheme': 'ufaareunite://callback'  # Your app's custom scheme
+            'redirect_scheme': 'ufaareunite://callback'
         })
+
 
 class ECitizenCallbackView(APIView):
     """Handles the OIDC callback after successful authentication"""
     permission_classes = [AllowAny]
     
     def get(self, request):
-        # The oauth2_authcodeflow middleware will have already authenticated the user
         if request.user.is_authenticated:
-            # Generate JWT tokens for the mobile app
             from rest_framework_simplejwt.tokens import RefreshToken
             
             refresh = RefreshToken.for_user(request.user)
@@ -1398,3 +1002,154 @@ def check_verification_status(request):
 
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_claim_document(request, claim_id):
+    """Upload a document for a claim"""
+    try:
+        from apps.claims.models import Claim, ClaimDocument
+        
+        claim = Claim.objects.get(id=claim_id)
+        
+        # Check if user owns the claim
+        if claim.claimant != request.user:
+            if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
+                return Response(
+                    {'error': 'You do not have permission to upload documents for this claim.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+    except Claim.DoesNotExist:
+        return Response(
+            {'error': 'Claim not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    file = request.FILES.get('file')
+    document_type = request.data.get('document_type', 'other')
+    document_name = request.data.get('document_name', file.name if file else '')
+    
+    if not file:
+        return Response(
+            {'error': 'No file provided.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Create document record
+    document = ClaimDocument.objects.create(
+        claim=claim,
+        document_type=document_type,
+        document_name=document_name,
+        file_path=f"documents/{claim.no}/{file.name}",
+        file_size=file.size,
+        file_extension=file.name.split('.')[-1] if '.' in file.name else '',
+        uploaded_by=request.user
+    )
+    
+    return Response({
+        'success': True,
+        'message': 'Document uploaded successfully',
+        'document': {
+            'id': document.id,
+            'document_type': document.document_type,
+            'document_name': document.document_name,
+            'uploaded_at': document.uploaded_at,
+        }
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_claim_documents(request, claim_id):
+    """Get all documents for a claim"""
+    try:
+        from apps.claims.models import Claim
+        
+        claim = Claim.objects.get(id=claim_id)
+        
+        # Check if user owns the claim
+        if claim.claimant != request.user:
+            if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
+                return Response(
+                    {'error': 'You do not have permission to view documents for this claim.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+    except Claim.DoesNotExist:
+        return Response(
+            {'error': 'Claim not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    documents = claim.documents.all()
+    data = []
+    for doc in documents:
+        data.append({
+            'id': doc.id,
+            'document_type': doc.document_type,
+            'document_name': doc.document_name,
+            'file_path': doc.file_path,
+            'file_size': doc.file_size,
+            'uploaded_at': doc.uploaded_at,
+            'is_verified': doc.is_verified,
+        })
+    
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def test_forgot_password(request):
+    """Test endpoint for forgot password"""
+    print(f"Test endpoint received data: {request.data}")
+    
+    identifier = request.data.get('identifier')
+    if not identifier:
+        return Response({'error': 'No identifier provided'}, status=400)
+    
+    user = None
+    
+    # Check if identifier is email
+    if '@' in identifier:
+        try:
+            user = User.objects.get(email=identifier)
+            print(f"Found user by email: {user.email}")
+        except User.DoesNotExist:
+            print(f"No user found with email: {identifier}")
+    
+    # Check if identifier is ID number
+    if not user and identifier.isdigit() and len(identifier) in [7, 8]:
+        try:
+            user = User.objects.get(id_number=identifier)
+            print(f"Found user by ID number: {user.id_number}")
+        except User.DoesNotExist:
+            print(f"No user found with ID number: {identifier}")
+    
+    # Check if identifier is phone number
+    if not user:
+        try:
+            # Clean phone number
+            import re
+            clean_phone = re.sub(r'[\s\-\(\)]', '', identifier)
+            if clean_phone.startswith('0'):
+                clean_phone = '254' + clean_phone[1:]
+            elif clean_phone.startswith('7'):
+                clean_phone = '254' + clean_phone
+            elif clean_phone.startswith('+254'):
+                clean_phone = clean_phone[1:]
+            
+            user = User.objects.get(phone_no__contains=clean_phone[-9:])
+            print(f"Found user by phone: {user.phone_no}")
+        except User.DoesNotExist:
+            print(f"No user found with phone: {identifier}")
+    
+    if not user:
+        return Response({
+            'error': f'No user found with identifier: {identifier}'
+        }, status=404)
+    
+    return Response({
+        'success': True,
+        'message': f'Found user: {user.email}',
+        'email': user.email,
+        'id_number': user.id_number,
+        'phone_no': user.phone_no
+    }, status=200)

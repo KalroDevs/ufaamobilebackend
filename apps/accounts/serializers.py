@@ -610,6 +610,696 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = auth_user
         return attrs
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    identifier = serializers.CharField(required=True, help_text="Email, ID Number, or Phone Number")
+    
+    def validate_identifier(self, value):
+        """
+        Validate and find user by email, ID number, or phone number
+        """
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError
+        
+        user = None
+        value = value.strip()
+        
+        print(f"🔍 Searching for user with identifier: {value}")
+        
+        # Method 1: Check if it's an email address
+        if '@' in value and '.' in value:
+            try:
+                validate_email(value)
+                user = User.objects.get(email=value)
+                print(f"✅ Found user by email: {user.email}")
+            except (ValidationError, User.DoesNotExist):
+                print(f"❌ No user found with email: {value}")
+        
+        # Method 2: Check if it's an ID number (7-8 digits)
+        if not user and value.isdigit() and len(value) in [7, 8]:
+            try:
+                user = User.objects.get(id_number=value)
+                print(f"✅ Found user by ID number: {user.id_number}")
+            except User.DoesNotExist:
+                print(f"❌ No user found with ID number: {value}")
+        
+        # Method 3: Check if it's a phone number
+        if not user:
+            # Clean the phone number
+            import re
+            phone_clean = re.sub(r'[\s\-\(\)\+]', '', value)
+            
+            # Handle different phone formats
+            if phone_clean.startswith('0') and len(phone_clean) == 10:
+                phone_clean = '254' + phone_clean[1:]
+            elif phone_clean.startswith('7') and len(phone_clean) == 9:
+                phone_clean = '254' + phone_clean
+            elif phone_clean.startswith('+254') and len(phone_clean) == 13:
+                phone_clean = phone_clean[1:]  # Remove the +
+            elif not phone_clean.startswith('254') and len(phone_clean) == 9:
+                phone_clean = '254' + phone_clean
+            
+            print(f"📱 Searching with cleaned phone: {phone_clean}")
+            
+            # Try to find by phone number
+            try:
+                user = User.objects.get(phone_no=phone_clean)
+                print(f"✅ Found user by phone: {user.phone_no}")
+            except User.DoesNotExist:
+                # Try with secondary phone
+                try:
+                    user = User.objects.get(secondary_phone_no=phone_clean)
+                    print(f"✅ Found user by secondary phone: {user.secondary_phone_no}")
+                except User.DoesNotExist:
+                    # Try partial match (last 9 digits)
+                    try:
+                        user = User.objects.get(phone_no__endswith=phone_clean[-9:])
+                        print(f"✅ Found user by partial phone match: {user.phone_no}")
+                    except User.DoesNotExist:
+                        print(f"❌ No user found with phone: {value}")
+        
+        if not user:
+            raise serializers.ValidationError(
+                "No user found with the provided identifier. Please check your email, ID number, or phone number."
+            )
+        
+        # Store the found user in the context
+        self.context['user'] = user
+        return value
+    
+    def create(self, validated_data):
+        """
+        Generate reset token and send email
+        """
+        from django.utils.crypto import get_random_string
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        from django.utils import timezone
+        
+        user = self.context['user']
+        
+        # Generate reset token
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        user.reset_token = reset_token
+        user.reset_token_created_at = timezone.now()
+        user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Build reset URL
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+        reset_url = f"{frontend_url}/reset-password?token={reset_token}"
+        
+        # Prepare email context
+        context = {
+            'user': user,
+            'reset_url': reset_url,
+            'expiry_hours': 1,
+            'year': timezone.now().year,
+        }
+        
+        subject = 'Reset Your UFAA Account Password'
+        
+        try:
+            # Try to use HTML template
+            html_message = render_to_string('emails/password_reset_email.html', context)
+            plain_message = strip_tags(html_message)
+        except Exception:
+            # Fallback to plain text
+            plain_message = f"""
+            Dear {user.get_full_name() or user.username},
+            
+            You requested to reset your password.
+            
+            Click the link below to reset your password:
+            {reset_url}
+            
+            This link will expire in 1 hour.
+            
+            If you didn't request this, please ignore this email.
+            
+            Best regards,
+            UFAA Team
+            """
+            html_message = plain_message
+        
+        # Send email
+        try:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✅ Password reset email sent to {user.email}")
+        except Exception as e:
+            print(f"❌ Failed to send email to {user.email}: {e}")
+            # Don't raise exception - user creation should still succeed
+        
+        return {
+            'email': user.email,
+            'message': 'Password reset instructions sent to your email.',
+            'success': True
+        }
+
+    def save(self):
+        from django.utils.crypto import get_random_string
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        from django.utils import timezone
+        
+        user = self.context['user']
+        
+        # Generate reset token
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        user.reset_token = reset_token
+        user.reset_token_created_at = timezone.now()
+        user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Build reset URL
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke').rstrip('/')
+        reset_url = f"{frontend_url}/reset-password/?token={reset_token}"
+        
+        # Prepare email context
+        context = {
+            'user': user,
+            'reset_url': reset_url,
+            'reset_token': reset_token,
+            'expiry_hours': 1,
+            'year': timezone.now().year,
+        }
+        
+        subject = 'Reset Your UFAA Account Password'
+        
+        try:
+            # Render HTML email
+            html_message = render_to_string('emails/password_reset_email.html', context)
+            plain_message = strip_tags(html_message)
+            
+            # Send email
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✅ Password reset email sent to {user.email}")
+            print(f"🔗 Reset URL: {reset_url}")
+        except Exception as e:
+            print(f"❌ Failed to send email to {user.email}: {e}")
+            # Still return success even if email fails (for testing)
+        
+        return {
+            'email': user.email,
+            'reset_token': reset_token,
+            'message': 'Password reset instructions sent to your email.'
+        }
+
+
+
+
+
+
+class ForgotPasswordSerializerold7(serializers.Serializer):
+    identifier = serializers.CharField(required=True, help_text="Email, ID Number, or Phone Number")
+    
+    def validate_identifier(self, value):
+        """
+        Validate and find user by email, ID number, or phone number
+        """
+        user = None
+        value = value.strip()
+        
+        print(f"🔍 Searching for user with identifier: {value}")  # Debug log
+        
+        # Method 1: Check if it's an email address
+        if '@' in value and '.' in value:
+            try:
+                user = User.objects.get(email=value)
+                print(f"✅ Found user by email: {user.email}")
+            except User.DoesNotExist:
+                print(f"❌ No user found with email: {value}")
+        
+        # Method 2: Check if it's an ID number (7-8 digits)
+        elif value.isdigit() and len(value) in [7, 8]:
+            try:
+                user = User.objects.get(id_number=value)
+                print(f"✅ Found user by ID number: {user.id_number}")
+            except User.DoesNotExist:
+                print(f"❌ No user found with ID number: {value}")
+        
+        # Method 3: Check if it's a phone number
+        else:
+            # Clean the phone number
+            import re
+            phone_clean = re.sub(r'[\s\-\(\)\+]', '', value)
+            
+            # Remove leading zero if present
+            if phone_clean.startswith('0'):
+                phone_clean = '254' + phone_clean[1:]
+            elif phone_clean.startswith('254'):
+                phone_clean = '+' + phone_clean
+            
+            print(f"📱 Searching with cleaned phone: {phone_clean}")
+            
+            # Try to find by phone number
+            try:
+                user = User.objects.get(phone_no=phone_clean)
+                print(f"✅ Found user by phone: {user.phone_no}")
+            except User.DoesNotExist:
+                # Try with secondary phone
+                try:
+                    user = User.objects.get(secondary_phone_no=phone_clean)
+                    print(f"✅ Found user by secondary phone: {user.secondary_phone_no}")
+                except User.DoesNotExist:
+                    # Try partial match (last 9 digits)
+                    try:
+                        user = User.objects.get(phone_no__endswith=phone_clean[-9:])
+                        print(f"✅ Found user by partial phone match: {user.phone_no}")
+                    except User.DoesNotExist:
+                        print(f"❌ No user found with phone: {value}")
+        
+        if not user:
+            raise serializers.ValidationError(
+                "No user found with the provided identifier. Please check your email, ID number, or phone number."
+            )
+        
+        # Store the found user
+        self.context['user'] = user
+        return value
+    
+    def create(self, validated_data):
+        """
+        Generate reset token and send email
+        """
+        from django.utils.crypto import get_random_string
+        from django.utils import timezone
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        user = self.context['user']
+        
+        # Generate reset token
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        user.reset_token = reset_token
+        user.reset_token_created_at = timezone.now()
+        user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Build reset URL
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+        reset_url = f"{frontend_url}/reset-password?token={reset_token}"
+        
+        # Prepare email
+        subject = 'Reset Your UFAA Account Password'
+        message = f"""
+        Dear {user.get_full_name() or user.username},
+        
+        You requested to reset your password.
+        
+        Click the link below to reset your password:
+        {reset_url}
+        
+        This link will expire in 1 hour.
+        
+        If you didn't request this, please ignore this email.
+        
+        Best regards,
+        UFAA Team
+        """
+        
+        # Send email
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            print(f"✅ Password reset email sent to {user.email}")
+        except Exception as e:
+            print(f"❌ Failed to send email: {e}")
+            # Don't raise exception, just log it
+        
+        return {
+            'email': user.email,
+            'message': 'Password reset instructions sent to your email.',
+            'success': True
+        }
+
+
+
+class ForgotPasswordSerializerold6(serializers.Serializer):
+    identifier = serializers.CharField(required=True)
+    
+    def validate_identifier(self, value):
+        user = None
+        print(f"Looking for user with identifier: {value}")  # Debug print
+        
+        # Check if identifier is email
+        if '@' in value:
+            try:
+                user = User.objects.get(email=value)
+                print(f"Found user by email: {user.email}")
+            except User.DoesNotExist:
+                print(f"No user found with email: {value}")
+        
+        # Check if identifier is ID number (7-8 digits)
+        elif value.isdigit() and len(value) in [7, 8]:
+            try:
+                user = User.objects.get(id_number=value)
+                print(f"Found user by ID number: {user.id_number}")
+            except User.DoesNotExist:
+                print(f"No user found with ID number: {value}")
+        
+        # Check if identifier is phone number
+        else:
+            # Clean phone number
+            import re
+            clean_phone = re.sub(r'[\s\-\(\)]', '', value)
+            
+            # Handle different phone formats
+            if clean_phone.startswith('0') and len(clean_phone) == 10:
+                clean_phone = '254' + clean_phone[1:]
+            elif clean_phone.startswith('7') and len(clean_phone) == 9:
+                clean_phone = '254' + clean_phone
+            elif clean_phone.startswith('+254') and len(clean_phone) == 13:
+                clean_phone = clean_phone[1:]  # Remove the +
+            elif not clean_phone.startswith('254') and len(clean_phone) == 9:
+                clean_phone = '254' + clean_phone
+            
+            print(f"Searching with phone: {clean_phone}")
+            
+            try:
+                # Try exact match first
+                user = User.objects.get(phone_no=clean_phone)
+                print(f"Found user by phone: {user.phone_no}")
+            except User.DoesNotExist:
+                # Try partial match
+                try:
+                    user = User.objects.get(phone_no__contains=clean_phone[-9:])
+                    print(f"Found user by partial phone: {user.phone_no}")
+                except User.DoesNotExist:
+                    # Try secondary phone
+                    try:
+                        user = User.objects.get(secondary_phone_no__contains=clean_phone[-9:])
+                        print(f"Found user by secondary phone: {user.secondary_phone_no}")
+                    except User.DoesNotExist:
+                        print(f"No user found with phone: {value}")
+        
+        if not user:
+            raise serializers.ValidationError("No user found with the provided identifier.")
+        
+        self.user = user
+        return value
+    
+    def save(self):
+        from django.utils.crypto import get_random_string
+        from django.utils import timezone
+        
+        # Generate reset token
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        self.user.reset_token = reset_token
+        self.user.reset_token_created_at = timezone.now()
+        self.user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Send email with reset link
+        self._send_reset_email(reset_token)
+        
+        return {
+            'email': self.user.email, 
+            'reset_token': reset_token,
+            'message': 'Password reset instructions sent to your email.'
+        }
+    
+    def _send_reset_email(self, token):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        from django.utils import timezone
+        
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+        reset_url = f"{frontend_url}/reset-password?token={token}"
+        
+        context = {
+            'user': self.user,
+            'reset_url': reset_url,
+            'expiry_hours': 1,
+            'year': timezone.now().year,
+        }
+        
+        subject = 'Reset Your UFAA Account Password'
+        
+        try:
+            # Try to use HTML template if available
+            html_message = render_to_string('emails/password_reset_email.html', context)
+            plain_message = strip_tags(html_message)
+        except Exception as e:
+            # Fallback to plain text
+            plain_message = f"""
+            Dear {self.user.get_full_name() or self.user.username},
+            
+            You requested to reset your password.
+            
+            Click the link below to reset your password:
+            {reset_url}
+            
+            This link will expire in 1 hour.
+            
+            If you didn't request this, please ignore this email.
+            
+            Best regards,
+            UFAA Team
+            """
+            html_message = plain_message
+        
+        try:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[self.user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"✅ Password reset email sent to {self.user.email}")
+        except Exception as e:
+            print(f"❌ Failed to send email to {self.user.email}: {e}")
+            # Don't raise exception - user creation should still succeed
+
+
+
+class ForgotPasswordSerializerOld3(serializers.Serializer):
+    identifier = serializers.CharField(required=True)  # Change from id_number to identifier
+    
+    def validate_identifier(self, value):
+        user = None
+        
+        # Check if identifier is email
+        if '@' in value:
+            try:
+                user = User.objects.get(email=value)
+            except User.DoesNotExist:
+                pass
+        
+        # Check if identifier is ID number (7-8 digits)
+        elif value.isdigit() and (len(value) == 7 or len(value) == 8):
+            try:
+                user = User.objects.get(id_number=value)
+            except User.DoesNotExist:
+                pass
+        
+        # Check if identifier is phone number
+        else:
+            # Clean phone number
+            import re
+            clean_phone = re.sub(r'[\s\-\(\)]', '', value)
+            
+            # Handle different phone formats
+            if clean_phone.startswith('0') and len(clean_phone) == 10:
+                clean_phone = '254' + clean_phone[1:]
+            elif clean_phone.startswith('7') and len(clean_phone) == 9:
+                clean_phone = '254' + clean_phone
+            
+            # Ensure it starts with 254 for comparison
+            if not clean_phone.startswith('254'):
+                clean_phone = '254' + clean_phone
+            
+            try:
+                user = User.objects.get(phone_no__contains=clean_phone[-9:])
+            except User.DoesNotExist:
+                try:
+                    user = User.objects.get(secondary_phone_no__contains=clean_phone[-9:])
+                except User.DoesNotExist:
+                    pass
+        
+        if not user:
+            raise serializers.ValidationError("No user found with the provided identifier.")
+        
+        self.user = user
+        return value
+    
+    def save(self):
+        # Generate reset token
+        from django.utils.crypto import get_random_string
+        from django.utils import timezone
+        
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        self.user.reset_token = reset_token
+        self.user.reset_token_created_at = timezone.now()
+        self.user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Send email with reset link
+        self._send_reset_email(reset_token)
+        
+        return {'email': self.user.email, 'reset_token': reset_token}
+    
+    def _send_reset_email(self, token):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        from django.utils import timezone
+        
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mobile.ufaa.go.ke')
+        reset_url = f"{frontend_url}/reset-password?token={token}"
+        
+        context = {
+            'user': self.user,
+            'reset_url': reset_url,
+            'expiry_hours': 1,
+            'year': timezone.now().year,
+        }
+        
+        try:
+            html_message = render_to_string('emails/password_reset_email.html', context)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject='Reset Your UFAA Account Password',
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[self.user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+            # Don't fail the request if email fails - just log it
+
+
+
+
+
+
+class ForgotPasswordSerializerOld2(serializers.Serializer):
+    identifier = serializers.CharField(required=True)
+    
+    def validate_identifier(self, value):
+        user = None
+        
+        # Check if identifier is email
+        if '@' in value:
+            try:
+                user = User.objects.get(email=value)
+            except User.DoesNotExist:
+                pass
+        
+        # Check if identifier is ID number (8 digits)
+        elif value.isdigit() and len(value) == 8:
+            try:
+                user = User.objects.get(id_number=value)
+            except User.DoesNotExist:
+                pass
+        
+        # Check if identifier is phone number
+        else:
+            # Clean phone number
+            clean_phone = value.replaceAll(RegExp(r'[\s\-\(\)]'), '')
+            if clean_phone.startswith('0'):
+                clean_phone = '+254' + clean_phone[1:]
+            elif clean_phone.startswith('7'):
+                clean_phone = '+254' + clean_phone
+            elif clean_phone.startswith('254'):
+                clean_phone = '+' + clean_phone
+            
+            try:
+                user = User.objects.get(phone_no=clean_phone)
+            except User.DoesNotExist:
+                # Try with secondary phone
+                try:
+                    user = User.objects.get(secondary_phone_no=clean_phone)
+                except User.DoesNotExist:
+                    pass
+        
+        if not user:
+            raise serializers.ValidationError("No user found with the provided identifier.")
+        
+        self.user = user
+        return value
+    
+    def save(self):
+        # Generate reset token
+        from django.utils.crypto import get_random_string
+        import time
+        
+        reset_token = get_random_string(length=64)
+        
+        # Save token to user
+        self.user.reset_token = reset_token
+        self.user.reset_token_created_at = timezone.now()
+        self.user.save(update_fields=['reset_token', 'reset_token_created_at'])
+        
+        # Send email with reset link
+        self._send_reset_email(reset_token)
+        
+        return {'email': self.user.email, 'reset_token': reset_token}
+    
+    def _send_reset_email(self, token):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        
+        frontend_url = settings.FRONTEND_URL
+        reset_url = f"{frontend_url}/reset-password?token={token}"
+        
+        context = {
+            'user': self.user,
+            'reset_url': reset_url,
+            'expiry_hours': 1,
+            'year': timezone.now().year,
+        }
+        
+        html_message = render_to_string('emails/password_reset_email.html', context)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject='Reset Your UFAA Account Password',
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[self.user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
@@ -622,7 +1312,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         return attrs
 
 
-class ForgotPasswordSerializer(serializers.Serializer):
+class ForgotPasswordSerializerDelete(serializers.Serializer):
     id_number = serializers.CharField(required=True, help_text="ID Number")
     
     def validate_id_number(self, value):
@@ -632,6 +1322,166 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        from django.utils import timezone
+        
+        if attrs['new_password'] != attrs['confirm_new_password']:
+            raise serializers.ValidationError({"confirm_new_password": "Passwords don't match."})
+        
+        token = attrs.get('token')
+        
+        try:
+            user = User.objects.get(reset_token=token)
+            
+            # Check if token is expired (1 hour)
+            if user.reset_token_created_at:
+                expiry_seconds = 3600  # 1 hour
+                seconds_passed = (timezone.now() - user.reset_token_created_at).seconds
+                if seconds_passed > expiry_seconds:
+                    raise serializers.ValidationError(
+                        {"token": f"Reset token has expired. Please request a new one."}
+                    )
+            else:
+                raise serializers.ValidationError({"token": "Invalid reset token."})
+            
+            attrs['user'] = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"token": "Invalid reset token."})
+        
+        return attrs
+    
+    def save(self):
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
+        user.reset_token = ''
+        user.reset_token_created_at = None
+        user.save(update_fields=['password', 'reset_token', 'reset_token_created_at'])
+        return user
+
+
+class ResetPasswordSerializerOld7(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        from django.utils import timezone
+        
+        if attrs['new_password'] != attrs['confirm_new_password']:
+            raise serializers.ValidationError({"confirm_new_password": "Passwords don't match."})
+        
+        token = attrs.get('token')
+        
+        try:
+            user = User.objects.get(reset_token=token)
+            
+            # Check if token is expired (1 hour)
+            if user.reset_token_created_at:
+                expiry_seconds = 3600  # 1 hour
+                seconds_passed = (timezone.now() - user.reset_token_created_at).seconds
+                if seconds_passed > expiry_seconds:
+                    raise serializers.ValidationError({"token": f"Reset token has expired after {seconds_passed} seconds."})
+            else:
+                raise serializers.ValidationError({"token": "Invalid reset token - no creation timestamp."})
+            
+            attrs['user'] = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"token": "Invalid reset token - user not found."})
+        
+        return attrs
+    
+    def save(self):
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
+        user.reset_token = ''
+        user.reset_token_created_at = None
+        user.save(update_fields=['password', 'reset_token', 'reset_token_created_at'])
+        return user
+
+
+
+class ResetPasswordSerializerold5(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_new_password']:
+            raise serializers.ValidationError({"confirm_new_password": "Passwords don't match."})
+        
+        token = attrs.get('token')
+        
+        try:
+            from django.utils import timezone
+            user = User.objects.get(reset_token=token)
+            
+            # Check if token is expired (1 hour)
+            if user.reset_token_created_at:
+                expiry_seconds = 3600  # 1 hour
+                if (timezone.now() - user.reset_token_created_at).seconds > expiry_seconds:
+                    raise serializers.ValidationError({"token": "Reset token has expired. Please request a new one."})
+            else:
+                raise serializers.ValidationError({"token": "Invalid reset token."})
+            
+            attrs['user'] = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"token": "Invalid reset token."})
+        
+        return attrs
+    
+    def save(self):
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
+        user.reset_token = ''
+        user.reset_token_created_at = None
+        user.save(update_fields=['password', 'reset_token', 'reset_token_created_at'])
+        return user
+
+
+
+
+class ResetPasswordSerializerOld2(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_new_password = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_new_password']:
+            raise serializers.ValidationError({"confirm_new_password": "Passwords don't match."})
+        
+        token = attrs.get('token')
+        
+        try:
+            user = User.objects.get(reset_token=token)
+            
+            # Check if token is expired (1 hour)
+            if user.reset_token_created_at and \
+               (timezone.now() - user.reset_token_created_at).seconds > 3600:
+                raise serializers.ValidationError({"token": "Reset token has expired."})
+            
+            attrs['user'] = user
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"token": "Invalid reset token."})
+        
+        return attrs
+    
+    def save(self):
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
+        user.reset_token = ''
+        user.reset_token_created_at = None
+        user.save(update_fields=['password', 'reset_token', 'reset_token_created_at'])
+        return user
+
+
+
+
+
+class ResetPasswordSerializerOld(serializers.Serializer):
     id_number = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, validators=[validate_password])
     confirm_new_password = serializers.CharField(required=True)

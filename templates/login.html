@@ -1,0 +1,65 @@
+<!-- /var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/templates/login.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UFAA Reunite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #262561 0%, #0F3B4D 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #262561;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .app-link {
+            display: inline-block;
+            background: #E4B355;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .app-link:hover {
+            background: #c99a3e;
+        }
+        .note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UFAA Reunite</h1>
+        <p>Please use the mobile app to login</p>
+        <a href="ufaa://login" class="app-link">Open App</a>
+        <div class="note">
+            If you don't have the app, download it from the Play Store or App Store
+        </div>
+    </div>
+</body>
+</html>

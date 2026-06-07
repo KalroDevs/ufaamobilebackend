@@ -3,7 +3,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User
-from apps.assets.models import Asset
 import re
 
 
@@ -201,7 +200,7 @@ class Claim(models.Model):
     rpa_ipa_no = models.CharField(max_length=50, blank=True)
     user_id = models.CharField(max_length=100, blank=True)
     
-    # Relationships - IMPORTANT: Use 'claimant' as the user field
+    # Relationships - Use claimant as the user field
     claimant = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -231,6 +230,7 @@ class Claim(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'claims'
@@ -247,28 +247,23 @@ class Claim(models.Model):
     
     def save(self, *args, **kwargs):
         """Save claim - preserve mobile-generated number or generate fallback"""
-        # If no claim number is provided, generate a fallback
         if not self.no or not self.no.strip():
             self.no = self.generate_fallback_claim_number()
         else:
-            # Validate the claim number format (optional)
             self.no = self.validate_claim_number(self.no)
         
         super().save(*args, **kwargs)
     
     def validate_claim_number(self, claim_no):
         """Validate and clean the claim number"""
-        # Remove any whitespace
         claim_no = claim_no.strip().upper()
         
-        # Check for duplicates (excluding current instance)
         if self.pk:
             exists = Claim.objects.filter(no=claim_no).exclude(pk=self.pk).exists()
         else:
             exists = Claim.objects.filter(no=claim_no).exists()
         
         if exists:
-            # If duplicate, append timestamp to make it unique
             import time
             claim_no = f"{claim_no}-{int(time.time())}"
         
@@ -279,20 +274,14 @@ class Claim(models.Model):
         import random
         import time
         
-        # Try to use ID number if available
         identifier = self.id_number or self.passport_no or self.phone_no or 'UNKNOWN'
-        # Clean identifier
         identifier = re.sub(r'[^A-Za-z0-9]', '', identifier).upper()[:20]
         
-        # Generate timestamp
         timestamp = int(time.time() * 1000) 
-        
-        # Add random suffix for uniqueness
         random_suffix = random.randint(100, 999)
         
         claim_no = f"CM{random_suffix}{timestamp}"
         
-        # Ensure uniqueness
         while Claim.objects.filter(no=claim_no).exists():
             random_suffix = random.randint(100, 999)
             claim_no = f"CM{random_suffix}{timestamp}"
@@ -347,6 +336,13 @@ class Claim(models.Model):
         """Get claimant's email"""
         return self.claimant.email if self.claimant else ''
     
+    @property
+    def formatted_completed_at(self):
+        """Get formatted completion date"""
+        if self.completed_at:
+            return self.completed_at.strftime('%Y-%m-%d')
+        return ''
+    
     def get_total_assets_value(self):
         return self.claim_assets.aggregate(total=models.Sum('value'))['total'] or 0
     
@@ -366,11 +362,9 @@ class Claim(models.Model):
         """Check if user can modify this claim"""
         if not user or not user.is_authenticated:
             return False
-        # User can modify their own claims in Draft or Pending status
         if self.belongs_to_user(user) and self.status in ['Draft', 'Pending']:
             return True
-        # Staff can modify claims (with appropriate permissions)
-        if user.is_staff or user.role in ['staff', 'admin']:
+        if user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']:
             return True
         return False
 
@@ -390,7 +384,6 @@ class JointOwner(models.Model):
     
     claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='joint_owners')
     
-    # Personal Information
     surname = models.CharField(max_length=100)
     given_name = models.CharField(max_length=100)
     full_name = models.CharField(max_length=200, blank=True)
@@ -402,26 +395,21 @@ class JointOwner(models.Model):
     nationality = models.CharField(max_length=20, choices=NATIONALITY_CHOICES, default='Kenyan')
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
     
-    # Address
     physical_address = models.TextField(blank=True)
     postal_address = models.CharField(max_length=100, blank=True)
     county = models.CharField(max_length=50, blank=True)
     
-    # Disability
     has_disability = models.BooleanField(default=False)
     disability_category = models.CharField(max_length=100, blank=True)
     
-    # Joint ownership details
     ownership_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     is_primary_claimant = models.BooleanField(default=False)
     
-    # Consent
     has_consented = models.BooleanField(default=False)
     consent_date = models.DateTimeField(null=True, blank=True)
     consent_form_uploaded = models.BooleanField(default=False)
     consent_form_path = models.CharField(max_length=500, blank=True)
     
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -454,19 +442,16 @@ class JointOwnerConsent(models.Model):
     joint_owner = models.ForeignKey(JointOwner, on_delete=models.CASCADE, related_name='consents')
     claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='joint_owner_consents')
     
-    # Consent details
     status = models.CharField(max_length=20, choices=CONSENT_STATUS, default='pending')
     consent_token = models.CharField(max_length=100, unique=True, blank=True)
     requested_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(null=True, blank=True)
     
-    # Notification tracking
     notification_sent = models.BooleanField(default=False)
     notification_sent_at = models.DateTimeField(null=True, blank=True)
     reminder_sent = models.BooleanField(default=False)
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     
-    # Response details
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
     device_fingerprint = models.CharField(max_length=255, blank=True)
@@ -495,21 +480,17 @@ class JointPaymentInstruction(models.Model):
     claim = models.OneToOneField(Claim, on_delete=models.CASCADE, related_name='joint_payment_instruction')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='single')
     
-    # For split payments
     split_percentages = models.JSONField(default=dict, blank=True)
     
-    # For joint account
     joint_account_name = models.CharField(max_length=200, blank=True)
     joint_account_number = models.CharField(max_length=50, blank=True)
     joint_bank_name = models.CharField(max_length=200, blank=True)
     joint_branch_name = models.CharField(max_length=200, blank=True)
     
-    # For nominee
     nominee_owner_id = models.IntegerField(null=True, blank=True)
     nominee_consent_received = models.BooleanField(default=False)
     no_objection_letter_path = models.CharField(max_length=500, blank=True)
     
-    # Additional documents
     joint_consent_form_path = models.CharField(max_length=500, blank=True)
     additional_notes = models.TextField(blank=True)
     
@@ -524,13 +505,14 @@ class JointPaymentInstruction(models.Model):
 
 
 class ClaimAsset(models.Model):
-    """Junction table for Claim-Asset relationship"""
+    """Junction table for Claim-Asset relationship - links claims to assets from live MSSQL database"""
     
     claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='claim_assets')
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='claim_assets')
+    # Store the asset number as string (primary key from live MSSQL database - the 'no' field)
+    asset_no = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="Asset number from live database")
     is_selected = models.BooleanField(default=True)
     
-    # Asset snapshot at claim time
+    # Asset snapshot at claim time (captured from LiveUnclaimedAsset)
     asset_snapshot = models.JSONField(default=dict, blank=True)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     holder_name = models.CharField(max_length=200, blank=True)
@@ -540,7 +522,6 @@ class ClaimAsset(models.Model):
     # Additional fields
     key = models.CharField(max_length=100, blank=True)
     rejected = models.BooleanField(default=False)
-    asset_no = models.CharField(max_length=50, blank=True)
     class_code = models.CharField(max_length=50, blank=True)
     class_field = models.CharField(max_length=50, blank=True, db_column='class')
     asset_code = models.CharField(max_length=50, blank=True)
@@ -548,7 +529,7 @@ class ClaimAsset(models.Model):
     name = models.CharField(max_length=200, blank=True)
     id_number = models.CharField(max_length=20, blank=True)
     
-    # CDS Account fields for non-cash assets - Allow NULL
+    # CDS Account fields for non-cash assets
     cds_account_no = models.CharField(max_length=50, null=True, blank=True)
     broker_name = models.CharField(max_length=200, null=True, blank=True)
     broker_code = models.CharField(max_length=50, null=True, blank=True)
@@ -558,14 +539,13 @@ class ClaimAsset(models.Model):
     
     class Meta:
         db_table = 'claim_assets'
-        unique_together = ['claim', 'asset']
         indexes = [
-            models.Index(fields=['claim', 'asset']),
+            models.Index(fields=['claim', 'asset_no']),
             models.Index(fields=['asset_no']),
         ]
     
     def __str__(self):
-        return f"{self.claim.no} - {self.asset.asset_no if self.asset else 'No Asset'}"
+        return f"{self.claim.no} - {self.asset_no or 'No Asset'}"
 
 
 class ClaimDocument(models.Model):
@@ -601,23 +581,19 @@ class ClaimDocument(models.Model):
     file_size = models.IntegerField(help_text="File size in bytes", default=0)
     file_extension = models.CharField(max_length=10, blank=True)
     
-    # Document metadata
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_documents')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
-    # Verification status
     is_verified = models.BooleanField(default=False)
     verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='verified_documents')
     verified_at = models.DateTimeField(null=True, blank=True)
     verification_notes = models.TextField(blank=True)
     
-    # Rejection info
     is_rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(blank=True)
     rejected_at = models.DateTimeField(null=True, blank=True)
     rejected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='rejected_documents')
     
-    # Version control
     version = models.IntegerField(default=1)
     is_latest = models.BooleanField(default=True)
     previous_version = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)

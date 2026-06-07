@@ -8,6 +8,8 @@ from rest_framework.routers import DefaultRouter
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView
+from django.views.generic import TemplateView
+
 
 
 admin.site.site_header = "UFAA Reunify Mobile Admin"  
@@ -49,6 +51,11 @@ urlpatterns = [
     # API Documentation
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+   #Reset password
+   path('reset-password/', TemplateView.as_view(template_name='reset_password.html'), name='reset_password'),
+   path('plogin/', TemplateView.as_view(template_name='login.html'), name='plogin'),
+
 ]
 
 if settings.DEBUG:

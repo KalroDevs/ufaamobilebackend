@@ -50,4 +50,16 @@ urlpatterns = [
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 
 
+    # Document upload endpoint
+    path('claims/upload_document/<int:claim_id>/', upload_claim_document, name='upload_claim_document'),
+    path('claims/<int:claim_id>/documents/', get_claim_documents, name='get_claim_documents'),
+
+    #path('auth/forgot_password/', AuthViewSet.as_view({'post': 'forgot_password'}), name='forgot_password'),
+    #path('auth/reset_password/', AuthViewSet.as_view({'post': 'reset_password'}), name='reset_password'),
+    
+
+    # Password reset endpoints
+    path('auth/forgot_password/', AuthViewSet.as_view({'post': 'forgot_password'}), name='forgot_password'),
+    path('auth/reset_password/', AuthViewSet.as_view({'post': 'reset_password'}), name='reset_password'),
+
 ]

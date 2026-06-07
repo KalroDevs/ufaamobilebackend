@@ -367,19 +367,22 @@ FILE_UPLOAD_HANDLERS = [
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # SMTP Server Configuration (Gmail)
+#EMAIL_HOST = 'smtp.office365.com'
 EMAIL_HOST = 'smtp.gmail.com'
+
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 # Email Authentication
-EMAIL_HOST_USER = 'kevinkiambe@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'eupgduqhtxldjwxx'  # Replace with your actual app password
-
+#EMAIL_HOST_USER = 'reunite@ufaa.go.ke'
+EMAIL_HOST_USER = 'ufaakenya@gmail.com'
+EMAIL_HOST_PASSWORD = 'qppdhjjavdzyemmw'
+#EMAIL_HOST_PASSWORD = '@Unclaimed1'
 # Email Addresses
 DEFAULT_FROM_EMAIL = f'UFAA Reunite <{EMAIL_HOST_USER}>'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-ADMIN_EMAIL = 'https://mobile.ufaa.go.ke/'
+ADMIN_EMAIL = 'https://mobile.ufaa.go.ke'
 
 # Email Settings
 EMAIL_TIMEOUT = 30  # Timeout in seconds

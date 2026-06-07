@@ -101,6 +101,14 @@ class User(AbstractUser):
     post_code = models.CharField(max_length=20, blank=True)
     postal_address = models.CharField(max_length=200, blank=True, help_text="P.O. Box address")
     
+
+    # Password reset fields
+    reset_token = models.CharField(max_length=100, blank=True, default='', db_index=True)
+    reset_token_created_at = models.DateTimeField(null=True, blank=True)
+
+
+
+
     # Address Information
     county = models.CharField(max_length=50, blank=True, help_text="County of residence")
     city = models.CharField(max_length=100, blank=True, help_text="Town/City of residence")
