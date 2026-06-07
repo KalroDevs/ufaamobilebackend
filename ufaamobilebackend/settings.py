@@ -19,8 +19,16 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+#ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+#ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Add your domain and IPs
+#ALLOWED_HOSTS.extend([
+#    'mobile.ufaa.go.ke',
+#    '196.201.226.101',
+#    '196.202.210.90',
+#])
 
+ALLOWED_HOSTS = ['mobile.ufaa.go.ke', '196.201.226.101',  '196.202.210.90']
 
 
 # These settings are necessary for the modal windows to function
@@ -252,10 +260,12 @@ STATICFILES_DIRS = [
 
 #STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-
+BASE_URL = os.environ.get('BASE_URL', 'https://mobile.ufaa.go.ke/')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT, mode=0o755, exist_ok=True)
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -341,13 +351,24 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
 # File Upload Settings
+FILE_UPLOAD_PERMISSIONS = 0o644
 DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', default=50, cast=int)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = config('DATA_UPLOAD_MAX_NUMBER_FIELDS', default=1000, cast=int)
 FILE_UPLOAD_MAX_MEMORY_SIZE = config('FILE_UPLOAD_MAX_MEMORY_SIZE', default=10485760, cast=int)  # 10MB
+
 FILE_UPLOAD_HANDLERS = [
     'django.core.files.uploadhandler.MemoryFileUploadHandler',
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
 ]
+
+def ensure_directory_permissions(path):
+    """Ensure directory has correct permissions"""
+    if os.path.exists(path):
+        os.chmod(path, 0o755)
+
+
+
+
 
 
 # Email Configuration

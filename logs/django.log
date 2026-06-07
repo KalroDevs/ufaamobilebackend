@@ -203391,3 +203391,887 @@ Traceback (most recent call last):
     return self.cursor.execute(sql, params)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Unclaimed Asset$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-06-07 09:52:40,758 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 10:04:56,762 log 1363037 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 10:05:09,625 log 1363037 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 10:24:45,827 log 1363038 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 10:51:34,107 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 10:53:03,943 log 1363037 123910093168768 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 10:57:11,669 log 1363037 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 10:59:03,799 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:03:55,643 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:04:50,537 log 1363038 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:04:54,249 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:09:21,638 log 1363039 123910093168768 Not Found: /api/claims/41/document-requests/
+WARNING 2026-06-07 11:09:41,806 log 1363037 123910093168768 Not Found: /api/claims/40/document-requests/
+WARNING 2026-06-07 11:10:28,807 log 1363036 123910093168768 Not Found: /api/claims/41/document-requests/
+WARNING 2026-06-07 11:11:22,330 log 1363038 123910093168768 Method Not Allowed: /api/claims/41/documents/
+ERROR 2026-06-07 11:14:37,036 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:18:24,952 log 1363038 123910093168768 Method Not Allowed: /api/claims/upload_document/
+ERROR 2026-06-07 11:20:40,258 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:20:49,230 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:20:56,702 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:21:05,426 log 1363037 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:29:43,056 log 1363039 123910093168768 Method Not Allowed: /api/claims/upload_document/
+ERROR 2026-06-07 11:36:28,718 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:36:37,428 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:38:22,015 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 11:41:12,277 log 1363037 123910093168768 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:45:33,414 log 1363039 123910093168768 Not Found: /api/claims/41/upload-document/
+ERROR 2026-06-07 11:50:57,624 log 1363036 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:50:59,576 log 1363039 123910093168768 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 11:51:58,319 log 1363039 123910093168768 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 11:56:20,891 log 1363036 123910093168768 Not Found: /api/claims/41/document-requests/
+WARNING 2026-06-07 11:56:38,738 log 1363036 123910093168768 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 11:58:36,723 log 1367121 137574629408896 Internal Server Error: /admin/claims/claimdocument/24/change/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 831, in get_form
+    return modelform_factory(self.model, **defaults)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/forms/models.py", line 675, in modelform_factory
+    return type(form)(class_name, (form,), form_class_attrs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/forms/models.py", line 336, in __new__
+    raise FieldError(message)
+django.core.exceptions.FieldError: Unknown field(s) (document_view) specified for ClaimDocument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 711, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/sites.py", line 247, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 1946, in change_view
+    return self.changeform_view(request, object_id, form_url, extra_context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 1799, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 1837, in _changeform_view
+    ModelForm = self.get_form(
+                ^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/options.py", line 833, in get_form
+    raise FieldError(
+django.core.exceptions.FieldError: Unknown field(s) (document_view) specified for ClaimDocument. Check fields/fieldsets/exclude attributes of class ClaimDocumentAdmin.
+WARNING 2026-06-07 11:58:48,985 log 1367121 137574629408896 Not Found: /admin/claims/c
+ERROR 2026-06-07 11:58:55,779 log 1367121 137574629408896 Internal Server Error: /admin/claims/claimdocument/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/options.py", line 684, in get_field
+    return self.fields_map[field_name]
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'document_preview'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/utils.py", line 293, in lookup_field
+    f = _get_non_gfk_field(opts, name)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/utils.py", line 333, in _get_non_gfk_field
+    field = opts.get_field(name)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/options.py", line 686, in get_field
+    raise FieldDoesNotExist(
+django.core.exceptions.FieldDoesNotExist: ClaimDocument has no field named 'document_preview'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/templatetags/base.py", line 47, in render
+    return super().render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 363, in render
+    _dict = self.func(*resolved_args, **resolved_kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/templatetags/admin_list.py", line 357, in result_list
+    "results": list(results(cl)),
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/templatetags/admin_list.py", line 333, in results
+    yield ResultList(None, items_for_result(cl, res, None))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/templatetags/admin_list.py", line 324, in __init__
+    super().__init__(*items)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/templatetags/admin_list.py", line 221, in items_for_result
+    f, attr, value = lookup_field(field_name, result, cl.model_admin)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/contrib/admin/utils.py", line 302, in lookup_field
+    value = attr(obj)
+            ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/claims/admin.py", line 247, in document_preview
+    return format_html('<span style="font-size: 20px;">📑</span>')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/html.py", line 137, in format_html
+    raise TypeError("args or kwargs must be provided.")
+TypeError: args or kwargs must be provided.
+WARNING 2026-06-07 12:03:51,451 log 1367334 137727296475264 Not Found: /documents/CM7001780765899637/Original Official Letter from Asset Holder (Bank, Telco, Insurance, Sacco, etc.)
+WARNING 2026-06-07 12:15:42,259 log 1367706 138655950823552 Not Found: /documents/CM7001780765899637/KRA PIN Certificate
+WARNING 2026-06-07 12:15:56,470 log 1367707 138655950823552 Not Found: /documents/CM7001780765899637/Original Official Letter from Asset Holder (Bank, Telco, Insurance, Sacco, etc.)
+WARNING 2026-06-07 12:18:21,120 log 1367816 131630322905216 Not Found: /documents/CM7001780765899637/Completed Payment Instruction Form
+ERROR 2026-06-07 12:19:08,797 log 1367817 131630322905216 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 12:24:12,433 log 1368018 127464765649024 Not Found: /api/claims/documents/23/view/
+WARNING 2026-06-07 12:27:34,398 log 1368163 124092583755904 Not Found: /api/claims/documents/23/view/
+WARNING 2026-06-07 12:29:56,754 log 1368263 126076673609856 Not Found: /api/documents/23/view/
+WARNING 2026-06-07 12:30:01,949 log 1368263 126076673609856 Not Found: /api/documents/23/download/
+WARNING 2026-06-07 12:30:22,088 log 1368263 126076673609856 Not Found: /api/documents/24/view/
+ERROR 2026-06-07 12:38:15,832 log 1368260 126076673609856 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 12:38:55,387 log 1368261 126076673609856 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 12:48:11,141 log 1368260 126076673609856 Not Found: /api/documents/24/view/
+ERROR 2026-06-07 12:48:34,435 log 1368260 126076673609856 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 12:51:43,547 log 1368263 126076673609856 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 12:52:54,780 log 1368261 126076673609856 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 12:57:11,986 log 1368263 126076673609856 Not Found: /api/documents/24/download/
+WARNING 2026-06-07 12:57:21,138 log 1368263 126076673609856 Not Found: /api/documents/24/download/
+WARNING 2026-06-07 12:58:19,242 log 1368261 126076673609856 Not Found: /api/documents/25/view/
+WARNING 2026-06-07 12:58:24,437 log 1368261 126076673609856 Not Found: /api/documents/24/view/
+WARNING 2026-06-07 12:58:32,788 log 1368261 126076673609856 Not Found: /api/documents/25/view/
+WARNING 2026-06-07 12:58:36,817 log 1368261 126076673609856 Not Found: /api/documents/24/view/
+WARNING 2026-06-07 13:11:13,583 log 1368263 126076673609856 Not Found: /api/claims/40/document-requests/
+WARNING 2026-06-07 13:14:12,619 log 1368263 126076673609856 Not Found: /api/claims/40/document-requests/
+WARNING 2026-06-07 13:16:23,110 log 1368263 126076673609856 Not Found: /api/claims/40/document-requests/
+ERROR 2026-06-07 13:17:05,099 log 1368263 126076673609856 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 13:20:58,586 log 1369708 133603279917184 Not Found: /api/claims/40/document-requests/
+WARNING 2026-06-07 13:46:14,737 log 1369706 133603279917184 Not Found: /api/claims/41/document-requests/
+WARNING 2026-06-07 13:51:07,565 log 1369707 133603279917184 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 13:51:55,290 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+WARNING 2026-06-07 13:58:14,660 log 1369708 133603279917184 Not Found: /robots.txt
+WARNING 2026-06-07 14:04:24,034 log 1369708 133603279917184 Not Found: /apple-touch-icon-precomposed.png
+WARNING 2026-06-07 14:04:24,039 log 1369706 133603279917184 Not Found: /favicon.ico
+WARNING 2026-06-07 14:04:24,040 log 1369707 133603279917184 Not Found: /apple-touch-icon.png
+ERROR 2026-06-07 15:02:06,365 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:07,375 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:08,809 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:09,846 log 1369707 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:10,894 log 1369707 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:11,645 log 1369707 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:12,089 log 1369707 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:13,924 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:14,924 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:16,340 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:17,106 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:18,605 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:20,376 log 1369707 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:02:21,849 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 15:07:25,083 log 1369706 133603279917184 Not Found: /api/claims/41/document-requests/
+ERROR 2026-06-07 15:14:48,761 log 1369709 133603279917184 Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.202.210.90'. You may need to add '196.202.210.90' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:23:51,597 log 1369708 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 15:28:29,102 log 1369709 133603279917184 Unauthorized: /api/auth/login/
+WARNING 2026-06-07 15:28:35,335 log 1369707 133603279917184 Unauthorized: /api/auth/login/
+ERROR 2026-06-07 15:32:16,955 log 1369709 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+ERROR 2026-06-07 15:32:23,132 log 1369706 133603279917184 Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/http/request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '196.201.226.101'. You may need to add '196.201.226.101' to ALLOWED_HOSTS.
+WARNING 2026-06-07 15:45:36,308 log 1373595 133637244526720 Not Found: /favicon.ico
+WARNING 2026-06-07 15:47:40,198 log 1373597 133637244526720 Unauthorized: /api/auth/login/
+WARNING 2026-06-07 15:48:41,331 log 1373598 133637244526720 Bad Request: /api/auth/verify-email/
+WARNING 2026-06-07 15:51:43,038 log 1373596 133637244526720 Unauthorized: /api/auth/login/
+WARNING 2026-06-07 16:24:50,611 log 1373596 133637244526720 Forbidden (Referer checking failed - Referer is insecure while host is secure.): /
+WARNING 2026-06-07 16:33:15,302 log 1373598 133637244526720 Forbidden (Referer checking failed - Referer is insecure while host is secure.): /
+WARNING 2026-06-07 16:48:08,570 log 1373598 133637244526720 Not Found: /config.json
+WARNING 2026-06-07 16:48:10,199 log 1373598 133637244526720 Not Found: /telescope/requests
+WARNING 2026-06-07 16:48:11,051 log 1373597 133637244526720 Not Found: /info.php
+WARNING 2026-06-07 16:48:12,679 log 1373595 133637244526720 Not Found: /server-status
+WARNING 2026-06-07 16:53:18,402 log 1373597 133637244526720 Not Found: /ecp/Current/exporttool/microsoft.exchange.ediscovery.exporttool.application

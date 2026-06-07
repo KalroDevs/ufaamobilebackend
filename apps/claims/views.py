@@ -1,5 +1,6 @@
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+# apps/claims/views.py
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,6 +8,11 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db import models as django_models
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, Http404, FileResponse
+from django.conf import settings
+from django.utils.encoding import escape_uri_path
+import os
+import mimetypes
 import logging
 
 from .models import Claim, ClaimAsset, ClaimDocument, ClaimNote, ClaimStatusHistory
@@ -18,6 +24,7 @@ from .serializers import (
 from apps.accounts.models import User
 
 logger = logging.getLogger(__name__)
+
 
 class ClaimViewSet(viewsets.ModelViewSet):
     """ViewSet for managing claims"""
@@ -39,7 +46,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
             return Claim.objects.all()
         
         # Regular citizens: only show their own claims using 'claimant' field
-        # Also match by id_number, phone_no, email for backward compatibility
         return Claim.objects.filter(
             django_models.Q(claimant=user) |
             django_models.Q(id_number=user.id_number) |
@@ -95,7 +101,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
             identifier = serializer.validated_data['identifier']
             search_type = serializer.validated_data['search_type']
             
-            # Base queryset (user's claims only)
             claims = self.get_queryset()
             
             if search_type == 'claim_no':
@@ -315,7 +320,6 @@ class ClaimViewSet(viewsets.ModelViewSet):
             )
         
         try:
-            # Only allow tracking of claims belonging to the user
             claim = self.get_queryset().get(no=claim_number)
             serializer = ClaimStatusSerializer(claim)
             return Response(serializer.data)
@@ -400,6 +404,120 @@ class ClaimViewSet(viewsets.ModelViewSet):
         serializer = ClaimDocumentSerializer(documents, many=True)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/download')
+    def download_claim_document(self, request, pk=None, document_id=None):
+        """Download a specific document from the claim"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            # Check permissions
+            user = request.user
+            if not (user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to download this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Get file path
+            file_path = document.file_path
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            
+            if not os.path.exists(full_path):
+                return Response(
+                    {'error': 'File not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Get file MIME type
+            mime_type, encoding = mimetypes.guess_type(full_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            # Return file response
+            response = FileResponse(
+                open(full_path, 'rb'),
+                content_type=mime_type
+            )
+            
+            encoded_filename = escape_uri_path(document.document_name)
+            response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+            
+            return response
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error downloading file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/view')
+    def view_claim_document(self, request, pk=None, document_id=None):
+        """View a specific document from the claim in browser"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            # Check permissions
+            user = request.user
+            if not (user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to view this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Get file path
+            file_path = document.file_path
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            
+            if not os.path.exists(full_path):
+                return Response(
+                    {'error': 'File not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Get file MIME type
+            mime_type, encoding = mimetypes.guess_type(full_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            # For images and PDFs, display inline; otherwise download
+            if mime_type.startswith('image/') or mime_type == 'application/pdf':
+                content_disposition = 'inline'
+            else:
+                content_disposition = 'attachment'
+            
+            # Return file response
+            response = FileResponse(
+                open(full_path, 'rb'),
+                content_type=mime_type
+            )
+            
+            encoded_filename = escape_uri_path(document.document_name)
+            response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
+            
+            return response
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error viewing file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def verify_document(self, request, pk=None):
         """Verify a claim document"""
@@ -444,9 +562,8 @@ class ClaimViewSet(viewsets.ModelViewSet):
         return Response(summary)
 
 
-
 class ClaimViewSetDeleteView(viewsets.ModelViewSet):
-    """ViewSet for managing claims"""
+    """ViewSet for managing claims with delete functionality"""
     
     serializer_class = ClaimSerializer
     permission_classes = [IsAuthenticated]
@@ -458,7 +575,7 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff_member or user.role == 'admin':
+        if user.is_staff or user.role == 'admin':
             return Claim.objects.all()
         return Claim.objects.filter(
             django_models.Q(id_number=user.id_number) |
@@ -485,9 +602,8 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
         
         logger.info(f"Updating claim {instance.id} with data: {request.data}")
         
-        # Check if user has permission to update this claim
         user = request.user
-        if not (user.is_staff_member or user.role == 'admin' or instance.claimant == user):
+        if not (user.is_staff or user.role == 'admin' or instance.claimant == user):
             return Response(
                 {'error': 'You do not have permission to update this claim'},
                 status=status.HTTP_403_FORBIDDEN
@@ -528,17 +644,14 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
     @action(detail=False, methods=['post'])
     def create_claim(self, request):
         """Create a new claim with assets"""
         logger.info(f"Create claim request data: {request.data}")
         
-        # Add default values for required fields
         data = request.data.copy()
         user = request.user
         
-        # Set default values if not provided
         if 'id_number' not in data or not data['id_number']:
             data['id_number'] = user.id_number
         if 'phone_no' not in data or not data['phone_no']:
@@ -551,14 +664,12 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
             claim = serializer.save()
             logger.info(f"Claim created successfully with ID: {claim.id}, Number: {claim.no}")
             
-            # Return the full claim data with ID
             return Response(
                 ClaimSerializer(claim).data,
                 status=status.HTTP_201_CREATED
             )
         logger.error(f"Claim creation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
@@ -567,9 +678,8 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
         
         logger.info(f"Submitting claim {claim.id} - Current status: {claim.status}")
         
-        # Check if user has permission to submit this claim
         user = request.user
-        if not (user.is_staff_member or user.role == 'admin' or claim.claimant == user):
+        if not (user.is_staff or user.role == 'admin' or claim.claimant == user):
             return Response(
                 {'error': 'You do not have permission to submit this claim'},
                 status=status.HTTP_403_FORBIDDEN
@@ -843,6 +953,111 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
         serializer = ClaimDocumentSerializer(documents, many=True)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/download')
+    def download_claim_document(self, request, pk=None, document_id=None):
+        """Download a specific document from the claim"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            user = request.user
+            if not (user.is_staff or user.role == 'admin'):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to download this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            file_path = document.file_path
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            
+            if not os.path.exists(full_path):
+                return Response(
+                    {'error': 'File not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            mime_type, encoding = mimetypes.guess_type(full_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            response = FileResponse(
+                open(full_path, 'rb'),
+                content_type=mime_type
+            )
+            
+            encoded_filename = escape_uri_path(document.document_name)
+            response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+            
+            return response
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error downloading file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/view')
+    def view_claim_document(self, request, pk=None, document_id=None):
+        """View a specific document from the claim in browser"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            user = request.user
+            if not (user.is_staff or user.role == 'admin'):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to view this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            file_path = document.file_path
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            
+            if not os.path.exists(full_path):
+                return Response(
+                    {'error': 'File not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            mime_type, encoding = mimetypes.guess_type(full_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            
+            if mime_type.startswith('image/') or mime_type == 'application/pdf':
+                content_disposition = 'inline'
+            else:
+                content_disposition = 'attachment'
+            
+            response = FileResponse(
+                open(full_path, 'rb'),
+                content_type=mime_type
+            )
+            
+            encoded_filename = escape_uri_path(document.document_name)
+            response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
+            
+            return response
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error viewing file: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def verify_document(self, request, pk=None):
         """Verify a claim document"""
@@ -893,7 +1108,7 @@ class StaffClaimViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        if not self.request.user.is_staff_member:
+        if not self.request.user.is_staff:
             return Claim.objects.none()
         return Claim.objects.filter(
             status__in=['Pending', 'Under_Review', 'Approved']
@@ -943,3 +1158,125 @@ class StaffClaimViewSet(viewsets.ReadOnlyModelViewSet):
             'total_value': Claim.objects.aggregate(total=django_models.Sum('amount'))['total'] or 0,
         }
         return Response(stats)
+
+
+# ==================== STANDALONE DOCUMENT VIEWS ====================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_document_by_id(request, document_id):
+    """
+    Download a document by its ID (standalone endpoint)
+    URL pattern: /api/documents/<int:document_id>/download/
+    """
+    try:
+        document = get_object_or_404(ClaimDocument, id=document_id)
+        
+        # Check permissions
+        user = request.user
+        if not (user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']):
+            if document.claim.claimant != user:
+                return Response(
+                    {'error': 'You do not have permission to download this document.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        # Get file path
+        file_path = document.file_path
+        full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        
+        if not os.path.exists(full_path):
+            return Response(
+                {'error': 'File not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get file MIME type
+        mime_type, encoding = mimetypes.guess_type(full_path)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+        
+        # Return file response
+        response = FileResponse(
+            open(full_path, 'rb'),
+            content_type=mime_type
+        )
+        
+        encoded_filename = escape_uri_path(document.document_name)
+        response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+        
+        return response
+        
+    except ClaimDocument.DoesNotExist:
+        return Response(
+            {'error': 'Document not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error downloading file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_document_by_id(request, document_id):
+    """
+    View a document in the browser by its ID (standalone endpoint)
+    URL pattern: /api/documents/<int:document_id>/view/
+    """
+    try:
+        document = get_object_or_404(ClaimDocument, id=document_id)
+        
+        # Check permissions
+        user = request.user
+        if not (user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']):
+            if document.claim.claimant != user:
+                return Response(
+                    {'error': 'You do not have permission to view this document.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        # Get file path
+        file_path = document.file_path
+        full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+        
+        if not os.path.exists(full_path):
+            return Response(
+                {'error': 'File not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get file MIME type
+        mime_type, encoding = mimetypes.guess_type(full_path)
+        if not mime_type:
+            mime_type = 'application/octet-stream'
+        
+        # For images and PDFs, display inline; otherwise download
+        if mime_type.startswith('image/') or mime_type == 'application/pdf':
+            content_disposition = 'inline'
+        else:
+            content_disposition = 'attachment'
+        
+        # Return file response
+        response = FileResponse(
+            open(full_path, 'rb'),
+            content_type=mime_type
+        )
+        
+        encoded_filename = escape_uri_path(document.document_name)
+        response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
+        
+        return response
+        
+    except ClaimDocument.DoesNotExist:
+        return Response(
+            {'error': 'Document not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Error viewing file: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
