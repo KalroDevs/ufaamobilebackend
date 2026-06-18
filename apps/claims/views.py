@@ -1,4 +1,5 @@
 # apps/claims/views.py
+import os
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ from .models import Claim, ClaimAsset, ClaimDocument, ClaimNote, ClaimStatusHist
 from .serializers import (
     ClaimSerializer, ClaimCreateSerializer, ClaimStatusSerializer,
     ClaimActionSerializer, ClaimSearchSerializer, ClaimDocumentSerializer,
-    ClaimNoteSerializer, ClaimStatusHistorySerializer
+    ClaimNoteSerializer, ClaimStatusHistorySerializer, ClaimDocumentUploadSerializer
 )
 from apps.accounts.models import User
 
@@ -370,31 +371,46 @@ class ClaimViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def upload_document(self, request, pk=None):
-        """Upload a document for a claim"""
+        """Upload a document for a claim using Django's FileField"""
         claim = self.get_object()
         
-        file = request.FILES.get('file')
-        document_type = request.data.get('document_type')
-        document_name = request.data.get('document_name', file.name if file else '')
-        
-        if not file or not document_type:
-            return Response(
-                {'error': 'file and document_type are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        document = ClaimDocument.objects.create(
-            claim=claim,
-            document_type=document_type,
-            document_name=document_name,
-            file_path=f"documents/{claim.no}/{file.name}",
-            file_size=file.size,
-            file_extension=file.name.split('.')[-1] if '.' in file.name else '',
-            uploaded_by=request.user
+        # Validate the uploaded file
+        upload_serializer = ClaimDocumentUploadSerializer(
+            data=request.data,
+            context={'request': request, 'claim_id': claim.id}
         )
         
-        serializer = ClaimDocumentSerializer(document)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if not upload_serializer.is_valid():
+            return Response(upload_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        file = upload_serializer.validated_data['file']
+        document_type = upload_serializer.validated_data['document_type']
+        document_name = upload_serializer.validated_data.get('document_name', file.name)
+        
+        try:
+            # Create the document - Django's FileField handles the file saving automatically
+            document = ClaimDocument.objects.create(
+                claim=claim,
+                document_type=document_type,
+                document_name=document_name,
+                file=file,  # Django automatically saves the file to MEDIA_ROOT
+                uploaded_by=request.user
+            )
+            
+            # FileField already populated file_size and file_extension, but we can ensure they're set
+            document.file_size = file.size
+            document.file_extension = file.name.split('.')[-1] if '.' in file.name else ''
+            document.save(update_fields=['file_size', 'file_extension'])
+            
+            serializer = ClaimDocumentSerializer(document)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Error uploading document: {str(e)}")
+            return Response(
+                {'error': f'Failed to upload document: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['get'])
     def documents(self, request, pk=None):
@@ -406,7 +422,7 @@ class ClaimViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/download')
     def download_claim_document(self, request, pk=None, document_id=None):
-        """Download a specific document from the claim"""
+        """Download a specific document from the claim using FileField"""
         claim = self.get_object()
         
         try:
@@ -421,46 +437,46 @@ class ClaimViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN
                     )
             
-            # Get file path
-            file_path = document.file_path
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            
-            if not os.path.exists(full_path):
+            # Check if file exists
+            if not document.file or not self._file_exists(document.file.path):
                 return Response(
-                    {'error': 'File not found.'},
+                    {'error': 'File not found on server.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
             # Get file MIME type
-            mime_type, encoding = mimetypes.guess_type(full_path)
+            mime_type, encoding = mimetypes.guess_type(document.file.name)
             if not mime_type:
                 mime_type = 'application/octet-stream'
             
-            # Return file response
-            response = FileResponse(
-                open(full_path, 'rb'),
-                content_type=mime_type
-            )
-            
-            encoded_filename = escape_uri_path(document.document_name)
-            response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
-            
-            return response
+            # Open and return the file
+            try:
+                # Django's FileField provides a .open() method
+                response = FileResponse(
+                    document.file.open('rb'),
+                    content_type=mime_type
+                )
+                
+                encoded_filename = escape_uri_path(document.document_name)
+                response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+                
+                return response
+                
+            except Exception as e:
+                return Response(
+                    {'error': f'Error reading file: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
         except ClaimDocument.DoesNotExist:
             return Response(
                 {'error': 'Document not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
-            return Response(
-                {'error': f'Error downloading file: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
     
     @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/view')
     def view_claim_document(self, request, pk=None, document_id=None):
-        """View a specific document from the claim in browser"""
+        """View a specific document from the claim in browser using FileField"""
         claim = self.get_object()
         
         try:
@@ -475,47 +491,77 @@ class ClaimViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN
                     )
             
-            # Get file path
-            file_path = document.file_path
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            
-            if not os.path.exists(full_path):
+            # Check if file exists
+            if not document.file or not self._file_exists(document.file.path):
                 return Response(
-                    {'error': 'File not found.'},
+                    {'error': 'File not found on server.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
             # Get file MIME type
-            mime_type, encoding = mimetypes.guess_type(full_path)
+            mime_type, encoding = mimetypes.guess_type(document.file.name)
             if not mime_type:
                 mime_type = 'application/octet-stream'
             
-            # For images and PDFs, display inline; otherwise download
+            # Determine content disposition
             if mime_type.startswith('image/') or mime_type == 'application/pdf':
                 content_disposition = 'inline'
             else:
                 content_disposition = 'attachment'
             
-            # Return file response
-            response = FileResponse(
-                open(full_path, 'rb'),
-                content_type=mime_type
-            )
-            
-            encoded_filename = escape_uri_path(document.document_name)
-            response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
-            
-            return response
+            # Open and return the file
+            try:
+                response = FileResponse(
+                    document.file.open('rb'),
+                    content_type=mime_type
+                )
+                
+                encoded_filename = escape_uri_path(document.document_name)
+                response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
+                
+                return response
+                
+            except Exception as e:
+                return Response(
+                    {'error': f'Error reading file: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
         except ClaimDocument.DoesNotExist:
             return Response(
                 {'error': 'Document not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+    
+    @action(detail=True, methods=['delete'], url_path='documents/(?P<document_id>[0-9]+)/delete')
+    def delete_document(self, request, pk=None, document_id=None):
+        """Delete a document from the claim"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            # Check permissions
+            user = request.user
+            if not (user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to delete this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Delete the document (the model's delete method will also delete the file)
+            document.delete()
+            
             return Response(
-                {'error': f'Error viewing file: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'message': 'Document deleted successfully'},
+                status=status.HTTP_200_OK
+            )
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
             )
     
     @action(detail=True, methods=['post'])
@@ -560,6 +606,10 @@ class ClaimViewSet(viewsets.ModelViewSet):
         }
         
         return Response(summary)
+    
+    def _file_exists(self, file_path):
+        """Helper method to check if a file exists"""
+        return os.path.exists(file_path) if file_path else False
 
 
 class ClaimViewSetDeleteView(viewsets.ModelViewSet):
@@ -919,31 +969,46 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def upload_document(self, request, pk=None):
-        """Upload a document for a claim"""
+        """Upload a document for a claim using Django's FileField"""
         claim = self.get_object()
         
-        file = request.FILES.get('file')
-        document_type = request.data.get('document_type')
-        document_name = request.data.get('document_name', file.name if file else '')
-        
-        if not file or not document_type:
-            return Response(
-                {'error': 'file and document_type are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        document = ClaimDocument.objects.create(
-            claim=claim,
-            document_type=document_type,
-            document_name=document_name,
-            file_path=f"documents/{claim.no}/{file.name}",
-            file_size=file.size,
-            file_extension=file.name.split('.')[-1] if '.' in file.name else '',
-            uploaded_by=request.user
+        # Validate the uploaded file
+        upload_serializer = ClaimDocumentUploadSerializer(
+            data=request.data,
+            context={'request': request, 'claim_id': claim.id}
         )
         
-        serializer = ClaimDocumentSerializer(document)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if not upload_serializer.is_valid():
+            return Response(upload_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        file = upload_serializer.validated_data['file']
+        document_type = upload_serializer.validated_data['document_type']
+        document_name = upload_serializer.validated_data.get('document_name', file.name)
+        
+        try:
+            # Create the document - Django's FileField handles the file saving automatically
+            document = ClaimDocument.objects.create(
+                claim=claim,
+                document_type=document_type,
+                document_name=document_name,
+                file=file,  # Django automatically saves the file to MEDIA_ROOT
+                uploaded_by=request.user
+            )
+            
+            # FileField already populated file_size and file_extension, but we can ensure they're set
+            document.file_size = file.size
+            document.file_extension = file.name.split('.')[-1] if '.' in file.name else ''
+            document.save(update_fields=['file_size', 'file_extension'])
+            
+            serializer = ClaimDocumentSerializer(document)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Error uploading document: {str(e)}")
+            return Response(
+                {'error': f'Failed to upload document: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['get'])
     def documents(self, request, pk=None):
@@ -955,7 +1020,7 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/download')
     def download_claim_document(self, request, pk=None, document_id=None):
-        """Download a specific document from the claim"""
+        """Download a specific document from the claim using FileField"""
         claim = self.get_object()
         
         try:
@@ -969,43 +1034,45 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN
                     )
             
-            file_path = document.file_path
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            
-            if not os.path.exists(full_path):
+            # Check if file exists
+            if not document.file or not self._file_exists(document.file.path):
                 return Response(
-                    {'error': 'File not found.'},
+                    {'error': 'File not found on server.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            mime_type, encoding = mimetypes.guess_type(full_path)
+            # Get file MIME type
+            mime_type, encoding = mimetypes.guess_type(document.file.name)
             if not mime_type:
                 mime_type = 'application/octet-stream'
             
-            response = FileResponse(
-                open(full_path, 'rb'),
-                content_type=mime_type
-            )
-            
-            encoded_filename = escape_uri_path(document.document_name)
-            response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
-            
-            return response
+            # Open and return the file
+            try:
+                response = FileResponse(
+                    document.file.open('rb'),
+                    content_type=mime_type
+                )
+                
+                encoded_filename = escape_uri_path(document.document_name)
+                response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+                
+                return response
+                
+            except Exception as e:
+                return Response(
+                    {'error': f'Error reading file: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
         except ClaimDocument.DoesNotExist:
             return Response(
                 {'error': 'Document not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
-            return Response(
-                {'error': f'Error downloading file: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
     
     @action(detail=True, methods=['get'], url_path='documents/(?P<document_id>[0-9]+)/view')
     def view_claim_document(self, request, pk=None, document_id=None):
-        """View a specific document from the claim in browser"""
+        """View a specific document from the claim in browser using FileField"""
         claim = self.get_object()
         
         try:
@@ -1019,43 +1086,76 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN
                     )
             
-            file_path = document.file_path
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            
-            if not os.path.exists(full_path):
+            # Check if file exists
+            if not document.file or not self._file_exists(document.file.path):
                 return Response(
-                    {'error': 'File not found.'},
+                    {'error': 'File not found on server.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            mime_type, encoding = mimetypes.guess_type(full_path)
+            # Get file MIME type
+            mime_type, encoding = mimetypes.guess_type(document.file.name)
             if not mime_type:
                 mime_type = 'application/octet-stream'
             
+            # Determine content disposition
             if mime_type.startswith('image/') or mime_type == 'application/pdf':
                 content_disposition = 'inline'
             else:
                 content_disposition = 'attachment'
             
-            response = FileResponse(
-                open(full_path, 'rb'),
-                content_type=mime_type
-            )
-            
-            encoded_filename = escape_uri_path(document.document_name)
-            response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
-            
-            return response
+            # Open and return the file
+            try:
+                response = FileResponse(
+                    document.file.open('rb'),
+                    content_type=mime_type
+                )
+                
+                encoded_filename = escape_uri_path(document.document_name)
+                response['Content-Disposition'] = f'{content_disposition}; filename*=UTF-8\'\'{encoded_filename}'
+                
+                return response
+                
+            except Exception as e:
+                return Response(
+                    {'error': f'Error reading file: {str(e)}'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
         except ClaimDocument.DoesNotExist:
             return Response(
                 {'error': 'Document not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except Exception as e:
+    
+    @action(detail=True, methods=['delete'], url_path='documents/(?P<document_id>[0-9]+)/delete')
+    def delete_document(self, request, pk=None, document_id=None):
+        """Delete a document from the claim"""
+        claim = self.get_object()
+        
+        try:
+            document = claim.documents.get(id=document_id)
+            
+            user = request.user
+            if not (user.is_staff or user.role == 'admin'):
+                if document.claim.claimant != user:
+                    return Response(
+                        {'error': 'You do not have permission to delete this document.'},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Delete the document (the model's delete method will also delete the file)
+            document.delete()
+            
             return Response(
-                {'error': f'Error viewing file: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'message': 'Document deleted successfully'},
+                status=status.HTTP_200_OK
+            )
+            
+        except ClaimDocument.DoesNotExist:
+            return Response(
+                {'error': 'Document not found'},
+                status=status.HTTP_404_NOT_FOUND
             )
     
     @action(detail=True, methods=['post'])
@@ -1099,6 +1199,10 @@ class ClaimViewSetDeleteView(viewsets.ModelViewSet):
         }
         
         return Response(summary)
+    
+    def _file_exists(self, file_path):
+        """Helper method to check if a file exists"""
+        return os.path.exists(file_path) if file_path else False
 
 
 class StaffClaimViewSet(viewsets.ReadOnlyModelViewSet):
@@ -1181,24 +1285,21 @@ def download_document_by_id(request, document_id):
                     status=status.HTTP_403_FORBIDDEN
                 )
         
-        # Get file path
-        file_path = document.file_path
-        full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-        
-        if not os.path.exists(full_path):
+        # Check if file exists
+        if not document.file or not os.path.exists(document.file.path):
             return Response(
-                {'error': 'File not found.'},
+                {'error': 'File not found on server.'},
                 status=status.HTTP_404_NOT_FOUND
             )
         
         # Get file MIME type
-        mime_type, encoding = mimetypes.guess_type(full_path)
+        mime_type, encoding = mimetypes.guess_type(document.file.name)
         if not mime_type:
             mime_type = 'application/octet-stream'
         
         # Return file response
         response = FileResponse(
-            open(full_path, 'rb'),
+            document.file.open('rb'),
             content_type=mime_type
         )
         
@@ -1238,18 +1339,15 @@ def view_document_by_id(request, document_id):
                     status=status.HTTP_403_FORBIDDEN
                 )
         
-        # Get file path
-        file_path = document.file_path
-        full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-        
-        if not os.path.exists(full_path):
+        # Check if file exists
+        if not document.file or not os.path.exists(document.file.path):
             return Response(
-                {'error': 'File not found.'},
+                {'error': 'File not found on server.'},
                 status=status.HTTP_404_NOT_FOUND
             )
         
         # Get file MIME type
-        mime_type, encoding = mimetypes.guess_type(full_path)
+        mime_type, encoding = mimetypes.guess_type(document.file.name)
         if not mime_type:
             mime_type = 'application/octet-stream'
         
@@ -1261,7 +1359,7 @@ def view_document_by_id(request, document_id):
         
         # Return file response
         response = FileResponse(
-            open(full_path, 'rb'),
+            document.file.open('rb'),
             content_type=mime_type
         )
         

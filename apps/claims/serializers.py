@@ -1,10 +1,11 @@
 # apps/claims/serializers.py
+
 from rest_framework import serializers
 from decimal import Decimal
+from django.contrib.auth import get_user_model
 from .models import (
     Claim, ClaimAsset, ClaimDocument, ClaimNote, ClaimStatusHistory
 )
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -56,18 +57,35 @@ class ClaimDocumentSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     verified_by_name = serializers.CharField(source='verified_by.get_full_name', read_only=True)
     document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
+    file_url = serializers.SerializerMethodField(read_only=True)
+    file_name = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = ClaimDocument
         fields = [
             'id', 'claim', 'document_type', 'document_type_display',
-            'document_name', 'file_path', 'file_size', 'file_extension',
+            'document_name', 'file', 'file_url', 'file_name', 'file_size', 'file_extension',
             'uploaded_by', 'uploaded_by_name', 'uploaded_at',
             'is_verified', 'verified_by', 'verified_by_name', 'verified_at',
             'verification_notes', 'is_rejected', 'rejection_reason',
             'rejected_at', 'rejected_by', 'version', 'is_latest'
         ]
-        read_only_fields = ['id', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at', 'file_size', 'file_extension', 'file_url', 'file_name']
+        extra_kwargs = {
+            'file': {'write_only': True}  # Make file write-only in API responses
+        }
+    
+    def get_file_url(self, obj):
+        """Get the URL to access the file"""
+        if obj.file:
+            return obj.file.url
+        return None
+    
+    def get_file_name(self, obj):
+        """Get the original filename"""
+        if obj.file:
+            return obj.file.name
+        return None
 
 
 class ClaimNoteSerializer(serializers.ModelSerializer):
@@ -418,9 +436,25 @@ class ClaimSearchSerializer(serializers.Serializer):
 
 
 class ClaimDocumentUploadSerializer(serializers.Serializer):
+    """Serializer for document upload validation"""
     document_type = serializers.ChoiceField(choices=[choice[0] for choice in ClaimDocument.DOCUMENT_TYPES])
     file = serializers.FileField()
     document_name = serializers.CharField(required=False, allow_blank=True)
+    
+    def validate_file(self, value):
+        """Validate file size and type"""
+        # Max file size: 10MB
+        max_size = 10 * 1024 * 1024
+        if value.size > max_size:
+            raise serializers.ValidationError(f"File too large. Maximum size is 10MB.")
+        
+        # Allowed file extensions
+        allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'txt']
+        ext = value.name.split('.')[-1].lower()
+        if ext not in allowed_extensions:
+            raise serializers.ValidationError(f"File type '{ext}' not allowed. Allowed types: {', '.join(allowed_extensions)}")
+        
+        return value
     
     def validate(self, attrs):
         request = self.context.get('request')

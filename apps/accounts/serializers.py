@@ -460,16 +460,8 @@ class ResendVerificationSerializer(serializers.Serializer):
                             Verify Email Address
                         </a>
                     </div>
-                    
-                    <div style="margin: 30px 0; padding: 20px; background-color: #f5f5f5; border-radius: 5px;">
-                        <h3>Verification Code</h3>
-                        <p style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #262561;">
-                            {code}
-                        </p>
-                        <p>Enter this code in the UFAA app to verify your email.</p>
-                    </div>
-                    
-                    <p>This verification link and code will expire in 24 hours.</p>
+
+                    <p>This verification link will expire in 24 hours.</p>
                     
                     <hr>
                     <p style="color: #666; font-size: 12px;">

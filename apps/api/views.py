@@ -8,13 +8,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db import models as django_models
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from axes.decorators import axes_dispatch
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from django.urls import reverse
 from django.conf import settings
+from django.http import HttpResponse
+
+
+
 
 from apps.claims.serializers import ClaimSerializer, ClaimCreateSerializer
 from apps.accounts.models import User, LoginAttempt, UserActivityLog
@@ -962,9 +966,129 @@ def resend_verification(request):
     }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def verify_email(request):
+    """Verify user's email address - handles both email link (GET) and API (POST) requests"""
+    
+    # Handle GET request (from email verification link)
+    if request.method == 'GET':
+        token = request.GET.get('token')
+        email = request.GET.get('email')
+        
+        # Check for required parameters
+        if not email:
+            if settings.DEBUG:
+                return HttpResponse("""
+                    <html>
+                    <body>
+                        <h1>Verification Failed</h1>
+                        <p>Email parameter is missing from verification link.</p>
+                    </body>
+                    </html>
+                """, status=400)
+            return redirect(f"{settings.FRONTEND_URL}/email-verification?success=false&error=missing_email")
+        
+        # For GET requests, we need token
+        if not token:
+            if settings.DEBUG:
+                return HttpResponse("""
+                    <html>
+                    <body>
+                        <h1>Verification Failed</h1>
+                        <p>Token parameter is missing from verification link.</p>
+                    </body>
+                    </html>
+                """, status=400)
+            return redirect(f"{settings.FRONTEND_URL}/email-verification?success=false&error=missing_token")
+        
+        # Prepare data for serializer
+        data = {
+            'email': email,
+            'token': token,
+            'verification_code': ''  # Empty since we're using token
+        }
+        
+        serializer = VerifyEmailSerializer(data=data)
+        
+        if serializer.is_valid():
+            try:
+                # Save will mark user as verified
+                serializer.save()
+                
+                # Success - redirect to frontend success page
+                if settings.DEBUG:
+                    return HttpResponse("""
+                        <html>
+                        <body>
+                            <h1>✓ Email Verified Successfully!</h1>
+                            <p>Your email has been verified. You can now close this window and login to the app.</p>
+                            <script>
+                                setTimeout(function() {
+                                    window.close();
+                                }, 3000);
+                            </script>
+                        </body>
+                        </html>
+                    """)
+                return redirect(f"{settings.FRONTEND_URL}/email-verification?success=true")
+                
+            except Exception as e:
+                if settings.DEBUG:
+                    return HttpResponse(f"""
+                        <html>
+                        <body>
+                            <h1>Verification Error</h1>
+                            <p>An error occurred: {str(e)}</p>
+                        </body>
+                        </html>
+                    """, status=400)
+                return redirect(f"{settings.FRONTEND_URL}/email-verification?success=false&error=verification_failed")
+        else:
+            # Validation failed
+            error_message = ""
+            if 'email' in serializer.errors:
+                error_message = serializer.errors['email'][0]
+            elif 'non_field_errors' in serializer.errors:
+                error_message = serializer.errors['non_field_errors'][0]
+            else:
+                error_message = "Invalid or expired verification token"
+            
+            if settings.DEBUG:
+                return HttpResponse(f"""
+                    <html>
+                    <body>
+                        <h1>Verification Failed</h1>
+                        <p>{error_message}</p>
+                        <p>Details: {serializer.errors}</p>
+                    </body>
+                    </html>
+                """, status=400)
+            return redirect(f"{settings.FRONTEND_URL}/email-verification?success=false&error={error_message}")
+    
+    # Handle POST request (from mobile app API)
+    elif request.method == 'POST':
+        serializer = VerifyEmailSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now login.'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email_old(request):
     """Verify user's email address"""
     serializer = VerifyEmailSerializer(data=request.data)
     

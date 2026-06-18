@@ -1,4 +1,5 @@
 # apps/claims/admin.py
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -21,35 +22,23 @@ class ClaimAssetInline(admin.TabularInline):
 class ClaimDocumentInline(admin.TabularInline):
     model = ClaimDocument
     extra = 1
-    fields = ['document_link', 'document_type', 'document_name', 'is_verified', 'is_rejected']
-    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_link']
+    fields = ['document_links', 'document_type', 'document_name', 'is_verified', 'is_rejected']
+    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']
     
-    def document_link(self, obj):
+    def document_links(self, obj):
         """Create a clickable link to view/download the document"""
         if obj and obj.id:
-            # Use the standalone document endpoints (not under claims/)
-            view_url = f"/api/documents/{obj.id}/view/"
-            download_url = f"/api/documents/{obj.id}/download/"
-            
-            # Get file extension for icon
-            ext = os.path.splitext(obj.file_path)[1].lower() if obj.file_path else ''
-            icon = '📄'
-            if ext == '.pdf':
-                icon = '📑'
-            elif ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                icon = '🖼️'
-            elif ext in ['.doc', '.docx']:
-                icon = '📝'
-            elif ext in ['.xls', '.xlsx']:
-                icon = '📊'
-            
-            return format_html(
-                '<a href="{}" target="_blank" style="font-weight: bold; margin-right: 10px;">{} View</a>'
-                '<a href="{}" style="font-weight: bold;">⬇️ Download</a>',
-                view_url, icon, download_url
-            )
+            if hasattr(obj, 'file') and obj.file:
+                try:
+                    view_url = f"/api/documents/{obj.id}/view/"
+                    download_url = f"/api/documents/{obj.id}/download/"
+                    
+                    html = f'<div><a href="{view_url}" target="_blank">View</a> | <a href="{download_url}">Download</a></div>'
+                    return mark_safe(html)
+                except:
+                    return "Error"
         return "No file"
-    document_link.short_description = 'Document'
+    document_links.short_description = 'Document'
     
     def get_extra(self, request, obj=None, **kwargs):
         return 0 if obj else 1
@@ -112,8 +101,8 @@ class ClaimAdmin(admin.ModelAdmin):
         if obj:
             count = obj.documents.count()
             if count > 0:
-                return format_html('<span style="color: green; font-weight: bold;">📄 {}</span>', str(count))
-            return format_html('<span style="color: gray;">0</span>')
+                return mark_safe(f'<span style="color: green; font-weight: bold;">📄 {count}</span>')
+            return mark_safe('<span style="color: gray;">0</span>')
         return "0"
     document_count.short_description = 'Documents'
     
@@ -137,118 +126,62 @@ class ClaimAssetAdmin(admin.ModelAdmin):
         """Link to the claim admin page"""
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
 
 
 @admin.register(ClaimDocument)
 class ClaimDocumentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'document_type', 'document_name', 'document_preview', 'is_verified', 'uploaded_at']
+    list_display = ['id', 'claim_link', 'document_type', 'document_name', 'is_verified', 'uploaded_at']
     list_filter = ['document_type', 'is_verified', 'is_rejected', 'uploaded_at']
     search_fields = ['document_name', 'claim__no', 'uploaded_by__username']
-    readonly_fields = ['uploaded_at', 'uploaded_by', 'file_size_display']
-    fields = ['claim', 'document_type', 'document_name', 'document_view', 'file_path', 'file_size_display',
-              'uploaded_by', 'is_verified', 'verified_by', 'verified_at', 'verification_notes',
-              'is_rejected', 'rejection_reason', 'version', 'is_latest']
+    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']  # document_links here
+    fields = ['claim', 'document_type', 'document_name', 'document_links', 'file',
+              'uploaded_by', 'uploaded_at', 'is_verified', 'verified_by', 'verified_at', 
+              'verification_notes', 'is_rejected', 'rejection_reason', 'version', 'is_latest']
     
     def claim_link(self, obj):
         """Link to the claim admin page"""
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
     
-    def document_view(self, obj):
-        """Create a viewable/downloadable link for the document"""
+    def document_links(self, obj):
+        """Create view and download links for the document"""
         if obj and obj.id:
-            # Use the standalone document endpoints (not under claims/)
-            full_view_url = f"/api/documents/{obj.id}/view/"
-            full_download_url = f"/api/documents/{obj.id}/download/"
-            
-            # Get file extension for appropriate icon and viewer
-            ext = os.path.splitext(obj.file_path)[1].lower() if obj.file_path else ''
-            
-            # Choose icon based on file type
-            icon = '📄'
-            if ext == '.pdf':
-                icon = '📑'
-                button_text = 'Open PDF'
-            elif ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
-                icon = '🖼️'
-                button_text = 'View Image'
-            elif ext in ['.doc', '.docx']:
-                icon = '📝'
-                button_text = 'Open Document'
-            elif ext in ['.xls', '.xlsx']:
-                icon = '📊'
-                button_text = 'Open Spreadsheet'
-            elif ext == '.txt':
-                icon = '📃'
-                button_text = 'View Text'
-            else:
-                button_text = 'Download File'
-            
-            # Create buttons for view and download
-            view_button = mark_safe(
-                f'<a href="{full_view_url}" target="_blank" style="background-color: #4CAF50; color: white; '
-                f'padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 8px;">'
-                f'{icon} {button_text}</a>'
-            )
-            
-            download_button = mark_safe(
-                f'<a href="{full_download_url}" style="background-color: #008CBA; color: white; '
-                f'padding: 6px 12px; text-decoration: none; border-radius: 4px;">'
-                f'⬇️ Download</a>'
-            )
-            
-            # If it's an image, show a thumbnail preview
-            if ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
-                preview = mark_safe(
-                    f'<div style="margin-top: 10px;">'
-                    f'<a href="{full_view_url}" target="_blank">'
-                    f'<img src="{full_view_url}" style="max-width: 200px; max-height: 150px; border: 1px solid #ddd; '
-                    f'border-radius: 4px; padding: 5px;" />'
-                    f'</a></div>'
-                )
-                return mark_safe(f'<div>{view_button}{download_button}</div>{preview}')
-            
-            return mark_safe(f'<div>{view_button}{download_button}</div>')
+            if hasattr(obj, 'file') and obj.file:
+                try:
+                    view_url = f"/api/documents/{obj.id}/view/"
+                    download_url = f"/api/documents/{obj.id}/download/"
+                    
+                    html = f'''
+                    <div>
+                        <a href="{view_url}" target="_blank" style="background-color: #4CAF50; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">📄 View</a>
+                        <a href="{download_url}" style="background-color: #008CBA; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">⬇️ Download</a>
+                    </div>
+                    '''
+                    return mark_safe(html)
+                except:
+                    return "Error loading document"
         return "No file uploaded"
-    document_view.short_description = 'Document'
+    document_links.short_description = 'Document Actions'
     
-    def document_preview(self, obj):
-        """Quick preview in list view"""
-        if obj and obj.id:
-            # Use the standalone document view endpoint
-            full_view_url = f"/api/documents/{obj.id}/view/"
-            
-            ext = os.path.splitext(obj.file_path)[1].lower() if obj.file_path else ''
-            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                return mark_safe(
-                    f'<a href="{full_view_url}" target="_blank">'
-                    f'<img src="{full_view_url}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />'
-                    f'</a>'
-                )
-            elif ext == '.pdf':
-                return mark_safe(f'<a href="{full_view_url}" target="_blank"><span style="font-size: 20px;">📑</span></a>')
-            else:
-                return mark_safe(f'<a href="{full_view_url}" target="_blank"><span style="font-size: 20px;">📄</span></a>')
-        return "-"
-    document_preview.short_description = 'Preview'
+    def save_model(self, request, obj, form, change):
+        if 'file' in form.changed_data and obj.file:
+            obj.file_size = obj.file.size
+            obj.file_extension = os.path.splitext(obj.file.name)[1].lower().lstrip('.')
+        super().save_model(request, obj, form, change)
     
-    def file_size_display(self, obj):
-        """Display file size in human readable format"""
-        if obj and obj.file_size:
-            size = obj.file_size
-            for unit in ['B', 'KB', 'MB', 'GB']:
-                if size < 1024.0:
-                    return f"{size:.1f} {unit}"
-                size /= 1024.0
-            return f"{size:.1f} TB"
-        return "-"
-    file_size_display.short_description = 'File Size'
+    def delete_model(self, request, obj):
+        if obj.file:
+            try:
+                obj.file.delete(save=False)
+            except:
+                pass
+        super().delete_model(request, obj)
 
 
 @admin.register(ClaimNote)
@@ -262,7 +195,7 @@ class ClaimNoteAdmin(admin.ModelAdmin):
     def claim_link(self, obj):
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
     
@@ -284,7 +217,7 @@ class ClaimStatusHistoryAdmin(admin.ModelAdmin):
     def claim_link(self, obj):
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
 
@@ -303,7 +236,7 @@ class JointOwnerAdmin(admin.ModelAdmin):
     def claim_link(self, obj):
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
 
@@ -318,14 +251,14 @@ class JointOwnerConsentAdmin(admin.ModelAdmin):
     def joint_owner_link(self, obj):
         if obj and obj.joint_owner:
             url = reverse('admin:claims_jointowner_change', args=[obj.joint_owner.id])
-            return format_html('<a href="{}">{}</a>', url, obj.joint_owner.full_name)
+            return mark_safe(f'<a href="{url}">{obj.joint_owner.full_name}</a>')
         return "-"
     joint_owner_link.short_description = 'Joint Owner'
     
     def claim_link(self, obj):
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
 
@@ -343,6 +276,12 @@ class JointPaymentInstructionAdmin(admin.ModelAdmin):
     def claim_link(self, obj):
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
-            return format_html('<a href="{}">{}</a>', url, obj.claim.no)
+            return mark_safe(f'<a href="{url}">{obj.claim.no}</a>')
         return "-"
     claim_link.short_description = 'Claim'
+
+
+# Custom admin site configuration
+admin.site.site_header = 'Claims Management System'
+admin.site.site_title = 'Claims Admin'
+admin.site.index_title = 'Welcome to Claims Management System'

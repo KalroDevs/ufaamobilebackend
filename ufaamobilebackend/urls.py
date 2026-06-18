@@ -10,7 +10,7 @@ from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.views.generic import TemplateView
 
-
+from apps.api.views import verify_email
 
 admin.site.site_header = "UFAA Reunify Mobile Admin"  
 admin.site.site_title = "UFAA Reunify Mobile Admin"         
@@ -55,6 +55,8 @@ urlpatterns = [
    #Reset password
    path('reset-password/', TemplateView.as_view(template_name='reset_password.html'), name='reset_password'),
    path('plogin/', TemplateView.as_view(template_name='login.html'), name='plogin'),
+
+   path('verify-email/', verify_email, name='verify_email_direct'),
 
 ]
 

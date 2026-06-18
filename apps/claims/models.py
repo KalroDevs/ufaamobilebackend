@@ -1,4 +1,5 @@
 # apps/claims/models.py
+import os 
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -552,6 +553,7 @@ class ClaimDocument(models.Model):
     """Claim documents model"""
     
     DOCUMENT_TYPES = [
+        ('combined', 'All Forms Combined'),
         ('form4a', 'Form 4A - Original Owner Claim'),
         ('form4b', 'Form 4B - Beneficiary Claim'),
         ('form4c', 'Form 4C - Business Entity Claim'),
@@ -577,7 +579,19 @@ class ClaimDocument(models.Model):
     claim = models.ForeignKey(Claim, on_delete=models.CASCADE, related_name='documents')
     document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
     document_name = models.CharField(max_length=200)
-    file_path = models.CharField(max_length=500)
+    
+    # Replace file_path with FileField
+    file = models.FileField(
+        upload_to='claim_documents/%Y/%m/%d/',  # Auto-organizes by date
+        max_length=500,
+        help_text="Upload the document file",
+        null=True,  # Temporary - allow null
+        blank=True
+    )
+    
+    # Optional: Keep file_path for backward compatibility, but make it blank
+    file_path = models.CharField(max_length=500, blank=True, help_text="Legacy field - use file instead")
+    
     file_size = models.IntegerField(help_text="File size in bytes", default=0)
     file_extension = models.CharField(max_length=10, blank=True)
     
@@ -610,6 +624,49 @@ class ClaimDocument(models.Model):
     
     def __str__(self):
         return f"{self.claim.no} - {self.get_document_type_display()} - {self.document_name}"
+    
+    @property
+    def file_url(self):
+        """Get the URL to access the file"""
+        if self.file:
+            return self.file.url
+        return None
+    
+    @property
+    def file_exists(self):
+        """Check if the file actually exists on disk"""
+        if self.file:
+            try:
+                return bool(self.file.path and os.path.exists(self.file.path))
+            except:
+                return False
+        return False
+    
+    def save(self, *args, **kwargs):
+        """Auto-populate file metadata when saving"""
+        if self.file and not self.file_size:
+            # Auto-populate file metadata from the uploaded file
+            self.file_size = self.file.size
+            self.file_extension = os.path.splitext(self.file.name)[1].lower().lstrip('.')
+            
+            # If document_name is not set, use the original filename
+            if not self.document_name:
+                self.document_name = os.path.basename(self.file.name)
+        
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        """Delete the actual file when the database record is deleted"""
+        # Delete the file from storage
+        if self.file:
+            try:
+                self.file.delete(save=False)
+            except Exception as e:
+                # Log the error but don't prevent database deletion
+                pass
+        super().delete(*args, **kwargs)
+
+
 
 
 class ClaimNote(models.Model):

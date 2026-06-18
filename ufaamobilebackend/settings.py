@@ -194,7 +194,7 @@ DATABASES = {
         'NAME': 'UFAAv24',
         'USER': 'ereunifymobile',
         'PASSWORD': 'R3un1fy@ufaa',
-        'HOST': '192.168.40.127',
+        'HOST': '192.168.40.54',
         'PORT': '1433',
         'OPTIONS': {
             'driver': 'ODBC Driver 18 for SQL Server',
@@ -264,8 +264,14 @@ BASE_URL = os.environ.get('BASE_URL', 'https://mobile.ufaa.go.ke/')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+#if not os.path.exists(MEDIA_ROOT):
+    # os.makedirs(MEDIA_ROOT, mode=0o755, exist_ok=True)
+
+
 if not os.path.exists(MEDIA_ROOT):
-    os.makedirs(MEDIA_ROOT, mode=0o755, exist_ok=True)
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -388,18 +394,18 @@ def ensure_directory_permissions(path):
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # SMTP Server Configuration (Gmail)
-#EMAIL_HOST = 'smtp.office365.com'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.office365.com'
+#EMAIL_HOST = 'smtp.gmail.com'
 
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 # Email Authentication
-#EMAIL_HOST_USER = 'reunite@ufaa.go.ke'
-EMAIL_HOST_USER = 'ufaakenya@gmail.com'
-EMAIL_HOST_PASSWORD = 'qppdhjjavdzyemmw'
-#EMAIL_HOST_PASSWORD = '@Unclaimed1'
+EMAIL_HOST_USER = 'reunite@ufaa.go.ke'
+#EMAIL_HOST_USER = 'ufaakenya@gmail.com'
+#EMAIL_HOST_PASSWORD = 'qppdhjjavdzyemmw'
+EMAIL_HOST_PASSWORD = 'Rudisha1'
 # Email Addresses
 DEFAULT_FROM_EMAIL = f'UFAA Reunite <{EMAIL_HOST_USER}>'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
@@ -419,7 +425,7 @@ MAX_VERIFICATION_ATTEMPTS = 3
 RESEND_VERIFICATION_COOLDOWN_SECONDS = 60
 
 # Frontend URL for email links
-FRONTEND_URL = 'https://mobile.ufaa.go.ke/'  # Change to your production URL
+FRONTEND_URL = 'https://mobile.ufaa.go.ke'  # Change to your production URL
 
 
 
