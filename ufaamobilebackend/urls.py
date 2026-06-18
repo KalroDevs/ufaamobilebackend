@@ -9,6 +9,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.views.generic import TemplateView
+from django.http import JsonResponse
 
 from apps.api.views import verify_email
 
@@ -28,6 +29,27 @@ schema_view = get_schema_view(
     ),
     public=True,
 )
+
+
+def handler404(request, exception):
+    """Custom 404 handler that returns JSON"""
+    return JsonResponse({
+        'success': False,
+        'error': 'Endpoint not found',
+        'detail': f'The requested endpoint "{request.path}" does not exist',
+        'status_code': 404
+    }, status=404)
+
+def handler500(request):
+    """Custom 500 handler that returns JSON"""
+    return JsonResponse({
+        'success': False,
+        'error': 'Internal server error',
+        'detail': 'An unexpected error occurred',
+        'status_code': 500
+    }, status=500)
+
+
 
 
 urlpatterns = [

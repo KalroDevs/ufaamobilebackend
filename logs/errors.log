@@ -1,1 +1,130 @@
 ERROR 2026-06-07 18:59:21,284 views 1378850 129426491756672 Error uploading document: name 'os' is not defined
+ERROR 2026-06-18 13:28:55,466 exceptions 1811731 123453978448000 Unhandled exception: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/api/views.py", line 236, in login
+    logger.info(f"User {user.username} logged in successfully from {client_ip}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/axes/decorators.py", line 11, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/api/views.py", line 254, in login
+    logger.error(f"Login error for user {identifier}: {e}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+ERROR 2026-06-18 14:05:11,165 exceptions 1812833 128292349640832 Unhandled exception: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 503, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 422, in initial
+    self.check_throttles(request)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 365, in check_throttles
+    if not throttle.allow_request(request, self):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:08:44,324 exceptions 1812833 128292349640832 Unhandled exception: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 503, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 422, in initial
+    self.check_throttles(request)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 365, in check_throttles
+    if not throttle.allow_request(request, self):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+

@@ -36,15 +36,20 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Use database backend for maximum reliability
 # Sessions persist even if Redis/Cache fails or restarts
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-#SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 # Session security settings (applied globally, overridden in production if needed)
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-#SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
-SESSION_COOKIE_SAMESITE = 'None' 
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+
 # These will be overridden in production block below
 SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
+
+# Optional: Clear expired sessions automatically
+# Add to your celery beat schedule or run periodically:
+# python manage.py clearsessions
+
 
 
 # Application definition
@@ -99,7 +104,6 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'axes.middleware.AxesMiddleware',
-    'apps.api.middleware.APIJSONMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -117,14 +121,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
+
 
 ROOT_URLCONF = 'ufaamobilebackend.urls'
 
@@ -152,6 +149,17 @@ LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'landing'
 
 LOGIN_REDIRECT_URL = 'guest_portal:admin_dashboard'
+# LOGOUT_REDIRECT_URL = 'guest_portal:landing'
+
+
+
+# Optional: Add custom admin context processor
+# def admin_context(request):
+#     return {
+#         'site_header': 'Admin Portal',
+#         'site_title': 'Admin Portal',
+#     }
+# # End Guest
 
 
 WSGI_APPLICATION = 'ufaamobilebackend.wsgi.application'
@@ -257,16 +265,13 @@ if not os.path.exists(MEDIA_ROOT):
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # Session first for mobile app with cookies
-        'rest_framework.authentication.SessionAuthentication',
-        # JWT as fallback or for web/other clients
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    # CRITICAL: Use custom exception handler for JSON responses
-    'EXCEPTION_HANDLER': 'apps.api.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
@@ -275,7 +280,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': config('REST_PAGE_SIZE', default=20, cast=int),
     'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',  # Always return JSON
+        'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -286,9 +291,6 @@ REST_FRAMEWORK = {
         'user': config('THROTTLE_USER_RATE', default='1000/day'),
         'login': config('THROTTLE_LOGIN_RATE', default='5/minute'),
     },
-    # Additional settings for better handling
-    'UNAUTHENTICATED_USER': None,
-    'UNAUTHENTICATED_TOKEN': None,
 }
 
 
@@ -305,37 +307,18 @@ SIMPLE_JWT = {
 
 
 # Cache (Redis)
-#CACHES = {
-#    'default': {
-#        'BACKEND': 'django_redis.cache.RedisCache',
-#        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
-#        'OPTIONS': {
-#            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#            'PASSWORD': config('REDIS_PASSWORD', default=None),
-#            'SOCKET_CONNECT_TIMEOUT': 5,
-#            'SOCKET_TIMEOUT': 5,
-#        }
-#    }
-#}
-
-#CACHES = {
-#    'default': {
-#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-#        'LOCATION': 'unique-snowflake',
-#    }
-#}
-
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'django_cache_table',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
         'OPTIONS': {
-            'MAX_ENTRIES': 10000,
-            'CULL_FREQUENCY': 3,
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'PASSWORD': config('REDIS_PASSWORD', default=None),
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
         }
     }
 }
-
 
 # Celery Configuration
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
@@ -411,12 +394,12 @@ APNS_CERTIFICATE = config('APNS_CERTIFICATE', default='')
 
 
 # Axes (Login attempt tracking)
-#AXES_ENABLED = config('AXES_ENABLED', default=True, cast=bool)
-AXES_ENABLED = True
-AXES_FAILURE_LIMIT = 10
-AXES_COOLOFF_TIME = timedelta(minutes=5)
+AXES_ENABLED = config('AXES_ENABLED', default=True, cast=bool)
+AXES_FAILURE_LIMIT = config('AXES_FAILURE_LIMIT', default=5, cast=int)
+AXES_COOLOFF_TIME = timedelta(minutes=config('AXES_COOLOFF_TIME_MINUTES', default=15, cast=int))
 AXES_LOCK_OUT_AT_FAILURE = True
-AXES_RESET_ON_SUCCESS = True 
+AXES_RESET_ON_SUCCESS = True
+# AXES_LOCKOUT_TEMPLATE = 'axes/lockout.html'
 AXES_LOCKOUT_TEMPLATE = None 
 AXES_HANDLER = 'axes.handlers.cache.AxesCacheHandler'
 
@@ -488,14 +471,14 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
     SESSION_COOKIE_HTTPONLY = True
-    #SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
 else:
     # Safe fallback configuration parameters for local execution
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = True
-    #SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
 
 
 # Custom User Model
@@ -569,13 +552,13 @@ LOGGING['loggers']['django.security.csrf'] = {
 # Session cookie settings - ensure these are correct
 SESSION_COOKIE_NAME = 'sessionid'  # Default Django session cookie name
 SESSION_SAVE_EVERY_REQUEST = True  # This will refresh session on each request
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
-CSRF_COOKIE_NAME = 'csrftoken'
+
+
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
-#CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'None' 
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_TRUSTED_ORIGINS = [
     'https://mobile.ufaa.go.ke',
-    'http://localhost:8000',
    ]
+
+# Add CSRF exempt for API endpoints (temporarily)
+from django.views.decorators.csrf import csrf_exempt

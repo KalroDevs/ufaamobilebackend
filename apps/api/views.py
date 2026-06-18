@@ -1,4 +1,5 @@
 # apps/api/views.py
+import logging
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -16,7 +17,8 @@ from rest_framework.views import APIView
 from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse
-
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.middleware.csrf import get_token
 
 
 
@@ -39,6 +41,2177 @@ from apps.claims.serializers import (
     ClaimActionSerializer, ClaimSearchSerializer, ClaimDocumentSerializer,
     ClaimNoteSerializer, ClaimStatusHistorySerializer
 )
+
+logger = logging.getLogger(__name__)
+
+class AuthViewSetNew(viewsets.GenericViewSet):
+    """
+    Authentication ViewSet supporting both Session and JWT authentication.
+    Returns response format compatible with Flutter app.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    def _get_client_ip(self, request):
+        """
+        Get client IP address from request headers.
+        Handles cases where the app is behind a proxy (nginx/gunicorn).
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+            if ip:
+                return ip
+        
+        x_real_ip = request.META.get('HTTP_X_REAL_IP')
+        if x_real_ip:
+            return x_real_ip
+        
+        remote_addr = request.META.get('REMOTE_ADDR')
+        if remote_addr:
+            return remote_addr
+        
+        return '0.0.0.0'
+
+    def _log_activity(self, user, activity_type, description, request):
+        """Log user activity"""
+        try:
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=activity_type,
+                description=description,
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+        except Exception as e:
+            logger.error(f"Failed to log activity: {e}")
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """Register a new user - Flutter compatible response"""
+        try:
+            serializer = RegisterSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            
+            # Log registration
+            self._log_activity(
+                user, 
+                'register', 
+                f'User registered with ID: {user.id_number}',
+                request
+            )
+            
+            # Create session
+            django_login(request, user)
+            request.session.set_expiry(60 * 60 * 72)  # 72 hours
+            csrf_token = get_token(request)
+            
+            # Flutter expects access and refresh at top level
+            return Response({
+                'success': True,
+                'message': 'Registration successful! Please check your email to verify your account.',
+                'user': UserSerializer(user).data,
+                'csrf_token': csrf_token,
+                'session_id': request.session.session_key,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Registration failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during registration'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @method_decorator(axes_dispatch)
+    @action(detail=False, methods=['post'])
+    def login(self, request):
+        """
+        Login user - Flutter compatible response.
+        Returns access and refresh tokens at top level.
+        """
+        client_ip = self._get_client_ip(request)
+        identifier = request.data.get('identifier', '').strip()
+        password = request.data.get('password', '')
+        device_fingerprint = request.data.get('device_fingerprint', '')
+        
+        # Log login attempt
+        logger.info(f"Login attempt for identifier: {identifier} from IP: {client_ip}")
+        
+        # Validate input
+        if not identifier or not password:
+            return Response({
+                'success': False,
+                'message': 'Please provide identifier and password',
+                'error': 'Missing credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use LoginSerializer for validation
+        serializer = LoginSerializer(
+            data=request.data, 
+            context={'request': request}
+        )
+        
+        if not serializer.is_valid():
+            # Log failed attempt
+            LoginAttempt.objects.create(
+                user=None,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=False,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            return Response({
+                'success': False,
+                'message': 'Invalid credentials',
+                'errors': serializer.errors
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get authenticated user
+        user = serializer.validated_data['user']
+        logger.info(f"User authenticated: {user.username}")
+        
+        try:
+            # ============ CREATE SESSION ============
+            django_login(request, user)
+            request.session.set_expiry(60 * 60 * 72)  # 72 hours
+            logger.info(f"Session created: {request.session.session_key}")
+            
+            # ============ GET CSRF TOKEN ============
+            csrf_token = get_token(request)
+            
+            # ============ GENERATE JWT ============
+            refresh = RefreshToken.for_user(user)
+            
+            # ============ UPDATE DEVICE FINGERPRINT ============
+            if device_fingerprint:
+                user.device_fingerprint = device_fingerprint
+                user.save(update_fields=['device_fingerprint'])
+            
+            # ============ LOG LOGIN ATTEMPT ============
+            LoginAttempt.objects.create(
+                user=user,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=True,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            # ============ LOG USER ACTIVITY ============
+            self._log_activity(
+                user,
+                'login',
+                'User logged in from mobile app',
+                request
+            )
+            
+            logger.info(f"User {user.username} logged in successfully from {client_ip}")
+            
+            # Get user data
+            user_data = UserSerializer(user).data
+            
+            # ============ FLUTTER COMPATIBLE RESPONSE ============
+            # Flutter app expects access and refresh at top level,
+            # not nested inside 'data' object
+            return Response({
+                'success': True,
+                'message': f'Welcome back, {user.get_full_name() or user.username}!',
+                'user': user_data,
+                'session_id': request.session.session_key,
+                'csrf_token': csrf_token,
+                'refresh': str(refresh),      # Top level for Flutter
+                'access': str(refresh.access_token),  # Top level for Flutter
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Login error for user {identifier}: {e}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': 'Login failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during login'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        """Logout user - Flutter compatible response"""
+        try:
+            user = request.user
+            refresh_token = request.data.get('refresh')
+            
+            # Blacklist refresh token if provided
+            if refresh_token:
+                try:
+                    token = RefreshToken(refresh_token)
+                    token.blacklist()
+                except Exception as e:
+                    logger.warning(f"Failed to blacklist token: {e}")
+            
+            # Log logout activity
+            self._log_activity(
+                user,
+                'logout',
+                'User logged out',
+                request
+            )
+            
+            # Destroy session
+            django_logout(request)
+            
+            logger.info(f"User {user.username} logged out successfully")
+            
+            # Flutter expects success at top level
+            return Response({
+                'success': True,
+                'message': 'Successfully logged out'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Logout failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def change_password(self, request):
+        """Change user password"""
+        try:
+            serializer = ChangePasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = request.user
+            
+            # Check old password
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({
+                    'success': False,
+                    'message': 'Wrong password',
+                    'error': 'old_password'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Set new password
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Log activity
+            self._log_activity(
+                user,
+                'password_change',
+                'User changed password',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Password change error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Password change failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def forgot_password(self, request):
+        """Request password reset"""
+        try:
+            serializer = ForgotPasswordSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            result = serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': result.get('message', 'Password reset instructions sent to your email.'),
+                'email': result.get('email')
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Forgot password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to process password reset',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def reset_password(self, request):
+        """Reset password using token"""
+        try:
+            serializer = ResetPasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Password reset successfully. You can now login with your new password.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Reset password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to reset password',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def profile(self, request):
+        """Get current user profile - Flutter compatible"""
+        try:
+            return Response({
+                'success': True,
+                'message': 'Profile retrieved successfully',
+                'user': UserSerializer(request.user).data  # Direct user object, not nested
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['put'], permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        """Update current user profile"""
+        try:
+            serializer = UserSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            
+            self._log_activity(
+                user,
+                'profile_update',
+                'User updated profile',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile update error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to update profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def check_session(self, request):
+        """Check if session is valid"""
+        try:
+            expiry_age = request.session.get_expiry_age()
+            expiry_date = request.session.get_expiry_date()
+            
+            return Response({
+                'success': True,
+                'authenticated': True,
+                'message': 'Session is valid',
+                'user': UserSerializer(request.user).data,
+                'session_id': request.session.session_key,
+                'session_expires_in_seconds': expiry_age,
+                'session_expires_in_hours': round(expiry_age / 3600, 1),
+                'session_expiry_date': expiry_date,
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'authenticated': False,
+                'message': 'Session is invalid or expired',
+                'error': str(e) if settings.DEBUG else 'Please login again'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def csrf_token(self, request):
+        """Get CSRF token for mobile app"""
+        try:
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'CSRF token retrieved successfully',
+                'csrf_token': csrf_token
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"CSRF token error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get CSRF token',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def refresh_jwt(self, request):
+        """
+        Refresh JWT access token - returns only the new access token.
+        Flutter expects the new access token.
+        """
+        try:
+            from rest_framework_simplejwt.views import TokenRefreshView
+            return TokenRefreshView.as_view()(request)
+            
+        except Exception as e:
+            logger.error(f"JWT refresh error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to refresh token',
+                'error': str(e) if settings.DEBUG else 'Invalid refresh token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def verify_email(self, request):
+        """Verify user's email address"""
+        try:
+            serializer = VerifyEmailSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now login.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Email verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Email verification failed',
+                'error': str(e) if settings.DEBUG else 'Invalid or expired verification token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def resend_verification(self, request):
+        """Resend verification email"""
+        try:
+            serializer = ResendVerificationSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Verification email sent successfully. Please check your inbox.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Resend verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to resend verification email',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def check_verification_status(self, request):
+        """Check if user's email is verified"""
+        try:
+            serializer = CheckVerificationStatusSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            data = serializer.to_representation(None)
+            
+            return Response({
+                'success': True,
+                'message': 'Verification status retrieved',
+                'data': data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Check verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to check verification status',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class AuthViewSetOld4(viewsets.GenericViewSet):
+    """
+    Authentication ViewSet supporting both Session and JWT authentication.
+    - Session authentication for mobile app (cookies)
+    - JWT authentication for API clients
+    """
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    def _get_client_ip(self, request):
+        """
+        Get client IP address from request headers.
+        Handles cases where the app is behind a proxy (nginx/gunicorn).
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+            if ip:
+                return ip
+        
+        x_real_ip = request.META.get('HTTP_X_REAL_IP')
+        if x_real_ip:
+            return x_real_ip
+        
+        remote_addr = request.META.get('REMOTE_ADDR')
+        if remote_addr:
+            return remote_addr
+        
+        return '0.0.0.0'
+
+    def _log_activity(self, user, activity_type, description, request):
+        """Log user activity"""
+        try:
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=activity_type,
+                description=description,
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+        except Exception as e:
+            print(f"Failed to log activity: {e}")
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """Register a new user"""
+        try:
+            serializer = RegisterSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            
+            # Log registration
+            self._log_activity(
+                user, 
+                'register', 
+                f'User registered with ID: {user.id_number}',
+                request
+            )
+            
+            # Create session
+            django_login(request, user)
+            request.session.set_expiry(60 * 60 * 72)  # 72 hours
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'Registration successful! Please check your email to verify your account.',
+                'data': {
+                    'user': UserSerializer(user).data,
+                    'csrf_token': csrf_token,
+                    'session_id': request.session.session_key,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Registration failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during registration'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @method_decorator(axes_dispatch)
+    @action(detail=False, methods=['post'])
+    def login(self, request):
+        """
+        Login user with ID Number, Email, or Phone Number.
+        Creates both session and JWT tokens.
+        """
+        client_ip = self._get_client_ip(request)
+        identifier = request.data.get('identifier', '').strip()
+        password = request.data.get('password', '')
+        device_fingerprint = request.data.get('device_fingerprint', '')
+        
+        # Log login attempt (without password)
+        logger.info(f"Login attempt for identifier: {identifier} from IP: {client_ip}")
+        
+        # Validate input
+        if not identifier or not password:
+            return Response({
+                'success': False,
+                'message': 'Please provide identifier and password',
+                'error': 'Missing credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use LoginSerializer for validation
+        serializer = LoginSerializer(
+            data=request.data, 
+            context={'request': request}
+        )
+        
+        if not serializer.is_valid():
+            # Log failed attempt
+            LoginAttempt.objects.create(
+                user=None,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=False,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            return Response({
+                'success': False,
+                'message': 'Invalid credentials',
+                'errors': serializer.errors
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get authenticated user
+        user = serializer.validated_data['user']
+        logger.info(f"User authenticated: {user.username}")
+        
+        try:
+            # ============ CREATE SESSION ============
+            django_login(request, user)
+            request.session.set_expiry(60 * 60 * 72)  # 72 hours
+            logger.info(f"Session created: {request.session.session_key}")
+            
+            # ============ GET CSRF TOKEN ============
+            csrf_token = get_token(request)
+            
+            # ============ GENERATE JWT ============
+            refresh = RefreshToken.for_user(user)
+            
+            # ============ UPDATE DEVICE FINGERPRINT ============
+            if device_fingerprint:
+                user.device_fingerprint = device_fingerprint
+                user.save(update_fields=['device_fingerprint'])
+            
+            # ============ LOG LOGIN ATTEMPT ============
+            LoginAttempt.objects.create(
+                user=user,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=True,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            # ============ LOG USER ACTIVITY ============
+            self._log_activity(
+                user,
+                'login',
+                'User logged in from mobile app',
+                request
+            )
+            
+            logger.info(f"User {user.username} logged in successfully from {client_ip}")
+            
+            # Get user data
+            user_data = UserSerializer(user).data
+            
+            return Response({
+                'success': True,
+                'message': f'Welcome back, {user.get_full_name() or user.username}!',
+                'data': {
+                    'user': user_data,
+                    'session_id': request.session.session_key,
+                    'csrf_token': csrf_token,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Login error for user {identifier}: {e}", exc_info=True)
+            return Response({
+                'success': False,
+                'message': 'Login failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during login'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        """
+        Logout user - destroys session and blacklists refresh token.
+        """
+        try:
+            user = request.user
+            refresh_token = request.data.get('refresh')
+            
+            # Blacklist refresh token if provided
+            if refresh_token:
+                try:
+                    token = RefreshToken(refresh_token)
+                    token.blacklist()
+                except Exception as e:
+                    logger.warning(f"Failed to blacklist token: {e}")
+            
+            # Log logout activity
+            self._log_activity(
+                user,
+                'logout',
+                'User logged out',
+                request
+            )
+            
+            # Destroy session
+            django_logout(request)
+            
+            logger.info(f"User {user.username} logged out successfully")
+            
+            return Response({
+                'success': True,
+                'message': 'Successfully logged out'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Logout failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def change_password(self, request):
+        """Change user password"""
+        try:
+            serializer = ChangePasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = request.user
+            
+            # Check old password
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({
+                    'success': False,
+                    'message': 'Wrong password',
+                    'error': 'old_password'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Set new password
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Log activity
+            self._log_activity(
+                user,
+                'password_change',
+                'User changed password',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Password change error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Password change failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def forgot_password(self, request):
+        """Request password reset"""
+        try:
+            serializer = ForgotPasswordSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            result = serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': result.get('message', 'Password reset instructions sent to your email.'),
+                'data': {
+                    'email': result.get('email')
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Forgot password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to process password reset',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def reset_password(self, request):
+        """Reset password using token"""
+        try:
+            serializer = ResetPasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Password reset successfully. You can now login with your new password.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Reset password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to reset password',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def profile(self, request):
+        """Get current user profile"""
+        try:
+            return Response({
+                'success': True,
+                'message': 'Profile retrieved successfully',
+                'data': {
+                    'user': UserSerializer(request.user).data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['put'], permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        """Update current user profile"""
+        try:
+            serializer = UserSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            
+            self._log_activity(
+                user,
+                'profile_update',
+                'User updated profile',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'data': {
+                    'user': UserSerializer(user).data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile update error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to update profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def check_session(self, request):
+        """Check if session is valid"""
+        try:
+            expiry_age = request.session.get_expiry_age()
+            expiry_date = request.session.get_expiry_date()
+            
+            return Response({
+                'success': True,
+                'authenticated': True,
+                'message': 'Session is valid',
+                'data': {
+                    'user': UserSerializer(request.user).data,
+                    'session_id': request.session.session_key,
+                    'session_expires_in_seconds': expiry_age,
+                    'session_expires_in_hours': round(expiry_age / 3600, 1),
+                    'session_expiry_date': expiry_date,
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'authenticated': False,
+                'message': 'Session is invalid or expired',
+                'error': str(e) if settings.DEBUG else 'Please login again'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def csrf_token(self, request):
+        """Get CSRF token for mobile app"""
+        try:
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'CSRF token retrieved successfully',
+                'data': {
+                    'csrf_token': csrf_token
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"CSRF token error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get CSRF token',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def refresh_jwt(self, request):
+        """Refresh JWT access token"""
+        try:
+            from rest_framework_simplejwt.views import TokenRefreshView
+            return TokenRefreshView.as_view()(request)
+            
+        except Exception as e:
+            logger.error(f"JWT refresh error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to refresh token',
+                'error': str(e) if settings.DEBUG else 'Invalid refresh token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def verify_email(self, request):
+        """Verify user's email address"""
+        try:
+            serializer = VerifyEmailSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now login.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Email verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Email verification failed',
+                'error': str(e) if settings.DEBUG else 'Invalid or expired verification token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def resend_verification(self, request):
+        """Resend verification email"""
+        try:
+            serializer = ResendVerificationSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Verification email sent successfully. Please check your inbox.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Resend verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to resend verification email',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def check_verification_status(self, request):
+        """Check if user's email is verified"""
+        try:
+            serializer = CheckVerificationStatusSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            data = serializer.to_representation(None)
+            
+            return Response({
+                'success': True,
+                'message': 'Verification status retrieved',
+                'data': data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Check verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to check verification status',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AuthViewSetOld3(viewsets.GenericViewSet):
+    """
+    Authentication ViewSet supporting both Session and JWT authentication.
+    - Session authentication for mobile app (cookies)
+    - JWT authentication for API clients
+    
+    All responses follow a consistent format:
+    {
+        'success': True/False,
+        'message': 'Human readable message',
+        'data': {...} or 'error': 'Error message'
+    }
+    """
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    def _get_client_ip(self, request):
+        """
+        Get client IP address from request headers.
+        Handles cases where the app is behind a proxy (nginx/gunicorn).
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+            if ip:
+                return ip
+        
+        x_real_ip = request.META.get('HTTP_X_REAL_IP')
+        if x_real_ip:
+            return x_real_ip
+        
+        remote_addr = request.META.get('REMOTE_ADDR')
+        if remote_addr:
+            return remote_addr
+        
+        return '0.0.0.0'
+
+    def _create_session(self, request, user):
+        """
+        Create Django session for the user.
+        Sets expiry to 72 hours.
+        """
+        django_login(request, user)
+        request.session.set_expiry(60 * 60 * 72)  # 72 hours
+        return request.session.session_key
+
+    def _log_activity(self, user, activity_type, description, request):
+        """Log user activity"""
+        try:
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type=activity_type,
+                description=description,
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+        except Exception as e:
+            logger.error(f"Failed to log activity: {e}")
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """
+        Register a new user.
+        Creates both session and JWT tokens.
+        """
+        try:
+            serializer = RegisterSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create user
+            user = serializer.save()
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            # Log registration
+            self._log_activity(
+                user, 
+                'register', 
+                f'User registered with ID: {user.id_number}',
+                request
+            )
+            
+            # Create session for the user
+            session_id = self._create_session(request, user)
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'Registration successful! Please check your email to verify your account.',
+                'data': {
+                    'user': UserSerializer(user).data,
+                    'csrf_token': csrf_token,
+                    'session_id': session_id,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Registration failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during registration'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @method_decorator(axes_dispatch)
+    @action(detail=False, methods=['post'])
+    def login(self, request):
+        """
+        Login user with ID Number, Email, or Phone Number.
+        Creates both session and JWT tokens.
+        """
+        client_ip = self._get_client_ip(request)
+        identifier = request.data.get('identifier', '').strip()
+        password = request.data.get('password', '')
+        device_fingerprint = request.data.get('device_fingerprint', '')
+        
+        # Validate input
+        if not identifier or not password:
+            return Response({
+                'success': False,
+                'message': 'Please provide identifier and password',
+                'error': 'Missing credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use LoginSerializer for validation
+        serializer = LoginSerializer(
+            data=request.data, 
+            context={'request': request}
+        )
+        
+        if not serializer.is_valid():
+            # Log failed attempt
+            LoginAttempt.objects.create(
+                user=None,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=False,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            return Response({
+                'success': False,
+                'message': 'Invalid credentials',
+                'errors': serializer.errors
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get authenticated user
+        user = serializer.validated_data['user']
+        
+        try:
+            # Create session
+            session_id = self._create_session(request, user)
+            csrf_token = get_token(request)
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            # Update device fingerprint if provided
+            if device_fingerprint:
+                user.device_fingerprint = device_fingerprint
+                user.save(update_fields=['device_fingerprint'])
+            
+            # Log successful login
+            LoginAttempt.objects.create(
+                user=user,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=True,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=device_fingerprint
+            )
+            
+            # Log user activity
+            self._log_activity(
+                user,
+                'login',
+                'User logged in from mobile app',
+                request
+            )
+            
+            logger.info(f"User {user.username} logged in successfully from {client_ip}")
+            
+            # Get user data
+            user_data = UserSerializer(user).data
+            
+            return Response({
+                'success': True,
+                'message': f'Welcome back, {user.get_full_name() or user.username}!',
+                'data': {
+                    'user': user_data,
+                    'session_id': session_id,
+                    'csrf_token': csrf_token,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Login error for user {identifier}: {e}")
+            return Response({
+                'success': False,
+                'message': 'Login failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred during login'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @method_decorator(csrf_exempt)
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        """
+        Logout user - destroys session and blacklists refresh token.
+        """
+        try:
+            user = request.user
+            refresh_token = request.data.get('refresh')
+            
+            # Blacklist refresh token if provided
+            if refresh_token:
+                try:
+                    token = RefreshToken(refresh_token)
+                    token.blacklist()
+                except Exception as e:
+                    logger.warning(f"Failed to blacklist token: {e}")
+            
+            # Log logout activity
+            self._log_activity(
+                user,
+                'logout',
+                'User logged out',
+                request
+            )
+            
+            # Get username before destroying session
+            username = user.username
+            
+            # Destroy session
+            django_logout(request)
+            
+            logger.info(f"User {username} logged out successfully")
+            
+            return Response({
+                'success': True,
+                'message': 'Successfully logged out'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Logout failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def change_password(self, request):
+        """
+        Change user password.
+        Requires old password and new password.
+        """
+        try:
+            serializer = ChangePasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = request.user
+            
+            # Check old password
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({
+                    'success': False,
+                    'message': 'Wrong password',
+                    'error': 'old_password'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Set new password
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Log activity
+            self._log_activity(
+                user,
+                'password_change',
+                'User changed password',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Password change error for user {request.user.username}: {e}")
+            return Response({
+                'success': False,
+                'message': 'Password change failed',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def forgot_password(self, request):
+        """
+        Request password reset using email, ID number, or phone number.
+        Sends reset link to user's email.
+        """
+        try:
+            serializer = ForgotPasswordSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Process forgot password
+            result = serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': result.get('message', 'Password reset instructions sent to your email.'),
+                'data': {
+                    'email': result.get('email')
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Forgot password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to process password reset',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def reset_password(self, request):
+        """
+        Reset password using token received in email.
+        """
+        try:
+            serializer = ResetPasswordSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Reset password
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Password reset successfully. You can now login with your new password.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Reset password error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to reset password',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def profile(self, request):
+        """
+        Get current user profile.
+        """
+        try:
+            user_data = UserSerializer(request.user).data
+            
+            return Response({
+                'success': True,
+                'message': 'Profile retrieved successfully',
+                'data': {
+                    'user': user_data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile error for user {request.user.username}: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['put'], permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        """
+        Update current user profile.
+        """
+        try:
+            serializer = UserSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Save updated profile
+            user = serializer.save()
+            
+            # Log activity
+            self._log_activity(
+                user,
+                'profile_update',
+                'User updated profile',
+                request
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'data': {
+                    'user': UserSerializer(user).data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Profile update error for user {request.user.username}: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to update profile',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def check_session(self, request):
+        """
+        Check if session is valid.
+        Used by mobile app to verify session status.
+        """
+        try:
+            expiry_age = request.session.get_expiry_age()
+            expiry_date = request.session.get_expiry_date()
+            
+            return Response({
+                'success': True,
+                'authenticated': True,
+                'message': 'Session is valid',
+                'data': {
+                    'user': UserSerializer(request.user).data,
+                    'session_id': request.session.session_key,
+                    'session_expires_in_seconds': expiry_age,
+                    'session_expires_in_hours': round(expiry_age / 3600, 1),
+                    'session_expiry_date': expiry_date,
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'authenticated': False,
+                'message': 'Session is invalid or expired',
+                'error': str(e) if settings.DEBUG else 'Please login again'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def csrf_token(self, request):
+        """
+        Get CSRF token for mobile app.
+        Useful for initializing the app before login.
+        """
+        try:
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'CSRF token retrieved successfully',
+                'data': {
+                    'csrf_token': csrf_token
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"CSRF token error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to get CSRF token',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def refresh_jwt(self, request):
+        """
+        Refresh JWT access token using refresh token.
+        """
+        try:
+            from rest_framework_simplejwt.views import TokenRefreshView
+            return TokenRefreshView.as_view()(request)
+            
+        except Exception as e:
+            logger.error(f"JWT refresh error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to refresh token',
+                'error': str(e) if settings.DEBUG else 'Invalid refresh token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def verify_email(self, request):
+        """
+        Verify user's email address using token or verification code.
+        """
+        try:
+            serializer = VerifyEmailSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify email
+            user = serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now login.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Email verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Email verification failed',
+                'error': str(e) if settings.DEBUG else 'Invalid or expired verification token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def resend_verification(self, request):
+        """
+        Resend verification email to user.
+        """
+        try:
+            serializer = ResendVerificationSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Resend verification
+            serializer.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Verification email sent successfully. Please check your inbox.'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Resend verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to resend verification email',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def check_verification_status(self, request):
+        """
+        Check if user's email is verified.
+        """
+        try:
+            serializer = CheckVerificationStatusSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get verification status
+            data = serializer.to_representation(None)
+            
+            return Response({
+                'success': True,
+                'message': 'Verification status retrieved',
+                'data': data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Check verification error: {e}")
+            return Response({
+                'success': False,
+                'message': 'Failed to check verification status',
+                'error': str(e) if settings.DEBUG else 'An error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AuthViewSetOld2(viewsets.GenericViewSet):
+    """
+    Authentication ViewSet supporting both Session and JWT authentication.
+    - Session authentication for mobile app (cookies)
+    - JWT authentication for API clients
+    """
+    permission_classes = [AllowAny]
+    serializer_class = None
+
+    def _get_client_ip(self, request):
+        """
+        Get client IP address from request headers.
+        Handles cases where the app is behind a proxy (nginx/gunicorn).
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+            if ip:
+                return ip
+        
+        x_real_ip = request.META.get('HTTP_X_REAL_IP')
+        if x_real_ip:
+            return x_real_ip
+        
+        remote_addr = request.META.get('REMOTE_ADDR')
+        if remote_addr:
+            return remote_addr
+        
+        return '0.0.0.0'
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        """Register a new user"""
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            
+            # Log registration
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type='register',
+                description=f'User registered with ID: {user.id_number}',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            # Create session for the new user
+            django_login(request, user)
+            request.session.set_expiry(60 * 60 * 72)  # 72 hours
+            csrf_token = get_token(request)
+            
+            return Response({
+                'success': True,
+                'message': 'Registration successful! Please check your email to verify your account.',
+                'user': UserSerializer(user).data,
+                'csrf_token': csrf_token,
+                'session_id': request.session.session_key,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @method_decorator(csrf_exempt)
+    @method_decorator(axes_dispatch)
+    @action(detail=False, methods=['post'])
+    def login(self, request):
+        """
+        Login user with ID Number, Email, or Phone Number.
+        Creates both session and JWT tokens for maximum compatibility.
+        """
+        client_ip = self._get_client_ip(request)
+        identifier = request.data.get('identifier')
+        password = request.data.get('password')
+        
+        # Validate input
+        if not identifier or not password:
+            return Response({
+                'success': False,
+                'error': 'Please provide identifier and password'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use LoginSerializer for validation
+        serializer = LoginSerializer(data=request.data, context={'request': request})
+        
+        if not serializer.is_valid():
+            # Log failed attempt
+            LoginAttempt.objects.create(
+                user=None,
+                identifier=identifier,
+                ip_address=client_ip,
+                success=False,
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                device_fingerprint=request.data.get('device_fingerprint', '')
+            )
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get authenticated user from serializer
+        user = serializer.validated_data['user']
+        
+        # ============ SUCCESSFUL LOGIN ============
+        
+        # 1. Create Django session for mobile app
+        django_login(request, user)
+        request.session.set_expiry(60 * 60 * 72)  # 72 hours
+        
+        # 2. Get CSRF token for mobile app
+        csrf_token = get_token(request)
+        
+        # 3. Generate JWT tokens for API clients
+        refresh = RefreshToken.for_user(user)
+        
+        # 4. Update device fingerprint if provided
+        if request.data.get('device_fingerprint'):
+            user.device_fingerprint = request.data['device_fingerprint']
+            user.save()
+        
+        # 5. Log successful login attempt
+        LoginAttempt.objects.create(
+            user=user,
+            identifier=identifier,
+            ip_address=client_ip,
+            success=True,
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            device_fingerprint=request.data.get('device_fingerprint', '')
+        )
+        
+        # 6. Log user activity
+        UserActivityLog.objects.create(
+            user=user,
+            activity_type='login',
+            description=f'User logged in from mobile app',
+            ip_address=client_ip,
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
+        # 7. Prepare user data
+        user_data = UserSerializer(user).data
+        
+        logger.info(f"User {user.username} logged in successfully from {client_ip}")
+        
+        return Response({
+            'success': True,
+            'message': f'Welcome back, {user.get_full_name() or user.username}!',
+            'user': user_data,
+            # Session data (for mobile app)
+            'session_id': request.session.session_key,
+            'csrf_token': csrf_token,
+            # JWT tokens (for API clients)
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+
+    @method_decorator(csrf_exempt)
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        """
+        Logout user - destroys session and blacklists refresh token.
+        """
+        try:
+            # Get refresh token if provided
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            
+            # Log logout activity
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='logout',
+                description='User logged out',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            # Destroy session
+            django_logout(request)
+            
+            logger.info(f"User {request.user.username} logged out successfully")
+            
+            return Response({
+                'success': True,
+                'message': 'Successfully logged out'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def change_password(self, request):
+        """Change user password"""
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            
+            # Check old password
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({
+                    'success': False,
+                    'error': 'Wrong password'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Set new password
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Log activity
+            UserActivityLog.objects.create(
+                user=user,
+                activity_type='password_change',
+                description='User changed password',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def forgot_password(self, request):
+        """Request password reset using email, ID number, or phone number"""
+        serializer = ForgotPasswordSerializer(data=request.data, context={'request': request})
+        
+        if serializer.is_valid():
+            try:
+                result = serializer.save()
+                return Response({
+                    'success': True,
+                    'message': result.get('message', 'Password reset instructions sent to your email.'),
+                    'email': result.get('email')
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Forgot password error: {e}")
+                return Response({
+                    'success': False,
+                    'message': f'Error processing request: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            'success': False,
+            'message': 'Validation failed',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def reset_password(self, request):
+        """Reset password using token"""
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Password reset successfully. You can now login with your new password.'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'message': 'Failed to reset password',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def profile(self, request):
+        """Get current user profile"""
+        user_data = UserSerializer(request.user).data
+        return Response({
+            'success': True,
+            'user': user_data
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['put'], permission_classes=[IsAuthenticated])
+    def update_profile(self, request):
+        """Update current user profile"""
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            
+            UserActivityLog.objects.create(
+                user=request.user,
+                activity_type='profile_update',
+                description='User updated profile',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'user': serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def check_session(self, request):
+        """
+        Check if session is valid.
+        Used by mobile app to verify session status.
+        """
+        try:
+            expiry_age = request.session.get_expiry_age()
+            expiry_date = request.session.get_expiry_date()
+            
+            return Response({
+                'success': True,
+                'authenticated': True,
+                'user': UserSerializer(request.user).data,
+                'session_id': request.session.session_key,
+                'session_expires_in_seconds': expiry_age,
+                'session_expires_in_hours': round(expiry_age / 3600, 1),
+                'session_expiry_date': expiry_date,
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'authenticated': False,
+                'error': str(e)
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def csrf_token(self, request):
+        """
+        Get CSRF token for mobile app.
+        Useful for initializing the app before login.
+        """
+        try:
+            csrf_token = get_token(request)
+            return Response({
+                'success': True,
+                'csrf_token': csrf_token
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def refresh_jwt(self, request):
+        """
+        Refresh JWT access token using refresh token.
+        """
+        from rest_framework_simplejwt.views import TokenRefreshView
+        return TokenRefreshView.as_view()(request)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def verify_email(self, request):
+        """Verify user's email address"""
+        serializer = VerifyEmailSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now login.'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def resend_verification(self, request):
+        """Resend verification email"""
+        serializer = ResendVerificationSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Verification email sent successfully. Please check your inbox.'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def check_verification_status(self, request):
+        """Check if user's email is verified"""
+        serializer = CheckVerificationStatusSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            return Response({
+                'success': True,
+                'data': serializer.to_representation(None)
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AuthViewSet(viewsets.GenericViewSet):

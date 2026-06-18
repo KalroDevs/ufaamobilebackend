@@ -234093,3 +234093,939 @@ WARNING 2026-06-17 22:29:04,306 log 1525117 133206189138048 Not Found: /favicon.
 WARNING 2026-06-18 10:06:33,008 log 1525115 133206189138048 Not Found: /favicon.ico
 WARNING 2026-06-18 10:13:05,894 log 1525118 133206189138048 Not Found: /favicon.ico
 WARNING 2026-06-18 10:58:26,389 log 1806627 136469950210176 Not Found: /r/
+WARNING 2026-06-18 12:34:01,418 log 1809756 123682715193472 Not Found: /api/mobile/login/
+ERROR 2026-06-18 13:28:55,466 exceptions 1811731 123453978448000 Unhandled exception: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/api/views.py", line 236, in login
+    logger.info(f"User {user.username} logged in successfully from {client_ip}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/axes/decorators.py", line 11, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/api/views.py", line 254, in login
+    logger.error(f"Login error for user {identifier}: {e}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+ERROR 2026-06-18 13:28:55,472 log 1811731 123453978448000 Internal Server Error: /api/auth/login/
+INFO 2026-06-18 13:34:23,150 views 1811952 138932644016256 Login attempt for identifier: 27457181 from IP: 192.168.40.34
+INFO 2026-06-18 13:34:24,232 views 1811952 138932644016256 User authenticated: kevinkiambe5257
+INFO 2026-06-18 13:34:24,240 views 1811952 138932644016256 Session created: t57ugwo0use6s3n5j61kspq14llaz7sg
+INFO 2026-06-18 13:34:24,247 views 1811952 138932644016256 User kevinkiambe5257 logged in successfully from 192.168.40.34
+INFO 2026-06-18 13:35:45,528 views 1811952 138932644016256 Login attempt for identifier: 27457181 from IP: 105.161.180.45
+INFO 2026-06-18 13:35:46,502 views 1811952 138932644016256 User authenticated: kevinkiambe5257
+INFO 2026-06-18 13:35:46,509 views 1811952 138932644016256 Session created: twxjlu49fkr58o6whpkhwppu9ty57hrp
+INFO 2026-06-18 13:35:46,514 views 1811952 138932644016256 User kevinkiambe5257 logged in successfully from 105.161.180.45
+INFO 2026-06-18 13:43:19,193 views 1812218 139239512572032 Login attempt for identifier: 27457181 from IP: 192.168.40.34
+INFO 2026-06-18 13:43:20,231 views 1812218 139239512572032 User authenticated: kevinkiambe5257
+INFO 2026-06-18 13:43:20,240 views 1812218 139239512572032 Session created: u198dhrvboh7sb8qpd9vnodctjyu9nyp
+INFO 2026-06-18 13:43:20,247 views 1812218 139239512572032 User kevinkiambe5257 logged in successfully from 192.168.40.34
+WARNING 2026-06-18 13:44:30,209 log 1812219 139239512572032 Forbidden: /api/auth/profile/
+INFO 2026-06-18 13:50:25,858 views 1812217 139239512572032 Login attempt for identifier: 27457181 from IP: 192.168.40.34
+INFO 2026-06-18 13:50:26,847 views 1812217 139239512572032 User authenticated: kevinkiambe5257
+INFO 2026-06-18 13:50:26,855 views 1812217 139239512572032 Session created: 8t1q6j82ji41fi12tggqya6w0f8ox4ta
+INFO 2026-06-18 13:50:26,863 views 1812217 139239512572032 User kevinkiambe5257 logged in successfully from 192.168.40.34
+ERROR 2026-06-18 14:04:22,878 log 1812835 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:04:34,190 log 1812835 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:05:11,165 exceptions 1812833 128292349640832 Unhandled exception: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 503, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 422, in initial
+    self.check_throttles(request)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 365, in check_throttles
+    if not throttle.allow_request(request, self):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:05:11,167 log 1812833 128292349640832 Internal Server Error: /api/auth/login/
+ERROR 2026-06-18 14:08:21,976 log 1812836 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:08:44,324 exceptions 1812833 128292349640832 Unhandled exception: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 503, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 422, in initial
+    self.check_throttles(request)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 365, in check_throttles
+    if not throttle.allow_request(request, self):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:08:44,327 log 1812833 128292349640832 Internal Server Error: /api/auth/login/
+ERROR 2026-06-18 14:11:40,777 log 1812833 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:18:51,461 log 1812834 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+ERROR 2026-06-18 14:19:08,775 log 1812835 128292349640832 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/handlers/base.py", line 221, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/response.py", line 92, in rendered_content
+    return template.render(context, self._request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 788, in resolve
+    obj = self.var.resolve(context)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1000, in _resolve_lookup
+    current = current()
+              ^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 82, in super
+    return mark_safe(self.render(self.context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/template/library.py", line 325, in render
+    output = self.func(*resolved_args, **resolved_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/templatetags/admin_interface_tags.py", line 62, in get_admin_interface_theme
+    theme = get_cached_active_theme()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/admin_interface/cache.py", line 14, in get_cached_active_theme
+    return app_cache().get("admin_interface_theme", None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 53, in get
+    return self.get_many([key], version).get(key, default)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/core/cache/backends/db.py", line 69, in get_many
+    cursor.execute(
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "django_cache_table" does not exist
+LINE 1: SELECT "cache_key", "value", "expires" FROM "django_cache_ta...
+                                                    ^
+
