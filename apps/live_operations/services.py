@@ -1,10 +1,15 @@
 # apps/live_operations/services.py
+import traceback
 from django.db import connections, transaction
+from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 import uuid
 from .models import LiveUnclaimedAsset, LiveOnlineClaim, LiveOnlineClaimLine
 import logging
+from apps.claims.models import Claim, ClaimAsset, JointOwner
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +218,433 @@ class LiveDatabaseService:
         'Cheque': 5,
     }
 
+    # ADD THIS MAPPING - It was missing
+    CLAIM_ORIGIN_MAPPING = {
+        'OnlinePortal': 1,
+        'Android_Mobile_App': 2,
+        'iOS_Mobile_App': 3,
+        'Reception': 4,
+        'Emails': 5,
+        'Reunification_Clinics': 6,
+        'Huduma': 7,
+        'Registrars': 8,
+        '': 0,
+    }
+
+    # Also add this if missing
+    GENDER_MAPPING = {
+        'Male': 'M',
+        'Female': 'F',
+        'Other': 'O',
+        '': '',
+    }
+
+    NATIONALITY_MAPPING = {
+        'Kenyan': 'Kenyan',
+        'Non_Kenyan': 'Non_Kenyan',
+        'Non-Kenyan': 'Non_Kenyan',
+        '': '',
+    }
+
+
+ 
+    # ==================== PUSH TO LIVE METHODS ====================
+    
+    @staticmethod
+    def push_claim_to_live(claim_id):
+        """
+        Push a single claim from the default database to the live MSSQL database
+        
+        Args:
+            claim_id: The ID of the claim in the default database
+            
+        Returns:
+            dict: Success status and message
+        """
+        try:
+            logger.info(f"Pushing claim {claim_id} to live database")
+            
+            # Get the claim from default database
+            claim = Claim.objects.filter(id=claim_id, status__in=['Pending', 'Under_Review']).first()
+            
+            if not claim:
+                return {
+                    'success': False,
+                    'message': f'Claim {claim_id} not found or not in review status'
+                }
+            
+            # Check if already pushed
+            existing = LiveOnlineClaim.objects.filter(claim_no=claim.no).first()
+            if existing:
+                return {
+                    'success': False,
+                    'message': f'Claim {claim.no} already exists in live database'
+                }
+            
+            with connections['ereunify'].cursor() as cursor:
+                with transaction.atomic(using='ereunify'):
+                    
+                    # Map status
+                    status_id = LiveDatabaseService.STATUS_MAPPING.get(claim.status, 1)
+                    
+                    # Map category
+                    category_id = LiveDatabaseService.CATEGORY_MAPPING.get(claim.category, 0)
+                    
+                    # Map claim type
+                    claim_type_id = LiveDatabaseService.CLAIM_TYPE_MAPPING.get(claim.claim_type, 1)
+                    
+                    # Map payment category
+                    payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(
+                        claim.payment_category, 1
+                    )
+                    
+                    # Map sub category
+                    sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(
+                        claim.sub_category, 0
+                    )
+                    
+                    # Map claim origin
+                    claim_origin_id = LiveDatabaseService.CLAIM_ORIGIN_MAPPING.get(
+                        claim.claim_origin, 0
+                    )
+                    
+                    # Prepare data
+                    now = timezone.now()
+                    
+                    # Insert into Online Claim table
+                    insert_claim_sql = """
+                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            [No_],
+                            [Document Date],
+                            [Processing Date],
+                            [Category],
+                            [Sub Category],
+                            [Agent Name],
+                            [Claim Type],
+                            [Name],
+                            [ID Number],
+                            [Phone No_],
+                            [E-Mail],
+                            [Value],
+                            [Status],
+                            [Payment Category],
+                            [Bank Name],
+                            [Bank Account No_],
+                            [Mpesa Mobile No_],
+                            [Passport No_],
+                            [Residence],
+                            [Address],
+                            [Post Code],
+                            [County],
+                            [City],
+                            [Gender],
+                            [Claim Origin],
+                            [Internal Remarks],
+                            [Rejected],
+                            [$systemCreatedAt],
+                            [$systemModifiedAt]
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        )
+                    """
+                    
+                    cursor.execute(insert_claim_sql, [
+                        claim.no,
+                        claim.document_date,
+                        claim.processing_date,
+                        category_id,
+                        sub_category_id,
+                        claim.agent_name or '',
+                        claim_type_id,
+                        claim.name or '',
+                        claim.id_number or '',
+                        claim.phone_no or '',
+                        claim.e_mail or '',
+                        float(claim.amount) if claim.amount else 0,
+                        status_id,
+                        payment_category_id,
+                        claim.bank_name or '',
+                        claim.bank_account_no or '',
+                        claim.mpesa_mobile_no or '',
+                        claim.passport_no or '',
+                        claim.residence or '',
+                        claim.address or '',
+                        claim.post_code or '',
+                        claim.county or '',
+                        claim.city or '',
+                        claim.gender or '',
+                        claim_origin_id,
+                        claim.internal_remarks or '',
+                        0,
+                        now,
+                        now,
+                    ])
+                    
+                    # Insert claim assets
+                    claim_assets = ClaimAsset.objects.filter(claim=claim)
+                    for idx, asset in enumerate(claim_assets, 1):
+                        insert_asset_sql = """
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                                [No_],
+                                [Line No_],
+                                [Asset No_],
+                                [Asset Type],
+                                [Description],
+                                [Holder Name],
+                                [Value]
+                            ) VALUES (
+                                %s, %s, %s, %s, %s, %s, %s
+                            )
+                        """
+                        
+                        cursor.execute(insert_asset_sql, [
+                            claim.no,
+                            idx,
+                            asset.asset_no or '',
+                            asset.asset_type or '',
+                            asset.description or '',
+                            asset.holder_name or '',
+                            float(asset.value) if asset.value else 0,
+                        ])
+                    
+                    # Insert joint owners if any
+                    joint_owners = JointOwner.objects.filter(claim=claim)
+                    for joint_owner in joint_owners:
+                        insert_joint_owner_sql = """
+                            INSERT INTO [UFAA TRUST FUND$Joint Owners$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                                [Claim No_],
+                                [Full Name],
+                                [ID Number],
+                                [Phone Number],
+                                [Email],
+                                [Gender],
+                                [Nationality],
+                                [Created At]
+                            ) VALUES (
+                                %s, %s, %s, %s, %s, %s, %s, %s
+                            )
+                        """
+                        
+                        cursor.execute(insert_joint_owner_sql, [
+                            claim.no,
+                            joint_owner.full_name or '',
+                            joint_owner.id_number or '',
+                            joint_owner.phone_number or '',
+                            joint_owner.email or '',
+                            joint_owner.gender or '',
+                            joint_owner.nationality or '',
+                            now,
+                        ])
+                    
+                    logger.info(f"✅ Claim {claim.no} pushed to live database successfully")
+                    
+                    # Update claim status in default database
+                    claim.status = 'Under_Review'
+                    claim.save(update_fields=['status'])
+                    
+                    return {
+                        'success': True,
+                        'claim_no': claim.no,
+                        'message': f'Claim {claim.no} pushed to live database successfully'
+                    }
+                    
+        except Exception as e:
+            logger.error(f"Error pushing claim to live database: {e}")
+            traceback.print_exc()
+            return {
+                'success': False,
+                'message': str(e)
+            }
+    
+    @staticmethod
+    def push_pending_claims_to_live():
+        """
+        Push all pending claims from the default database to the live MSSQL database
+        
+        Returns:
+            dict: Summary of pushed claims
+        """
+        try:
+            logger.info("Starting push of pending claims to live database")
+            
+            # Get all claims with status 'Pending' or 'Under_Review'
+            claims = Claim.objects.filter(status__in=['Pending', 'Under_Review'])
+            
+            if not claims.exists():
+                return {
+                    'success': True,
+                    'message': 'No pending claims to push',
+                    'pushed': 0,
+                    'failed': 0,
+                    'skipped': 0,
+                    'details': []
+                }
+            
+            results = []
+            pushed_count = 0
+            failed_count = 0
+            skipped_count = 0
+            
+            for claim in claims:
+                # Check if already exists in live database
+                existing = LiveOnlineClaim.objects.filter(claim_no=claim.no).first()
+                if existing:
+                    skipped_count += 1
+                    results.append({
+                        'claim_no': claim.no,
+                        'status': 'skipped',
+                        'message': 'Already exists in live database'
+                    })
+                    continue
+                
+                # Push the claim
+                result = LiveDatabaseService.push_claim_to_live(claim.id)
+                
+                if result['success']:
+                    pushed_count += 1
+                else:
+                    failed_count += 1
+                
+                results.append({
+                    'claim_no': claim.no,
+                    'status': 'success' if result['success'] else 'failed',
+                    'message': result.get('message', '')
+                })
+            
+            return {
+                'success': True,
+                'message': f'Push completed: {pushed_count} pushed, {failed_count} failed, {skipped_count} skipped',
+                'pushed': pushed_count,
+                'failed': failed_count,
+                'skipped': skipped_count,
+                'details': results
+            }
+            
+        except Exception as e:
+            logger.error(f"Error pushing pending claims: {e}")
+            traceback.print_exc()
+            return {
+                'success': False,
+                'message': str(e),
+                'pushed': 0,
+                'failed': 0,
+                'skipped': 0,
+                'details': []
+            }
+    
+    @staticmethod
+    def push_claims_by_ids(claim_ids):
+        """
+        Push specific claims by their IDs to the live database
+        
+        Args:
+            claim_ids: List of claim IDs to push
+            
+        Returns:
+            dict: Summary of pushed claims
+        """
+        try:
+            logger.info(f"Pushing claims by IDs: {claim_ids}")
+            
+            claims = Claim.objects.filter(id__in=claim_ids)
+            
+            if not claims.exists():
+                return {
+                    'success': False,
+                    'message': 'No claims found with the provided IDs',
+                    'pushed': 0,
+                    'failed': 0,
+                    'details': []
+                }
+            
+            results = []
+            pushed_count = 0
+            failed_count = 0
+            skipped_count = 0
+            
+            for claim in claims:
+                # Check if already exists in live database
+                existing = LiveOnlineClaim.objects.filter(claim_no=claim.no).first()
+                if existing:
+                    skipped_count += 1
+                    results.append({
+                        'claim_no': claim.no,
+                        'status': 'skipped',
+                        'message': 'Already exists in live database'
+                    })
+                    continue
+                
+                result = LiveDatabaseService.push_claim_to_live(claim.id)
+                
+                if result['success']:
+                    pushed_count += 1
+                else:
+                    failed_count += 1
+                
+                results.append({
+                    'claim_no': claim.no,
+                    'status': 'success' if result['success'] else 'failed',
+                    'message': result.get('message', '')
+                })
+            
+            return {
+                'success': True,
+                'message': f'Push completed: {pushed_count} pushed, {failed_count} failed, {skipped_count} skipped',
+                'pushed': pushed_count,
+                'failed': failed_count,
+                'skipped': skipped_count,
+                'details': results
+            }
+            
+        except Exception as e:
+            logger.error(f"Error pushing claims by IDs: {e}")
+            return {
+                'success': False,
+                'message': str(e),
+                'pushed': 0,
+                'failed': 0,
+                'details': []
+            }
+    
+    @staticmethod
+    def sync_claim_status(claim_no, live_status):
+        """
+        Sync claim status from live database back to default database
+        
+        Args:
+            claim_no: The claim number
+            live_status: The status in the live database
+            
+        Returns:
+            dict: Success status and message
+        """
+        try:
+            claim = Claim.objects.filter(no=claim_no).first()
+            if not claim:
+                return {
+                    'success': False,
+                    'message': f'Claim {claim_no} not found in default database'
+                }
+            
+            # Update the claim status
+            claim.status = live_status
+            claim.save(update_fields=['status'])
+            
+            return {
+                'success': True,
+                'claim_no': claim_no,
+                'status': live_status,
+                'message': f'Claim {claim_no} status synced to {live_status}'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error syncing claim status: {e}")
+            return {
+                'success': False,
+                'message': str(e)
+            }
+    
+
 
     @staticmethod
     def create_new_claim(claim_data, claim_lines_data):
@@ -275,7 +707,7 @@ class LiveDatabaseService:
                 with transaction.atomic(using='ereunify'):
                     # Insert into Online Claim table
                     insert_claim_sql = """
-                        INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                             [No_],
                             [Document Date],
                             [Processing Date],
@@ -327,7 +759,7 @@ class LiveDatabaseService:
                     # Insert claim lines if any
                     for idx, line in enumerate(claim_lines_data, 1):
                         insert_line_sql = """
-                            INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],
@@ -370,7 +802,7 @@ class LiveDatabaseService:
             try:
                 cursor.execute("""
                     SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     WHERE [No_] = %s
                 """, [claim_no])
                 
@@ -458,7 +890,7 @@ class LiveDatabaseService:
                 with transaction.atomic(using='ereunify'):
                     # Insert into Online Claim table
                     insert_claim_sql = """
-                        INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                             [No_],
                             [Document Date],
                             [Processing Date],
@@ -510,7 +942,7 @@ class LiveDatabaseService:
                     # Insert claim lines if any
                     for idx, line in enumerate(claim_lines_data, 1):
                         insert_line_sql = """
-                            INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],
@@ -553,7 +985,7 @@ class LiveDatabaseService:
             try:
                 cursor.execute("""
                     SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     WHERE [No_] = %s
                 """, [claim_no])
                 
@@ -648,7 +1080,7 @@ class LiveDatabaseService:
                 with transaction.atomic(using='ereunify'):
                     # Insert into Online Claim table with Sub Category value (never NULL)
                     insert_claim_sql = """
-                        INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                             [No_],
                             [Document Date],
                             [Processing Date],
@@ -700,7 +1132,7 @@ class LiveDatabaseService:
                     # Insert claim lines if any
                     for idx, line in enumerate(claim_lines_data, 1):
                         insert_line_sql = """
-                            INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],
@@ -743,7 +1175,7 @@ class LiveDatabaseService:
             try:
                 cursor.execute("""
                     SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     WHERE [No_] = %s
                 """, [claim_no])
                 
@@ -815,7 +1247,7 @@ class LiveDatabaseService:
                 with transaction.atomic(using='ereunify'):
                     # Insert into Online Claim table with converted values
                     insert_claim_sql = """
-                        INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                             [No_],
                             [Document Date],
                             [Processing Date],
@@ -867,7 +1299,7 @@ class LiveDatabaseService:
                     # Insert claim lines if any
                     for idx, line in enumerate(claim_lines_data, 1):
                         insert_line_sql = """
-                            INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],
@@ -910,7 +1342,7 @@ class LiveDatabaseService:
             try:
                 cursor.execute("""
                     SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     WHERE [No_] = %s
                 """, [claim_no])
                 
@@ -968,7 +1400,7 @@ class LiveDatabaseService:
                     # First, get the actual column names from the table
                     cursor.execute("""
                         SELECT TOP 0 * 
-                        FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                        FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     """)
                     available_columns = [col[0] for col in cursor.description]
                     print(f"Available columns in claim table: {available_columns}")
@@ -1031,7 +1463,7 @@ class LiveDatabaseService:
                         fields_str = ', '.join(insert_fields)
                         
                         insert_claim_sql = f"""
-                            INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
+                            INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
                             ({fields_str})
                             VALUES ({placeholders})
                         """
@@ -1046,7 +1478,7 @@ class LiveDatabaseService:
                             # Get line table columns
                             cursor.execute("""
                                 SELECT TOP 0 * 
-                                FROM [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                                FROM [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                             """)
                             line_columns = [col[0] for col in cursor.description]
                             
@@ -1086,7 +1518,7 @@ class LiveDatabaseService:
                                 fields_str = ', '.join(line_fields)
                                 
                                 insert_line_sql = f"""
-                                    INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
+                                    INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
                                     ({fields_str})
                                     VALUES ({placeholders})
                                 """
@@ -1118,7 +1550,7 @@ class LiveDatabaseService:
                 # First check what columns are available
                 cursor.execute("""
                     SELECT TOP 0 * 
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                 """)
                 available_columns = [col[0] for col in cursor.description]
                 
@@ -1148,7 +1580,7 @@ class LiveDatabaseService:
                 
                 cursor.execute(f"""
                     SELECT {select_str}
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
                     WHERE [{claim_no_col}] = %s
                 """, [claim_no])
                 
@@ -1258,7 +1690,7 @@ class LiveDatabaseService:
                     # Insert claim lines if any
                     for idx, line in enumerate(claim_lines_data, 1):
                         insert_line_sql = """
-                            INSERT INTO [UFAA OPERATIONS$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
+                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],

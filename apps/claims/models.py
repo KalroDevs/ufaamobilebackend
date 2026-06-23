@@ -278,13 +278,14 @@ class Claim(models.Model):
         identifier = self.id_number or self.passport_no or self.phone_no or 'UNKNOWN'
         identifier = re.sub(r'[^A-Za-z0-9]', '', identifier).upper()[:20]
         
-        timestamp = int(time.time() * 1000) 
-        random_suffix = random.randint(100, 999)
+        #timestamp = int(time.time() * 1000)	 
+        timestamp = int(time.time() / 86400)
+        random_suffix = random.randint(90, 999)
         
         claim_no = f"CM{random_suffix}{timestamp}"
         
         while Claim.objects.filter(no=claim_no).exists():
-            random_suffix = random.randint(100, 999)
+            random_suffix = random.randint(90, 999)
             claim_no = f"CM{random_suffix}{timestamp}"
         
         return claim_no

@@ -2,10 +2,16 @@ from pathlib import Path
 from decouple import config, Csv
 import os
 from datetime import timedelta
-import logging
+
+
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
@@ -13,31 +19,36 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['mobile.ufaa.go.ke', '196.201.226.101', '196.202.210.90']
+ALLOWED_HOSTS = ['mobile.ufaa.go.ke', '196.201.226.101',  '196.202.210.90']
 
 # These settings are necessary for the modal windows to function
+# X_FRAME_OPTIONS = "SAMEORIGIN"
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
-# ==================== SESSION ENGINE CONFIGURATION ====================
-# Use database backend for maximum reliability
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_CACHE_ALIAS = 'default'
-SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_AGE = 60 * 60 * 72  # 259,200 seconds (3 days)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True  
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+# Session will last for 24 hours (in seconds)
 
-# ==================== CSRF BASE CONFIGURATION ====================
-CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_HTTPONLY = False  # Must be False to allow frontend architectures to read it
-CSRF_TRUSTED_ORIGINS = [
-    'https://mobile.ufaa.go.ke',
-    'http://localhost:8000',
-]
+SESSION_COOKIE_AGE = 60 * 60 * 72  #259,200 seconds
+
+# Optional: make sure the session expires even if the browser is closed
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# Use database backend for maximum reliability
+# Sessions persist even if Redis/Cache fails or restarts
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+# Session security settings (applied globally, overridden in production if needed)
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+#SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_COOKIE_SAMESITE = 'None' 
+# These will be overridden in production block below
+SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
+
 
 # Application definition
+
 INSTALLED_APPS = [
     'admin_interface',       # Must be first
     'colorfield',            # Required for color picker functionality
@@ -48,16 +59,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # OAuth2 Core / OIDC
+    # OAuth2 authcodeflow
+    #'oauth2_authcodeflow',
     'apps.oidc',  
-    
-    # Third party apps
+     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
     'django_filters',
-    'django_celery_beat',
     'django_celery_results',
     'django_otp',
     'django_otp.plugins.otp_totp',
@@ -97,13 +107,15 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# CORS Settings
+
+# CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000', cast=Csv())
+
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://mobile.ufaa.go.ke",
-#    "http://localhost:52225/",
 ]
+
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -119,6 +131,7 @@ ROOT_URLCONF = 'ufaamobilebackend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # 'DIRS': [],
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -131,14 +144,31 @@ TEMPLATES = [
     },
 ]
 
-# Auth Redirection Targets
+
+# Start Guest
+# Login/Logout URLs
 LOGIN_URL = 'login'
+# LOGIN_REDIRECT_URL = 'admin:index'
 LOGOUT_REDIRECT_URL = 'landing'
+
 LOGIN_REDIRECT_URL = 'guest_portal:admin_dashboard'
+
 
 WSGI_APPLICATION = 'ufaamobilebackend.wsgi.application'
 
-# Database Configuration
+
+# Database
+# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -161,49 +191,81 @@ DATABASES = {
             'driver': 'ODBC Driver 18 for SQL Server',
             'extra_params': 'TrustServerCertificate=yes;Encrypt=yes;Connection Timeout=30;',
         },
-        'CONN_MAX_AGE': 0,
+        'CONN_MAX_AGE': 0,  # MSSQL connection pooling
     }
 }
 
+# Database Routers for multiple databases
 DATABASE_ROUTERS = ['routers.DatabaseRouter']
 
 # Password validation
+# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
+
 # Internationalization
+# https://docs.djangoproject.com/en/6.0/topics/i18n/
+
+
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'Africa/Nairobi'
+
 USE_I18N = True
+
 USE_TZ = True
 
-# Static files layout
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/6.0/howto/static-files/
+
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/ufaa_reunify_mobile_backend/ufaa-reunify-backend/staticfiles/'
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+#STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 BASE_URL = os.environ.get('BASE_URL', 'https://mobile.ufaa.go.ke/')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+#if not os.path.exists(MEDIA_ROOT):
+    # os.makedirs(MEDIA_ROOT, mode=0o755, exist_ok=True)
+
+
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+
 
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Session first for mobile app with cookies
         'rest_framework.authentication.SessionAuthentication',
+        # JWT as fallback or for web/other clients
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # CRITICAL: Use custom exception handler for JSON responses
     'EXCEPTION_HANDLER': 'apps.api.exceptions.custom_exception_handler',
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -213,23 +275,24 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': config('REST_PAGE_SIZE', default=20, cast=int),
     'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.JSONRenderer',  # Always return JSON
     ],
-    'DEFAULT_THROTTLE_CLASSES': [],
-    #'DEFAULT_THROTTLE_CLASSES': [
-    #    'rest_framework.throttling.AnonRateThrottle',
-    #    'rest_framework.throttling.UserRateThrottle',
-    #],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': config('THROTTLE_ANON_RATE', default='100/day'),
         'user': config('THROTTLE_USER_RATE', default='1000/day'),
         'login': config('THROTTLE_LOGIN_RATE', default='5/minute'),
     },
+    # Additional settings for better handling
     'UNAUTHENTICATED_USER': None,
     'UNAUTHENTICATED_TOKEN': None,
 }
 
-# JWT Engine Token Lifetimes
+
+# JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=config('JWT_ACCESS_TOKEN_LIFETIME_HOURS', default=2, cast=int)),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=config('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7, cast=int)),
@@ -240,7 +303,28 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Database Cache Layer Setup
+
+# Cache (Redis)
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django_redis.cache.RedisCache',
+#        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
+#        'OPTIONS': {
+#            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#            'PASSWORD': config('REDIS_PASSWORD', default=None),
+#            'SOCKET_CONNECT_TIMEOUT': 5,
+#            'SOCKET_TIMEOUT': 5,
+#        }
+#    }
+#}
+
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#        'LOCATION': 'unique-snowflake',
+#    }
+#}
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
@@ -252,17 +336,9 @@ CACHES = {
     }
 }
 
-# Redis Configuration with Password
-REDIS_HOST = config('REDIS_HOST', default='localhost')
-REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
-REDIS_DB = config('REDIS_DB', default=0, cast=int)
-REDIS_PASSWORD = config('REDIS_PASSWORD', default='P3nd@ufaaDb_U334aR')
-REDIS_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
-
 
 # Celery Configuration
-#CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_BROKER_URL = REDIS_URL
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -272,35 +348,12 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
-# Celery Beat Schedule
-CELERY_BEAT_SCHEDULE = {
-    'push-claims-to-live-every-3-hours': {
-        'task': 'apps.live_operations.tasks.push_pending_claims_to_live',
-        'schedule': 10800.0,  # 3 hours in seconds
-        'options': {
-            'expires': 3600.0,  # Task expires after 1 hour if not started
-        }
-    },
-    'sync-claim-statuses-every-6-hours': {
-        'task': 'apps.live_operations.tasks.sync_claim_statuses',
-        'schedule': 21600.0,  # 6 hours in seconds
-        'options': {
-            'expires': 3600.0,
-        }
-    },
-}
-
-
-
-
-
-
 
 # File Upload Settings
 FILE_UPLOAD_PERMISSIONS = 0o644
 DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', default=50, cast=int)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = config('DATA_UPLOAD_MAX_NUMBER_FIELDS', default=1000, cast=int)
-FILE_UPLOAD_MAX_MEMORY_SIZE = config('FILE_UPLOAD_MAX_MEMORY_SIZE', default=10485760, cast=int) # 10MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = config('FILE_UPLOAD_MAX_MEMORY_SIZE', default=10485760, cast=int)  # 10MB
 
 FILE_UPLOAD_HANDLERS = [
     'django.core.files.uploadhandler.MemoryFileUploadHandler',
@@ -308,38 +361,57 @@ FILE_UPLOAD_HANDLERS = [
 ]
 
 def ensure_directory_permissions(path):
+    """Ensure directory has correct permissions"""
     if os.path.exists(path):
         os.chmod(path, 0o755)
 
+
 # ==================== EMAIL CONFIGURATION ====================
+# Email Backend Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Server Configuration (Gmail)
 EMAIL_HOST = 'smtp.office365.com'
+#EMAIL_HOST = 'smtp.gmail.com'
+
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
+# Email Authentication
 EMAIL_HOST_USER = 'reunite@ufaa.go.ke'
+#EMAIL_HOST_USER = 'ufaakenya@gmail.com'
+#EMAIL_HOST_PASSWORD = 'qppdhjjavdzyemmw'
 EMAIL_HOST_PASSWORD = 'Rudisha1'
-
+# Email Addresses
 DEFAULT_FROM_EMAIL = f'UFAA Reunite <{EMAIL_HOST_USER}>'
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 ADMIN_EMAIL = 'https://mobile.ufaa.go.ke'
 
-EMAIL_TIMEOUT = 30  
-EMAIL_SUBJECT_PREFIX = '[UFAA] '  
-EMAIL_TEMPLATES_DIR = BASE_DIR / 'apps' / 'accounts' / 'templates' / 'emails'
+# Email Settings
+EMAIL_TIMEOUT = 30  # Timeout in seconds
+EMAIL_SUBJECT_PREFIX = '[UFAA] '  # Prefix for all email subjects
 
+# Email Templates Directory
+EMAIL_TEMPLATES_DIR = BASE_DIR / 'apps'/'accounts' / 'templates' / 'emails'
+
+# Email Verification Settings
 VERIFICATION_EMAIL_EXPIRY_HOURS = 24
 VERIFICATION_CODE_LENGTH = 6
 MAX_VERIFICATION_ATTEMPTS = 3
 RESEND_VERIFICATION_COOLDOWN_SECONDS = 60
-FRONTEND_URL = 'https://mobile.ufaa.go.ke'
+
+# Frontend URL for email links
+FRONTEND_URL = 'https://mobile.ufaa.go.ke'  # Change to your production URL
+
 
 # Push Notifications
 FCM_API_KEY = config('FCM_API_KEY', default='')
 APNS_CERTIFICATE = config('APNS_CERTIFICATE', default='')
 
-# Axes Brute Force Login Defense Configuration
+
+# Axes (Login attempt tracking)
+#AXES_ENABLED = config('AXES_ENABLED', default=True, cast=bool)
 AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 10
 AXES_COOLOFF_TIME = timedelta(minutes=5)
@@ -347,74 +419,10 @@ AXES_LOCK_OUT_AT_FAILURE = True
 AXES_RESET_ON_SUCCESS = True 
 AXES_LOCKOUT_TEMPLATE = None 
 AXES_HANDLER = 'axes.handlers.cache.AxesCacheHandler'
+
 AXES_IPWARE_META_PRECEDENCE_ORDER = ('HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR')
 
-# Global Core Security Elements
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# ==================== ENVIRONMENT SPECIFIC COOKIE SECURITY ====================
-if not DEBUG:
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
-    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
-    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    
-    # Secure production cross-origin settings (Allows working alongside OAuth/eCitizen hooks)
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SAMESITE = 'None'
-else:
-    # Local fallback allowing plain HTTP configurations without breaking cookie drop
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
-
-# Custom Structural Models
-AUTH_USER_MODEL = 'accounts.User'
-
-# OTP Settings
-OTP_TOTP_ISSUER = 'UFAA Mobile'
-OTP_TOTP_DIGITS = 6
-OTP_TOTP_INTERVAL = 30
-
-# Swagger Engine Layout
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    },
-    'SECURITY_REQUIREMENTS': None,
-}
-
-ADMIN_URL = config('ADMIN_URL', default='admin/')
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# SharePoint Integration Coordinates
-SHAREPOINT_URL = os.getenv('SHAREPOINT_URL', 'https://your-domain.sharepoint.com')
-SHAREPOINT_SITE = os.getenv('SHAREPOINT_SITE', '/sites/UFAA')
-SHAREPOINT_DOCUMENT_LIBRARY = os.getenv('SHAREPOINT_DOCUMENT_LIBRARY', 'Claim Documents')
-SHAREPOINT_CLIENT_ID = os.getenv('SHAREPOINT_CLIENT_ID', 'your-client-id')
-SHAREPOINT_CLIENT_SECRET = os.getenv('SHAREPOINT_CLIENT_SECRET', 'your-client-secret')
-
-# eCitizen OIDC Registry Parameters
-OIDC_RP_CLIENT_ID = 'ac4c1bfde666365f26e5101d865ab113'  
-OIDC_RP_CLIENT_SECRET = 'dPIkLVPWykaYtQIAh3J1TgNwhCJio90wLy+DIw/0hqw='  
-OIDC_OP_AUTHORIZATION_URL = 'https://accounts.ecitizen.go.ke/oauth/authorize'
-OIDC_OP_TOKEN_URL = 'https://accounts.ecitizen.go.ke/oauth/access-token'
-OIDC_OP_USERINFO_URL = 'https://accounts.ecitizen.go.ke/api/user-info'
-OIDC_RP_SCOPES = 'openid'
-
-# ==================== LOGGING FRAMEWORK CONFIGURATION ====================
+# Logging Configuration
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
@@ -461,15 +469,113 @@ LOGGING = {
             'level': config('LOG_LEVEL_APPS', default='DEBUG'),
             'propagate': True,
         },
-        'django.contrib.sessions': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.security.csrf': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
     },
 }
+
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Environment Specific Security Policies (Differentiated for Safe Local Debugging vs Production SSL)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    SESSION_COOKIE_HTTPONLY = True
+    #SESSION_COOKIE_SAMESITE = 'Lax'
+else:
+    # Safe fallback configuration parameters for local execution
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = True
+    #SESSION_COOKIE_SAMESITE = 'Lax'
+
+
+# Custom User Model
+AUTH_USER_MODEL = 'accounts.User'
+
+
+# Django OTP Settings
+OTP_TOTP_ISSUER = 'UFAA Mobile'
+OTP_TOTP_DIGITS = 6
+OTP_TOTP_INTERVAL = 30
+
+
+# Swagger/OpenAPI Settings
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'SECURITY_REQUIREMENTS': None,
+}
+
+
+# Admin URL (customize for security)
+ADMIN_URL = config('ADMIN_URL', default='admin/')
+
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SharePoint Configuration
+SHAREPOINT_URL = os.getenv('SHAREPOINT_URL', 'https://your-domain.sharepoint.com')
+SHAREPOINT_SITE = os.getenv('SHAREPOINT_SITE', '/sites/UFAA')
+SHAREPOINT_DOCUMENT_LIBRARY = os.getenv('SHAREPOINT_DOCUMENT_LIBRARY', 'Claim Documents')
+SHAREPOINT_CLIENT_ID = os.getenv('SHAREPOINT_CLIENT_ID', 'your-client-id')
+SHAREPOINT_CLIENT_SECRET = os.getenv('SHAREPOINT_CLIENT_SECRET', 'your-client-secret')
+
+
+
+
+# eCitizen OIDC Configuration
+# You'll need to register your app with eCitizen to get these credentials
+OIDC_RP_CLIENT_ID = 'ac4c1bfde666365f26e5101d865ab113'  # From eCitizen registration
+OIDC_RP_CLIENT_SECRET = 'dPIkLVPWykaYtQIAh3J1TgNwhCJio90wLy+DIw/0hqw='  # From eCitizen registration
+
+# eCitizen OAuth2 Configuration (API v2.0.0)
+OIDC_OP_AUTHORIZATION_URL = 'https://accounts.ecitizen.go.ke/oauth/authorize'
+OIDC_OP_TOKEN_URL = 'https://accounts.ecitizen.go.ke/oauth/access-token'
+OIDC_OP_USERINFO_URL = 'https://accounts.ecitizen.go.ke/api/user-info'
+#OIDC_RP_CLIENT_ID = os.environ.get('ECITIZEN_CLIENT_ID')
+#OIDC_RP_CLIENT_SECRET = os.environ.get('ECITIZEN_CLIENT_SECRET')
+OIDC_RP_SCOPES = 'openid'
+
+import logging
+# Enable session debugging
+LOGGING['loggers']['django.contrib.sessions'] = {
+    'handlers': ['console', 'file'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
+LOGGING['loggers']['django.security.csrf'] = {
+    'handlers': ['console', 'file'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+
+# Session cookie settings - ensure these are correct
+SESSION_COOKIE_NAME = 'sessionid'  # Default Django session cookie name
+SESSION_SAVE_EVERY_REQUEST = True  # This will refresh session on each request
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
+#CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' 
+CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = [
+    'https://mobile.ufaa.go.ke',
+    'http://localhost:8000',
+   ]
