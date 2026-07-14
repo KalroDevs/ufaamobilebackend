@@ -2094,3 +2094,1683 @@ Traceback (most recent call last):
 django.db.utils.IntegrityError: duplicate key value violates unique constraint "users_passport_no_key"
 DETAIL:  Key (passport_no)=() already exists.
 
+ERROR 2026-07-14 12:26:17,378 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,419 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,460 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,474 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,527 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,555 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,594 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,617 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,651 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,672 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,721 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,735 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,786 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,808 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,843 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,858 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,896 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,915 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,948 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,971 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:17,999 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 12:26:18,016 services 3181268 138403091484800 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,872 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,894 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,924 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,943 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,974 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:09,995 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,027 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,046 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,078 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,087 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,103 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,110 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,124 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,131 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,145 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,153 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,184 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,206 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,236 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,255 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,283 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:42:10,302 services 3184785 135319963336832 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,068 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,079 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,093 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,100 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,114 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,121 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,147 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,155 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,171 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,180 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,193 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,200 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,213 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,220 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,233 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,240 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,268 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,277 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,293 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,301 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,316 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:47:21,326 services 3184967 133270670086272 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,080 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,088 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,102 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,109 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,123 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,129 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,144 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,151 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,166 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,177 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,192 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,199 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,213 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,220 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,234 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,240 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,255 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,261 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,276 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,283 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,302 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:00,310 services 3185289 136620358189184 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,187 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,195 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,210 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,217 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,231 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,237 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,250 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,256 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,269 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,275 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,289 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,295 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,308 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,317 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,331 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,338 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,351 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,357 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,388 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,401 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,418 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:55:42,425 services 3185349 136682632036480 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,279 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,295 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,309 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,321 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,335 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,348 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,364 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,386 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,403 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,418 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:58:33,433 services 3185462 123880478777472 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,084 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,104 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,121 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,134 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,151 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,169 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,185 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,205 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,218 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,232 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 13:59:10,249 services 3185519 133624513691776 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,309 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,312 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,366 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,369 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,419 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,421 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,482 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,487 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,530 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,532 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,570 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,571 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,619 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,622 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,684 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,687 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,737 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,741 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,790 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,792 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:06:20,843 services 3185861 123543887999104 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:06:20,845 services 3185861 123543887999104 Full traceback: Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 589, in create_new_claim
+    cursor.execute(insert_line_sql, [
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+
+ERROR 2026-07-14 14:08:54,150 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,181 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,207 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,237 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,255 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,270 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,284 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,298 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,325 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,354 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 14:08:54,382 services 3185959 134398609064064 ❌ Error creating claim: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'No_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 15:16:45,587 services 3188628 137610818818176 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:16:45,589 tasks 3188628 137610818818176 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:20:19,689 services 3188771 132820038246528 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:20:19,691 tasks 3188771 132820038246528 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:21:52,364 services 3188860 140138824761472 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:21:52,365 tasks 3188860 140138824761472 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:27:19,526 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,528 services 3189099 132272269963392 Error creating live claim CLM-42885 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,541 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,542 services 3189099 132272269963392 Error creating live claim CLM-87838 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,553 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,554 services 3189099 132272269963392 Error creating live claim CLM-99825 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,569 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,570 services 3189099 132272269963392 Error creating live claim CLM-80013 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,585 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,586 services 3189099 132272269963392 Error creating live claim CLM-99671 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,598 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,599 services 3189099 132272269963392 Error creating live claim CLM-39499 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,610 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,611 services 3189099 132272269963392 Error creating live claim CLM-91996 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,621 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,621 services 3189099 132272269963392 Error creating live claim CLM-16351 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,632 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,633 services 3189099 132272269963392 Error creating live claim CLM-69687 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,643 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,644 services 3189099 132272269963392 Error creating live claim CLM-82582 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,656 services 3189099 132272269963392 Direct column inspection failed for [UFAAv24].[dbo].[UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:27:19,656 services 3189099 132272269963392 Error creating live claim CLM-47752 during schema validation: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 859, in create_new_claim
+    schema = LiveDatabaseService.validate_live_schema()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 351, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 313, in resolve_column
+    columns = LiveDatabaseService.get_table_columns(table_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 235, in get_table_columns
+    cursor.execute(direct_sql)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]The SELECT permission was denied on the object 'UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1', database 'UFAAv24', schema 'dbo'. (229) (SQLExecDirectW)")
+ERROR 2026-07-14 15:41:17,289 services 3189090 140115118948480 Error searching unclaimed assets for identifier 10876269
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 547, in search_unclaimed_assets
+    cursor.execute(sql, params)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 15:41:17,352 services 3189090 140115118948480 Error searching unclaimed assets for identifier 10876269
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 547, in search_unclaimed_assets
+    cursor.execute(sql, params)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 15:41:22,644 services 3189089 140115118948480 Error searching unclaimed assets for identifier 10876269
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 547, in search_unclaimed_assets
+    cursor.execute(sql, params)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 15:41:23,235 services 3189090 140115118948480 Error searching unclaimed assets for identifier 10876269
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pyodbc.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 547, in search_unclaimed_assets
+    cursor.execute(sql, params)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/mssql/base.py", line 768, in execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: ('42S22', "[42S22] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Invalid column name 'ID Number_'. (207) (SQLExecDirectW)")
+ERROR 2026-07-14 15:49:35,601 services 3190054 138587377066112 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:49:35,603 tasks 3190054 138587377066112 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:50:11,860 services 3190107 127358767853696 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:50:11,861 tasks 3190107 127358767853696 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:57:25,181 services 3190408 136027877945472 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:57:25,183 tasks 3190408 136027877945472 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:58:11,573 services 3190475 129691592466560 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:58:11,574 tasks 3190475 129691592466560 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:59:16,760 services 3190555 125293745840256 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 15:59:16,761 tasks 3190555 125293745840256 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:01:21,490 services 3190692 136514046271616 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:01:21,493 tasks 3190692 136514046271616 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:03:53,058 services 3190794 135199048642688 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:03:53,059 tasks 3190794 135199048642688 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:06:10,036 services 3190917 131508791201920 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:06:10,038 tasks 3190917 131508791201920 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:11:53,618 services 3191131 127038005194880 Error pushing pending claims to the live database
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 1140, in push_pending_claims_to_live
+    LiveDatabaseService.validate_live_schema()
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 272, in validate_live_schema
+    "parent_claim": LiveDatabaseService.resolve_column(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/live_operations/services.py", line 244, in resolve_column
+    raise ValueError(
+ValueError: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
+ERROR 2026-07-14 16:11:53,619 tasks 3191131 127038005194880 Push task failed: None of the expected columns ['Document No_', 'Claim No_', 'Online Claim No_', 'Header No_', 'No_'] exist in UFAAv24.dbo.UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1. Available columns: []
