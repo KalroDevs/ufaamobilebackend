@@ -1,5 +1,7 @@
 # apps/live_operations/services.py
 import traceback
+import time
+import random
 from django.db import connections, transaction
 from django.db import models
 from django.utils import timezone
@@ -9,12 +11,150 @@ from .models import LiveUnclaimedAsset, LiveOnlineClaim, LiveOnlineClaimLine
 import logging
 from apps.claims.models import Claim, ClaimAsset, JointOwner
 
-
-
 logger = logging.getLogger(__name__)
 
 class LiveDatabaseService:
     """Service for live database operations (Read and Write)"""
+    
+    # ==================== MAPPINGS ====================
+    
+    CATEGORY_MAPPING = {
+        'Original_Owner': 1,
+        'Beneficiary': 2,
+        'Business_Entity': 3,
+        'Agent_of_the_Owner': 4,
+        '': 0,
+    }
+
+    CLAIM_TYPE_MAPPING = {
+        'Cash': 1,
+        'Non_Cash': 2,
+        'Both': 3,
+        '': 1,
+    }
+
+    SUB_CATEGORY_MAPPING = {
+        'administrator': 1,
+        'public_trustee': 2,
+        'nominee': 3,
+        'executor': 4,
+        'guardian': 5,
+        'legal_representative': 6,
+        'Adult': 10,
+        'Minor': 11,
+        'sole_proprietorship': 20,
+        'partnership': 21,
+        'limited_liability': 22,
+        'sacco': 23,
+        'self_help_group': 24,
+        'none': 0,
+        'not_applicable': 0,
+        '': 0,
+    }
+
+    STATUS_MAPPING = {
+        'Draft': 0,
+        'Pending': 1,
+        'Under_Review': 2,
+        'In_Progress': 3,
+        'Processing': 4,
+        'Approved': 5,
+        'Rejected': 6,
+        'Paid': 7,
+        'Completed': 8,
+        'Archived': 9,
+        'Cancelled': 10,
+    }
+
+    PAYMENT_CATEGORY_MAPPING = {
+        'Mpesa': 1,
+        'Local_Bank': 2,
+        'International': 3,
+        'Bank Transfer': 4,
+        'Cheque': 5,
+        '': 1,
+    }
+
+    CLAIM_ORIGIN_MAPPING = {
+        'OnlinePortal': 1,
+        'Android_Mobile_App': 2,
+        'iOS_Mobile_App': 3,
+        'Reception': 4,
+        'Emails': 5,
+        'Reunification_Clinics': 6,
+        'Huduma': 7,
+        'Registrars': 8,
+        '': 0,
+    }
+
+    GENDER_MAPPING = {
+        'Male': 1,
+        'Female': 2,
+        'Other': 3,
+        'M': 1,
+        'F': 2,
+        'O': 3,
+        '': 0,
+    }
+
+    NATIONALITY_MAPPING = {
+        'Kenyan': 'Kenyan',
+        'Non_Kenyan': 'Non_Kenyan',
+        'Non-Kenyan': 'Non_Kenyan',
+        '': '',
+    }
+
+    # ==================== HELPER METHODS ====================
+    
+    @staticmethod
+    def safe_string(value, max_length=255):
+        """Safely truncate a string to max_length"""
+        if value is None:
+            return ''
+        value = str(value).strip()
+        if len(value) > max_length:
+            return value[:max_length]
+        return value
+
+    @staticmethod
+    def get_safe_date(date_value, fallback=None):
+        """Get a safe date, never return None"""
+        if date_value is not None:
+            return date_value
+        if fallback is not None:
+            return fallback
+        return timezone.now().date()
+
+    @staticmethod
+    def generate_claim_number():
+        """Generate a unique claim number for MSSQL table"""
+        # Format: CM{timestamp_milliseconds}{random}
+        # Max 15 characters (SQL Server No_ column limit)
+        timestamp = str(int(time.time() * 1000))[-10:]  # Last 10 digits of timestamp
+        random_suffix = str(random.randint(100, 99999))
+        claim_no = f"CLM-{random_suffix}"
+        
+        # Ensure it's not too long (max 15 chars)
+        if len(claim_no) > 15:
+            claim_no = claim_no[:15]
+        
+        # Ensure uniqueness in live database
+        retries = 5
+        while retries > 0:
+            existing = LiveOnlineClaim.objects.filter(claim_no=claim_no).first()
+            if not existing:
+                break
+            # Generate new number
+            timestamp = str(int(time.time() * 1000))[-10:]
+            random_suffix = str(random.randint(100, 99999))
+            claim_no = f"CLM-{random_suffix}"
+            if len(claim_no) > 15:
+                claim_no = claim_no[:15]
+            retries -= 1
+        
+        return claim_no
+
+    # ==================== SEARCH METHODS ====================
     
     @staticmethod
     def search_unclaimed_assets(identifier, search_type='id'):
@@ -26,7 +166,6 @@ class LiveDatabaseService:
         print(f"{'━'*40}")
         
         try:
-            # Use the LiveUnclaimedAsset model to query
             if search_type == 'id':
                 print(f"🔍 Searching by ID Number: {identifier}")
                 assets = LiveUnclaimedAsset.objects.filter(id_number=identifier)
@@ -38,7 +177,6 @@ class LiveDatabaseService:
                 assets = LiveUnclaimedAsset.objects.filter(cds_account_no=identifier)
             elif search_type == 'name':
                 print(f"🔍 Searching by Name: {identifier}")
-                # Search in name, middle_name, last_name, and holder_name
                 assets = LiveUnclaimedAsset.objects.filter(
                     models.Q(name__icontains=identifier) |
                     models.Q(middle_name__icontains=identifier) |
@@ -54,7 +192,6 @@ class LiveDatabaseService:
             results = []
             for asset in assets:
                 try:
-                    # Construct owner name from name, middle_name, last_name
                     owner_name_parts = []
                     if asset.name:
                         owner_name_parts.append(asset.name)
@@ -64,12 +201,10 @@ class LiveDatabaseService:
                         owner_name_parts.append(asset.last_name)
                     
                     owner_name = ' '.join(owner_name_parts).strip() if owner_name_parts else asset.holder_name or "N/A"
-                    
-                    # Determine if asset is cash or non-cash
-                    is_cash = asset.asset_type == 1  # 1 = Cash
+                    is_cash = asset.asset_type == 1
                     
                     result = {
-                        'id': asset.no,  # Use the asset number as ID
+                        'id': asset.no,
                         'asset_no': asset.no,
                         'holder_name': asset.holder_name or "",
                         'owner_name': owner_name,
@@ -97,7 +232,6 @@ class LiveDatabaseService:
                     
                 except Exception as e:
                     print(f"⚠️ Error processing asset {asset.no}: {str(e)}")
-                    import traceback
                     traceback.print_exc()
                     continue
             
@@ -106,23 +240,39 @@ class LiveDatabaseService:
             
         except Exception as e:
             print(f"❌ Error searching assets: {str(e)}")
-            import traceback
             traceback.print_exc()
             return []
     
     @staticmethod
     def search_existing_claims(identifier, search_type):
-        """Search for existing claims by National ID, Passport, or CDS Account"""
+        """Search for existing claims by National ID, Passport, or Claim Number"""
         try:
             print(f"🔍 LiveDatabaseService.search_existing_claims")
             print(f"📝 Identifier: {identifier}, Type: {search_type}")
             
             if search_type == 'id':
-                claims = LiveOnlineClaim.objects.filter(claimant_id=identifier)
+                claims = LiveOnlineClaim.objects.filter(
+                    models.Q(id_number=identifier) |
+                    models.Q(id_number_alt=identifier)
+                ).distinct()
+                
+                if claims.count() == 0:
+                    stripped_id = identifier.lstrip('0')
+                    if stripped_id != identifier:
+                        claims = LiveOnlineClaim.objects.filter(
+                            models.Q(id_number=stripped_id) |
+                            models.Q(id_number_alt=stripped_id)
+                        ).distinct()
             elif search_type == 'passport':
-                claims = LiveOnlineClaim.objects.filter(claimant_passport=identifier)
-            elif search_type == 'cds':
-                claims = LiveOnlineClaim.objects.filter(cds_account_no=identifier)
+                claims = LiveOnlineClaim.objects.filter(
+                    models.Q(passport_no=identifier) |
+                    models.Q(passport_no__icontains=identifier)
+                )
+            elif search_type == 'claim_no':
+                claims = LiveOnlineClaim.objects.filter(
+                    models.Q(claim_no=identifier) |
+                    models.Q(claim_no__icontains=identifier)
+                )
             else:
                 return []
             
@@ -133,121 +283,96 @@ class LiveDatabaseService:
                 results.append({
                     'claim_no': claim.claim_no,
                     'claimant_name': claim.claimant_name,
-                    'claimant_id': claim.claimant_id,
+                    'id_number': claim.id_number,
+                    'id_number_alt': claim.id_number_alt,
+                    'passport_no': claim.passport_no,
                     'claimant_phone': claim.claimant_phone,
                     'claimant_email': claim.claimant_email,
                     'amount': float(claim.amount) if claim.amount else 0,
                     'status': claim.status,
+                    'payment_category': claim.payment_category,
+                    'bank_name': claim.bank_name,
+                    'bank_account_no': claim.bank_account_no,
+                    'mpesa_mobile_no': claim.mpesa_mobile_no,
+                    'category': claim.category,
+                    'sub_category': claim.sub_category,
+                    'claim_type': claim.claim_type,
+                    'agent_name': claim.agent_name,
+                    'asset_no': claim.asset_no,
+                    'asset_type': claim.asset_type,
                     'created_at': claim.created_at.isoformat() if claim.created_at else None,
+                    'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
                 })
             
             return results
             
         except Exception as e:
             print(f"❌ Error searching claims: {e}")
-            import traceback
             traceback.print_exc()
             return []
     
-    
+    @staticmethod
+    def search_claims_universal(identifier):
+        """Universal search for claims by National ID, Passport, or Claim Number"""
+        try:
+            print(f"🔍 LiveDatabaseService.search_claims_universal")
+            print(f"📝 Identifier: {identifier}")
+            
+            claims = LiveOnlineClaim.objects.filter(
+                models.Q(id_number=identifier) |
+                models.Q(id_number_alt=identifier) |
+                models.Q(id_number__contains=identifier) |
+                models.Q(id_number_alt__contains=identifier) |
+                models.Q(claim_no=identifier) |
+                models.Q(claim_no__icontains=identifier) |
+                models.Q(passport_no=identifier) |
+                models.Q(passport_no__icontains=identifier)
+            ).distinct()
+            
+            if claims.count() == 0:
+                stripped_id = identifier.lstrip('0')
+                if stripped_id != identifier:
+                    claims = LiveOnlineClaim.objects.filter(
+                        models.Q(id_number=stripped_id) |
+                        models.Q(id_number_alt=stripped_id)
+                    ).distinct()
+            
+            print(f"📊 Universal search found {claims.count()} claims")
+            
+            results = []
+            for claim in claims:
+                results.append({
+                    'claim_no': claim.claim_no,
+                    'claimant_name': claim.claimant_name,
+                    'id_number': claim.id_number,
+                    'id_number_alt': claim.id_number_alt,
+                    'passport_no': claim.passport_no,
+                    'claimant_phone': claim.claimant_phone,
+                    'claimant_email': claim.claimant_email,
+                    'amount': float(claim.amount) if claim.amount else 0,
+                    'status': claim.status,
+                    'payment_category': claim.payment_category,
+                    'bank_name': claim.bank_name,
+                    'bank_account_no': claim.bank_account_no,
+                    'mpesa_mobile_no': claim.mpesa_mobile_no,
+                    'category': claim.category,
+                    'sub_category': claim.sub_category,
+                    'claim_type': claim.claim_type,
+                    'agent_name': claim.agent_name,
+                    'asset_no': claim.asset_no,
+                    'asset_type': claim.asset_type,
+                    'description': claim.description,
+                    'created_at': claim.created_at.isoformat() if claim.created_at else None,
+                    'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
+                })
+            
+            return results
+            
+        except Exception as e:
+            print(f"❌ Error in universal search: {e}")
+            traceback.print_exc()
+            return []
 
-    # Category mapping - adjust these IDs based on your actual database values
-    CATEGORY_MAPPING = {
-        'Original_Owner': 1,
-        'Beneficiary': 2,
-        'Business_Entity': 3,
-        'Agent_of_the_Owner': 4,
-    }
-
-    # Claim Type mapping
-    CLAIM_TYPE_MAPPING = {
-        'Cash': 1,
-        'Non_Cash': 2,
-        'Both': 3,
-    }
-
-
-
-    
-    # Sub-category mapping for beneficiaries and other types
-    SUB_CATEGORY_MAPPING = {
-        # Beneficiary types
-        'administrator': 1,
-        'public_trustee': 2,
-        'nominee': 3,
-        'executor': 4,
-        'guardian': 5,
-        'legal_representative': 6,
-        # Agent types
-        'Adult': 10,
-        'Minor': 11,
-        # Business entity types
-        'sole_proprietorship': 20,
-        'partnership': 21,
-        'limited_liability': 22,
-        'sacco': 23,
-        'self_help_group': 24,
-        # Default values
-        'none': 0,
-        'not_applicable': 0,
-    }
-    
-
-    # Status mapping
-    STATUS_MAPPING = {
-        'Draft': 0,
-        'Pending': 1,
-        'Under_Review': 2,
-        'In_Progress': 3,
-        'Processing': 4,
-        'Approved': 5,
-        'Rejected': 6,
-        'Paid': 7,
-        'Completed': 8,
-        'Archived': 9,
-        'Cancelled': 10,
-    }
-
-
-    # Payment category mapping
-    PAYMENT_CATEGORY_MAPPING = {
-        'Mpesa': 1,
-        'Local_Bank': 2,
-        'International': 3,
-        'Bank Transfer': 4,
-        'Cheque': 5,
-    }
-
-    # ADD THIS MAPPING - It was missing
-    CLAIM_ORIGIN_MAPPING = {
-        'OnlinePortal': 1,
-        'Android_Mobile_App': 2,
-        'iOS_Mobile_App': 3,
-        'Reception': 4,
-        'Emails': 5,
-        'Reunification_Clinics': 6,
-        'Huduma': 7,
-        'Registrars': 8,
-        '': 0,
-    }
-
-    # Also add this if missing
-    GENDER_MAPPING = {
-        'Male': 'M',
-        'Female': 'F',
-        'Other': 'O',
-        '': '',
-    }
-
-    NATIONALITY_MAPPING = {
-        'Kenyan': 'Kenyan',
-        'Non_Kenyan': 'Non_Kenyan',
-        'Non-Kenyan': 'Non_Kenyan',
-        '': '',
-    }
-
-
- 
     # ==================== PUSH TO LIVE METHODS ====================
     
     @staticmethod
@@ -273,45 +398,207 @@ class LiveDatabaseService:
                     'message': f'Claim {claim_id} not found or not in review status'
                 }
             
-            # Check if already pushed
-            existing = LiveOnlineClaim.objects.filter(claim_no=claim.no).first()
-            if existing:
+            original_claim_no = claim.no
+            
+            # Generate a new claim number for MSSQL
+            new_claim_no = LiveDatabaseService.generate_claim_number()
+            logger.info(f"Generated new claim number: {new_claim_no} (original: {original_claim_no})")
+            
+            # Prepare claim data with new number
+            claim_data = {
+                'claim_no': new_claim_no,
+                'document_date': claim.document_date or timezone.now().date(),
+                'processing_date': claim.processing_date or timezone.now().date(),
+                'category': claim.category or 'Original_Owner',
+                'sub_category': claim.sub_category or '',
+                'agent_name': claim.agent_name or '',
+                'claim_type': claim.claim_type or 'Cash',
+                'claimant_name': claim.name or '',
+                'claimant_id': claim.id_number or '',
+                'claimant_phone': claim.phone_no or '',
+                'claimant_email': claim.e_mail or '',
+                'amount': float(claim.amount) if claim.amount else 0,
+                'status': 'Pending',
+                'payment_category': claim.payment_category or '',
+                'bank_name': claim.bank_name or '',
+                'bank_account_no': claim.bank_account_no or '',
+                'mpesa_mobile_no': claim.mpesa_mobile_no or '',
+                'claimant_passport': claim.passport_no or '',
+                'gender': claim.gender or '',
+                'claim_origin': claim.claim_origin or '',
+                'residence': claim.residence or '',
+                'address': claim.address or '',
+                'post_code': claim.post_code or '',
+                'county': claim.county or '',
+                'city': claim.city or '',
+                'internal_remarks': claim.internal_remarks or '',
+            }
+            
+            # Get claim assets
+            claim_assets = ClaimAsset.objects.filter(claim=claim)
+            claim_lines_data = []
+            for asset in claim_assets:
+                claim_lines_data.append({
+                    'asset_no': asset.asset_no or '',
+                    'asset_type': asset.asset_type or '',
+                    'description': asset.description or '',
+                    'holder_name': asset.holder_name or '',
+                    'value': float(asset.value) if asset.value else 0,
+                })
+            
+            # Check if claim already exists in live database with original or new number
+            existing_claim = LiveOnlineClaim.objects.filter(claim_no=new_claim_no).first()
+            if existing_claim:
+                # If new number exists, generate another one
+                new_claim_no = LiveDatabaseService.generate_claim_number()
+                claim_data['claim_no'] = new_claim_no
+                logger.info(f"Generated another new claim number: {new_claim_no}")
+            
+            # Create the claim in live database
+            result = LiveDatabaseService.create_new_claim(claim_data, claim_lines_data)
+            
+            if result['success']:
+                # Update the claim with the new number
+                claim.no = new_claim_no
+                claim.status = 'Under_Review'
+                claim.save(update_fields=['no', 'status'])
+                
+                return {
+                    'success': True,
+                    'claim_no': new_claim_no,
+                    'original_claim_no': original_claim_no,
+                    'message': f'Claim {original_claim_no} pushed with new number {new_claim_no}'
+                }
+            else:
+                # If insertion fails, try with a different format
+                logger.warning(f"First attempt failed: {result.get('message')}")
+                
+                # Try with CLM prefix (alternate format)
+                import time
+                timestamp = str(int(time.time()))[-8:]
+                random_suffix = str(random.randint(100, 999))
+                alt_claim_no = f"CLM-{timestamp}-{random_suffix}"
+                
+                # Ensure uniqueness
+                while LiveOnlineClaim.objects.filter(claim_no=alt_claim_no).exists():
+                    random_suffix = str(random.randint(100, 999))
+                    alt_claim_no = f"CLM-{timestamp}-{random_suffix}"
+                
+                claim_data['claim_no'] = alt_claim_no
+                result = LiveDatabaseService.create_new_claim(claim_data, claim_lines_data)
+                
+                if result['success']:
+                    claim.no = alt_claim_no
+                    claim.status = 'Under_Review'
+                    claim.save(update_fields=['no', 'status'])
+                    
+                    return {
+                        'success': True,
+                        'claim_no': alt_claim_no,
+                        'original_claim_no': original_claim_no,
+                        'message': f'Claim {original_claim_no} pushed with new number {alt_claim_no} (CLM format)'
+                    }
+                
                 return {
                     'success': False,
-                    'message': f'Claim {claim.no} already exists in live database'
+                    'claim_no': original_claim_no,
+                    'message': f'Failed to push claim: {result.get("message", "Unknown error")}'
                 }
             
-            with connections['ereunify'].cursor() as cursor:
+        except Exception as e:
+            error_msg = str(e)
+            error_traceback = traceback.format_exc()
+            logger.error(f"Error pushing claim to live database: {error_msg}")
+            logger.error(f"Traceback: {error_traceback}")
+            return {
+                'success': False,
+                'message': error_msg
+            }
+    
+    @staticmethod
+    def create_new_claim(claim_data, claim_lines_data):
+        """Insert a new claim into the live online claims table"""
+        
+        claim_no = claim_data.get('claim_no')
+        
+        if not claim_no:
+            return {
+                'success': False,
+                'message': 'Claim number is required'
+            }
+        
+        # Check if claim number already exists in live database
+        existing = LiveOnlineClaim.objects.filter(claim_no=claim_no).first()
+        if existing:
+            try:
+                status_value = claim_data.get('status', 'Pending')
+                status_id = LiveDatabaseService.STATUS_MAPPING.get(status_value, 1)
+                
+                with connections['ereunify'].cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                        SET [Status] = %s, [$systemModifiedAt] = %s
+                        WHERE [No_] = %s
+                    """, [status_id, timezone.now(), claim_no])
+                    
+                    if cursor.rowcount > 0:
+                        return {
+                            'success': True,
+                            'claim_no': claim_no,
+                            'message': 'Claim status updated successfully'
+                        }
+            except Exception as e:
+                logger.warning(f"Could not update existing claim: {e}")
+            
+            return {
+                'success': False,
+                'claim_no': claim_no,
+                'message': f'Claim {claim_no} already exists in live database'
+            }
+        
+        # Convert mappings
+        category_id = LiveDatabaseService.CATEGORY_MAPPING.get(
+            claim_data.get('category', 'Original_Owner'), 1
+        )
+        claim_type_id = LiveDatabaseService.CLAIM_TYPE_MAPPING.get(
+            claim_data.get('claim_type', 'Cash'), 1
+        )
+        status_id = LiveDatabaseService.STATUS_MAPPING.get(
+            claim_data.get('status', 'Pending'), 1
+        )
+        payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(
+            claim_data.get('payment_category', ''), 1
+        )
+        gender_value = LiveDatabaseService.GENDER_MAPPING.get(
+            claim_data.get('gender', ''), 0
+        )
+        
+        # Map claim origin
+        claim_origin_value = claim_data.get('claim_origin', '')
+        if isinstance(claim_origin_value, str):
+            claim_origin_id = LiveDatabaseService.CLAIM_ORIGIN_MAPPING.get(claim_origin_value, 0)
+        else:
+            claim_origin_id = int(claim_origin_value) if claim_origin_value else 0
+        
+        # Sub category
+        sub_category_value = claim_data.get('sub_category', '')
+        if isinstance(sub_category_value, str):
+            sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(sub_category_value, 0)
+        elif isinstance(sub_category_value, int):
+            sub_category_id = sub_category_value
+        else:
+            sub_category_id = 0
+        
+        # Dates
+        document_date = LiveDatabaseService.get_safe_date(claim_data.get('document_date'))
+        processing_date = LiveDatabaseService.get_safe_date(claim_data.get('processing_date'))
+        
+        # Truncate claim number to 15 characters (SQL Server No_ column limit)
+        claim_no_truncated = LiveDatabaseService.safe_string(claim_no, 15)
+        
+        with connections['ereunify'].cursor() as cursor:
+            try:
                 with transaction.atomic(using='ereunify'):
-                    
-                    # Map status
-                    status_id = LiveDatabaseService.STATUS_MAPPING.get(claim.status, 1)
-                    
-                    # Map category
-                    category_id = LiveDatabaseService.CATEGORY_MAPPING.get(claim.category, 0)
-                    
-                    # Map claim type
-                    claim_type_id = LiveDatabaseService.CLAIM_TYPE_MAPPING.get(claim.claim_type, 1)
-                    
-                    # Map payment category
-                    payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(
-                        claim.payment_category, 1
-                    )
-                    
-                    # Map sub category
-                    sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(
-                        claim.sub_category, 0
-                    )
-                    
-                    # Map claim origin
-                    claim_origin_id = LiveDatabaseService.CLAIM_ORIGIN_MAPPING.get(
-                        claim.claim_origin, 0
-                    )
-                    
-                    # Prepare data
-                    now = timezone.now()
-                    
-                    # Insert into Online Claim table
                     insert_claim_sql = """
                         INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                             [No_],
@@ -332,129 +619,83 @@ class LiveDatabaseService:
                             [Bank Account No_],
                             [Mpesa Mobile No_],
                             [Passport No_],
-                            [Residence],
-                            [Address],
-                            [Post Code],
-                            [County],
-                            [City],
-                            [Gender],
-                            [Claim Origin],
-                            [Internal Remarks],
-                            [Rejected],
                             [$systemCreatedAt],
                             [$systemModifiedAt]
                         ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                         )
                     """
                     
                     cursor.execute(insert_claim_sql, [
-                        claim.no,
-                        claim.document_date,
-                        claim.processing_date,
+                        claim_no_truncated,
+                        document_date,
+                        processing_date,
                         category_id,
                         sub_category_id,
-                        claim.agent_name or '',
+                        LiveDatabaseService.safe_string(claim_data.get('agent_name', ''), 100),
                         claim_type_id,
-                        claim.name or '',
-                        claim.id_number or '',
-                        claim.phone_no or '',
-                        claim.e_mail or '',
-                        float(claim.amount) if claim.amount else 0,
+                        LiveDatabaseService.safe_string(claim_data.get('claimant_name', ''), 200),
+                        LiveDatabaseService.safe_string(claim_data.get('claimant_id', ''), 20),
+                        LiveDatabaseService.safe_string(claim_data.get('claimant_phone', ''), 20),
+                        LiveDatabaseService.safe_string(claim_data.get('claimant_email', ''), 100),
+                        float(claim_data.get('amount', 0)),
                         status_id,
                         payment_category_id,
-                        claim.bank_name or '',
-                        claim.bank_account_no or '',
-                        claim.mpesa_mobile_no or '',
-                        claim.passport_no or '',
-                        claim.residence or '',
-                        claim.address or '',
-                        claim.post_code or '',
-                        claim.county or '',
-                        claim.city or '',
-                        claim.gender or '',
-                        claim_origin_id,
-                        claim.internal_remarks or '',
-                        0,
-                        now,
-                        now,
+                        LiveDatabaseService.safe_string(claim_data.get('bank_name', ''), 100),
+                        LiveDatabaseService.safe_string(claim_data.get('bank_account_no', ''), 30),
+                        LiveDatabaseService.safe_string(claim_data.get('mpesa_mobile_no', ''), 20),
+                        LiveDatabaseService.safe_string(claim_data.get('claimant_passport', ''), 20),
+                        timezone.now(),
+                        timezone.now(),
                     ])
                     
-                    # Insert claim assets
-                    claim_assets = ClaimAsset.objects.filter(claim=claim)
-                    for idx, asset in enumerate(claim_assets, 1):
-                        insert_asset_sql = """
+                    # Insert claim lines
+                    for idx, line in enumerate(claim_lines_data, 1):
+                        insert_line_sql = """
                             INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
                                 [No_],
                                 [Line No_],
                                 [Asset No_],
                                 [Asset Type],
                                 [Description],
-                                [Holder Name],
-                                [Value]
+                                [Holder Name]
                             ) VALUES (
-                                %s, %s, %s, %s, %s, %s, %s
+                                %s, %s, %s, %s, %s, %s
                             )
                         """
                         
-                        cursor.execute(insert_asset_sql, [
-                            claim.no,
+                        cursor.execute(insert_line_sql, [
+                            claim_no_truncated,
                             idx,
-                            asset.asset_no or '',
-                            asset.asset_type or '',
-                            asset.description or '',
-                            asset.holder_name or '',
-                            float(asset.value) if asset.value else 0,
+                            LiveDatabaseService.safe_string(line.get('asset_no', ''), 50),
+                            LiveDatabaseService.safe_string(line.get('asset_type', ''), 50),
+                            LiveDatabaseService.safe_string(line.get('description', ''), 500),
+                            LiveDatabaseService.safe_string(line.get('holder_name', ''), 200),
                         ])
-                    
-                    # Insert joint owners if any
-                    joint_owners = JointOwner.objects.filter(claim=claim)
-                    for joint_owner in joint_owners:
-                        insert_joint_owner_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Joint Owners$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [Claim No_],
-                                [Full Name],
-                                [ID Number],
-                                [Phone Number],
-                                [Email],
-                                [Gender],
-                                [Nationality],
-                                [Created At]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_joint_owner_sql, [
-                            claim.no,
-                            joint_owner.full_name or '',
-                            joint_owner.id_number or '',
-                            joint_owner.phone_number or '',
-                            joint_owner.email or '',
-                            joint_owner.gender or '',
-                            joint_owner.nationality or '',
-                            now,
-                        ])
-                    
-                    logger.info(f"✅ Claim {claim.no} pushed to live database successfully")
-                    
-                    # Update claim status in default database
-                    claim.status = 'Under_Review'
-                    claim.save(update_fields=['status'])
                     
                     return {
                         'success': True,
-                        'claim_no': claim.no,
-                        'message': f'Claim {claim.no} pushed to live database successfully'
+                        'claim_no': claim_no_truncated,
+                        'message': 'Claim created successfully'
                     }
                     
-        except Exception as e:
-            logger.error(f"Error pushing claim to live database: {e}")
-            traceback.print_exc()
-            return {
-                'success': False,
-                'message': str(e)
-            }
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"❌ Error creating claim: {error_msg}")
+                traceback.print_exc()
+                
+                # If the error is about duplicate key, try with a different number
+                if 'duplicate' in str(e).lower() or 'unique' in str(e).lower():
+                    # Generate a new number and retry
+                    new_no = LiveDatabaseService.generate_claim_number()
+                    logger.info(f"Retrying with new claim number: {new_no}")
+                    claim_data['claim_no'] = new_no
+                    return LiveDatabaseService.create_new_claim(claim_data, claim_lines_data)
+                
+                return {
+                    'success': False,
+                    'message': error_msg
+                }
     
     @staticmethod
     def push_pending_claims_to_live():
@@ -467,7 +708,6 @@ class LiveDatabaseService:
         try:
             logger.info("Starting push of pending claims to live database")
             
-            # Get all claims with status 'Pending' or 'Under_Review'
             claims = Claim.objects.filter(status__in=['Pending', 'Under_Review'])
             
             if not claims.exists():
@@ -614,7 +854,7 @@ class LiveDatabaseService:
         Args:
             claim_no: The claim number
             live_status: The status in the live database
-            
+        
         Returns:
             dict: Success status and message
         """
@@ -643,158 +883,7 @@ class LiveDatabaseService:
                 'success': False,
                 'message': str(e)
             }
-    
 
-
-    @staticmethod
-    def create_new_claim(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-        
-        # Convert category string to integer
-        category_value = claim_data.get('category', 'Original_Owner')
-        if isinstance(category_value, str):
-            category_id = LiveDatabaseService.CATEGORY_MAPPING.get(category_value, 1)
-        else:
-            category_id = category_value
-        
-        # Convert claim type string to integer
-        claim_type_value = claim_data.get('claim_type', 'Cash')
-        if isinstance(claim_type_value, str):
-            claim_type_id = LiveDatabaseService.CLAIM_TYPE_MAPPING.get(claim_type_value, 1)
-        else:
-            claim_type_id = claim_type_value
-        
-        # Convert status string to integer
-        status_value = claim_data.get('status', 'Pending')
-        if isinstance(status_value, str):
-            status_id = LiveDatabaseService.STATUS_MAPPING.get(status_value, 1)
-        else:
-            status_id = status_value
-        
-        # Handle Sub Category - provide a default value (0) instead of NULL
-        sub_category_value = claim_data.get('sub_category', '')
-        sub_category_id = 0  # Default value
-        
-        if sub_category_value:
-            if isinstance(sub_category_value, str):
-                sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(sub_category_value, 0)
-            elif isinstance(sub_category_value, int):
-                sub_category_id = sub_category_value
-        else:
-            # If no sub_category provided, use a default based on claim category
-            if category_id == 2:  # Beneficiary
-                sub_category_id = 0
-            elif category_id == 3:  # Business Entity
-                sub_category_id = 20
-            elif category_id == 4:  # Agent
-                sub_category_id = 10
-            else:
-                sub_category_id = 0
-        
-        # Convert payment category
-        payment_category_value = claim_data.get('payment_category', '')
-        if isinstance(payment_category_value, str) and payment_category_value:
-            payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(payment_category_value, 1)
-        else:
-            payment_category_id = payment_category_value if payment_category_value else 1
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # Insert into Online Claim table
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [No_],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Name],
-                            [ID Number],
-                            [Phone No_],
-                            [E-Mail],
-                            [Value],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No_],
-                            [Mpesa Mobile No_],
-                            [Passport No_],
-                            [$systemCreatedAt],
-                            [$systemModifiedAt]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        category_id,
-                        sub_category_id,
-                        claim_data.get('agent_name', ''),
-                        claim_type_id,
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        status_id,  # Now sending integer instead of string
-                        payment_category_id,
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    # Insert claim lines if any
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [No_],
-                                [Line No_],
-                                [Asset No_],
-                                [Asset Type],
-                                [Description],
-                                [Holder Name]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            idx,
-                            line.get('asset_no', ''),
-                            line.get('asset_type', ''),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                        ])
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
     @staticmethod
     def get_claim_status(claim_no):
         """Get claim status from the database"""
@@ -827,1055 +916,12 @@ class LiveDatabaseService:
                         'message': f'Claim {claim_no} not found'
                     }
             except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
+                logger.error(f"Error getting claim status: {e}")
                 return {
                     'success': False,
                     'message': str(e)
                 }
 
-
-
-
-    @staticmethod
-    def create_new_claim_deleted6(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-        
-        # Convert category string to integer
-        category_value = claim_data.get('category', 'Original_Owner')
-        if isinstance(category_value, str):
-            category_id = LiveDatabaseService.CATEGORY_MAPPING.get(category_value, 1)
-        else:
-            category_id = category_value
-        
-        # Convert claim type string to integer
-        claim_type_value = claim_data.get('claim_type', 'Cash')
-        if isinstance(claim_type_value, str):
-            claim_type_id = LiveDatabaseService.CLAIM_TYPE_MAPPING.get(claim_type_value, 1)
-        else:
-            claim_type_id = claim_type_value
-        
-        # Handle Sub Category - provide a default value (0) instead of NULL
-        sub_category_value = claim_data.get('sub_category', '')
-        sub_category_id = 0  # Default value
-        
-        if sub_category_value:
-            if isinstance(sub_category_value, str):
-                sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(sub_category_value, 0)
-            elif isinstance(sub_category_value, int):
-                sub_category_id = sub_category_value
-        else:
-            # If no sub_category provided, use a default based on claim category
-            if category_id == 2:  # Beneficiary
-                sub_category_id = 0
-            elif category_id == 3:  # Business Entity
-                sub_category_id = 20
-            elif category_id == 4:  # Agent
-                sub_category_id = 10
-            else:
-                sub_category_id = 0
-        
-        # Convert payment category
-        payment_category_value = claim_data.get('payment_category', '')
-        if isinstance(payment_category_value, str) and payment_category_value:
-            payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(payment_category_value, 1)
-        else:
-            payment_category_id = payment_category_value if payment_category_value else 1
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # Insert into Online Claim table
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [No_],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Name],
-                            [ID Number],
-                            [Phone No_],
-                            [E-Mail],
-                            [Value],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No_],
-                            [Mpesa Mobile No_],
-                            [Passport No_],
-                            [$systemCreatedAt],
-                            [$systemModifiedAt]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        category_id,
-                        sub_category_id,
-                        claim_data.get('agent_name', ''),
-                        claim_type_id,  # Now sending integer instead of string
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        'Pending',
-                        payment_category_id,
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    # Insert claim lines if any
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [No_],
-                                [Line No_],
-                                [Asset No_],
-                                [Asset Type],
-                                [Description],
-                                [Holder Name]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            idx,
-                            line.get('asset_no', ''),
-                            line.get('asset_type', ''),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                        ])
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-    @staticmethod
-    def get_claim_status_deleted6(claim_no):
-        """Get claim status from the database"""
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                cursor.execute("""
-                    SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                """, [claim_no])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'status': row[0] if row[0] else 'Pending',
-                        'updated_at': row[1],
-                        'processing_date': row[2],
-                        'message': 'Status retrieved successfully'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'message': f'Claim {claim_no} not found'
-                    }
-            except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    @staticmethod
-    def create_new_claim_delete5(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-        
-        # Convert category string to integer
-        category_value = claim_data.get('category', 'Original_Owner')
-        if isinstance(category_value, str):
-            category_id = LiveDatabaseService.CATEGORY_MAPPING.get(category_value, 1)
-        else:
-            category_id = category_value
-        
-        # Handle Sub Category - provide a default value (0 or 1) instead of NULL
-        sub_category_value = claim_data.get('sub_category', '')
-        sub_category_id = 0  # Default value - adjust based on your database requirements
-        
-        if sub_category_value:
-            if isinstance(sub_category_value, str):
-                # Try to map string to integer
-                sub_category_id = LiveDatabaseService.SUB_CATEGORY_MAPPING.get(sub_category_value, 0)
-            elif isinstance(sub_category_value, int):
-                sub_category_id = sub_category_value
-            else:
-                sub_category_id = 0
-        else:
-            # If no sub_category provided, use a default based on claim type
-            claim_type = claim_data.get('claim_type', 'original_owner')
-            if claim_type == 'beneficiary':
-                sub_category_id = 0  # Default beneficiary sub-category
-            elif claim_type == 'business_entity':
-                sub_category_id = 20  # Default business entity sub-category
-            elif claim_type == 'agent_adult':
-                sub_category_id = 10  # Adult agent
-            elif claim_type == 'agent_minor':
-                sub_category_id = 11  # Minor agent
-            else:
-                sub_category_id = 0  # Default for original owner
-        
-        # Convert payment category
-        payment_category_value = claim_data.get('payment_category', '')
-        if isinstance(payment_category_value, str) and payment_category_value:
-            payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(payment_category_value, 1)
-        else:
-            payment_category_id = payment_category_value if payment_category_value else 1
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # Insert into Online Claim table with Sub Category value (never NULL)
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [No_],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Name],
-                            [ID Number],
-                            [Phone No_],
-                            [E-Mail],
-                            [Value],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No_],
-                            [Mpesa Mobile No_],
-                            [Passport No_],
-                            [$systemCreatedAt],
-                            [$systemModifiedAt]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        category_id,
-                        sub_category_id,  # This will never be NULL (default is 0)
-                        claim_data.get('agent_name', ''),
-                        claim_data.get('claim_type', 'Cash'),
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        'Pending',
-                        payment_category_id,
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    # Insert claim lines if any
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [No_],
-                                [Line No_],
-                                [Asset No_],
-                                [Asset Type],
-                                [Description],
-                                [Holder Name]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            idx,
-                            line.get('asset_no', ''),
-                            line.get('asset_type', ''),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                        ])
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-    @staticmethod
-    def get_claim_status_delete5(claim_no):
-        """Get claim status from the database"""
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                cursor.execute("""
-                    SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                """, [claim_no])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'status': row[0] if row[0] else 'Pending',
-                        'updated_at': row[1],
-                        'processing_date': row[2],
-                        'message': 'Status retrieved successfully'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'message': f'Claim {claim_no} not found'
-                    }
-            except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-
-
-
-
-
-
-
-
-
-    @staticmethod
-    def create_new_claim_delete4(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-        
-        # Convert category string to integer
-        category_value = claim_data.get('category', 'Original_Owner')
-        if isinstance(category_value, str):
-            category_id = LiveDatabaseService.CATEGORY_MAPPING.get(category_value, 1)
-        else:
-            category_id = category_value
-        
-        # Convert sub_category if needed (for beneficiaries)
-        sub_category_value = claim_data.get('sub_category', '')
-        sub_category_id = None
-        if sub_category_value and sub_category_value in LiveDatabaseService.BENEFICIARY_TYPE_MAPPING:
-            sub_category_id = LiveDatabaseService.BENEFICIARY_TYPE_MAPPING.get(sub_category_value)
-        elif sub_category_value and sub_category_value.isdigit():
-            sub_category_id = int(sub_category_value)
-        else:
-            sub_category_id = sub_category_value if sub_category_value else None
-        
-        # Convert payment category
-        payment_category_value = claim_data.get('payment_category', '')
-        if isinstance(payment_category_value, str) and payment_category_value:
-            payment_category_id = LiveDatabaseService.PAYMENT_CATEGORY_MAPPING.get(payment_category_value, None)
-        else:
-            payment_category_id = payment_category_value if payment_category_value else None
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # Insert into Online Claim table with converted values
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [No_],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Name],
-                            [ID Number],
-                            [Phone No_],
-                            [E-Mail],
-                            [Value],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No_],
-                            [Mpesa Mobile No_],
-                            [Passport No_],
-                            [$systemCreatedAt],
-                            [$systemModifiedAt]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        category_id,  # Use integer ID instead of string
-                        sub_category_id,  # Use integer ID for sub-category if applicable
-                        claim_data.get('agent_name', ''),
-                        claim_data.get('claim_type', 'Cash'),
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        'Pending',
-                        payment_category_id,  # Use integer ID for payment category
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    # Insert claim lines if any
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [No_],
-                                [Line No_],
-                                [Asset No_],
-                                [Asset Type],
-                                [Description],
-                                [Holder Name]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            idx,
-                            line.get('asset_no', ''),
-                            line.get('asset_type', ''),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                        ])
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-    @staticmethod
-    def get_claim_status_delete4(claim_no):
-        """Get claim status from the database"""
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                cursor.execute("""
-                    SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                """, [claim_no])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'status': row[0] if row[0] else 'Pending',
-                        'updated_at': row[1],
-                        'processing_date': row[2],
-                        'message': 'Status retrieved successfully'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'message': f'Claim {claim_no} not found'
-                    }
-            except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-
-
-
-
-
-
-
-
-
-
-
-    @staticmethod
-    def create_new_claim_delete3(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-
-        CATEGORY_MAPPING = {
- 	   'Original_Owner': 1,
-    	   'Beneficiary': 2,
-     	   'Business_Entity': 3,
-   	   'Agent_of_the_Owner': 4,
-	}
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # First, get the actual column names from the table
-                    cursor.execute("""
-                        SELECT TOP 0 * 
-                        FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    """)
-                    available_columns = [col[0] for col in cursor.description]
-                    print(f"Available columns in claim table: {available_columns}")
-                    
-                    # Define column mappings (your data key -> possible DB column names)
-                    column_mappings = {
-                        'claim_no': ['No_', 'Claim No', 'Claim_No', 'Batch No_'],
-                        'document_date': ['Document Date', 'Document_Date'],
-                        'processing_date': ['Processing Date', 'Processing_Date'],
-                        'category': ['Category', 'Claim Category'],
-                        'sub_category': ['Sub Category', 'Sub_Category'],
-                        'agent_name': ['Agent Name', 'Agent_Name'],
-                        'claim_type': ['Claim Type', 'Claim_Type'],
-                        'claimant_name': ['Name', 'Claimant Name', 'Full Name'],
-                        'claimant_id': ['ID Number', 'Claimant ID', 'ID Number_'],
-                        'claimant_phone': ['Phone No_', 'Claimant Phone', 'Mobile No'],
-                        'claimant_email': ['E-Mail', 'Email', 'Claimant Email'],
-                        'amount': ['Value', 'Amount', 'Claim Amount'],
-                        'status': ['Status', 'Claim Status'],
-                        'payment_category': ['Payment Category', 'Payment_Category'],
-                        'bank_name': ['Bank Name', 'Bank_Name'],
-                        'bank_account_no': ['Bank Account No_', 'Bank_Account_No'],
-                        'mpesa_mobile_no': ['Mpesa Mobile No_', 'Mpesa_Mobile_No'],
-                        'claimant_passport': ['Passport No_', 'Passport_No'],
-                        'created_at': ['$systemCreatedAt', 'Created At'],
-                        'updated_at': ['$systemModifiedAt', 'Updated At'],
-                    }
-                    
-                    # Build dynamic INSERT with only columns that exist
-                    insert_fields = []
-                    insert_values = []
-                    
-                    for data_key, possible_names in column_mappings.items():
-                        value = claim_data.get(data_key)
-                        if value is not None:
-                            # Find which column name exists in the table
-                            for col_name in possible_names:
-                                if col_name in available_columns:
-                                    insert_fields.append(f"[{col_name}]")
-                                    insert_values.append(value)
-                                    break
-                    
-                    # Always add required fields
-                    if 'No_' in available_columns and 'No_' not in [f.strip('[]') for f in insert_fields]:
-                        insert_fields.append("[No_]")
-                        insert_values.append(claim_no)
-                    
-                    if '$systemCreatedAt' in available_columns:
-                        if '$systemCreatedAt' not in [f.strip('[]') for f in insert_fields]:
-                            insert_fields.append("[$systemCreatedAt]")
-                            insert_values.append(timezone.now())
-                    
-                    if '$systemModifiedAt' in available_columns:
-                        if '$systemModifiedAt' not in [f.strip('[]') for f in insert_fields]:
-                            insert_fields.append("[$systemModifiedAt]")
-                            insert_values.append(timezone.now())
-                    
-                    if insert_fields:
-                        placeholders = ', '.join(['%s'] * len(insert_fields))
-                        fields_str = ', '.join(insert_fields)
-                        
-                        insert_claim_sql = f"""
-                            INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
-                            ({fields_str})
-                            VALUES ({placeholders})
-                        """
-                        
-                        print(f"Executing SQL: {insert_claim_sql}")
-                        print(f"Values: {insert_values}")
-                        
-                        cursor.execute(insert_claim_sql, insert_values)
-                        
-                        # Insert claim lines if any
-                        for idx, line in enumerate(claim_lines_data, 1):
-                            # Get line table columns
-                            cursor.execute("""
-                                SELECT TOP 0 * 
-                                FROM [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                            """)
-                            line_columns = [col[0] for col in cursor.description]
-                            
-                            # Build line insert dynamically
-                            line_fields = []
-                            line_values = []
-                            
-                            line_mappings = {
-                                'claim_no': ['No_', 'Claim No', 'Document No_'],
-                                'line_no': ['Line No_', 'Line No'],
-                                'asset_no': ['Asset No_', 'Asset No'],
-                                'asset_type': ['Asset Type', 'Asset_Type'],
-                                'description': ['Description', 'Asset Description'],
-                                'holder_name': ['Holder Name', 'Holder_Name'],
-                            }
-                            
-                            line_data = {
-                                'claim_no': claim_no,
-                                'line_no': idx,
-                                'asset_no': line.get('asset_no', ''),
-                                'asset_type': line.get('asset_type', ''),
-                                'description': line.get('description', ''),
-                                'holder_name': line.get('holder_name', ''),
-                            }
-                            
-                            for data_key, possible_names in line_mappings.items():
-                                value = line_data.get(data_key)
-                                if value is not None:
-                                    for col_name in possible_names:
-                                        if col_name in line_columns:
-                                            line_fields.append(f"[{col_name}]")
-                                            line_values.append(value)
-                                            break
-                            
-                            if line_fields:
-                                placeholders = ', '.join(['%s'] * len(line_fields))
-                                fields_str = ', '.join(line_fields)
-                                
-                                insert_line_sql = f"""
-                                    INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] 
-                                    ({fields_str})
-                                    VALUES ({placeholders})
-                                """
-                                
-                                cursor.execute(insert_line_sql, line_values)
-                        
-                        return {
-                            'success': True,
-                            'claim_no': claim_no,
-                            'message': 'Claim created successfully'
-                        }
-                    else:
-                        raise Exception("No valid columns found to insert data")
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-    @staticmethod
-    def get_claim_status_delete3(claim_no):
-        """Get claim status from the database"""
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # First check what columns are available
-                cursor.execute("""
-                    SELECT TOP 0 * 
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                """)
-                available_columns = [col[0] for col in cursor.description]
-                
-                # Build SELECT dynamically based on available columns
-                select_fields = []
-                for col in ['Status', '$systemModifiedAt', 'Processing Date', 'Updated At']:
-                    if col in available_columns:
-                        select_fields.append(f"[{col}]")
-                
-                if not select_fields:
-                    select_fields = ['*']
-                
-                select_str = ', '.join(select_fields)
-                
-                # Find the correct claim number column
-                claim_no_col = None
-                for col in ['No_', 'Claim No', 'Claim_No', 'Document No_']:
-                    if col in available_columns:
-                        claim_no_col = col
-                        break
-                
-                if not claim_no_col:
-                    return {
-                        'success': False,
-                        'message': 'Could not find claim number column in table'
-                    }
-                
-                cursor.execute(f"""
-                    SELECT {select_str}
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [{claim_no_col}] = %s
-                """, [claim_no])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    result = {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Status retrieved successfully'
-                    }
-                    
-                    # Map results
-                    for i, col in enumerate(select_fields):
-                        col_name = col.strip('[]')
-                        if col_name == 'Status':
-                            result['status'] = row[i] if row[i] else 'Pending'
-                        elif col_name in ['$systemModifiedAt', 'Updated At']:
-                            result['updated_at'] = row[i]
-                        elif col_name == 'Processing Date':
-                            result['processing_date'] = row[i]
-                    
-                    return result
-                else:
-                    return {
-                        'success': False,
-                        'message': f'Claim {claim_no} not found'
-                    }
-            except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-
-
-
-
-
-
-
-    @staticmethod
-    def create_new_claim_delete2(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
-        
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    # Insert into Online Claim table using correct column names from your schema
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [No_],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Name],
-                            [ID Number],
-                            [Phone No_],
-                            [E-Mail],
-                            [Value],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No_],
-                            [Mpesa Mobile No_],
-                            [CDS Account No_],
-                            [Passport No_],
-                            [$systemCreatedAt],
-                            [$systemModifiedAt]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        claim_data.get('category', 'Original_Owner'),
-                        claim_data.get('sub_category', ''),
-                        claim_data.get('agent_name', ''),
-                        claim_data.get('claim_type', 'Cash'),
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        'Pending',
-                        claim_data.get('payment_category', ''),
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('cds_account_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    # Insert claim lines if any
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [No_],
-                                [Line No_],
-                                [Asset No_],
-                                [Asset Type],
-                                [Description],
-                                [Holder Name]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            idx,
-                            line.get('asset_no', ''),
-                            line.get('asset_type', ''),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                        ])
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-            except Exception as e:
-                print(f"❌ Error creating claim: {e}")
-                import traceback
-                traceback.print_exc()
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-    
-    @staticmethod
-    def get_claim_status_delete(claim_no):
-        """Get claim status from the database"""
-        with connections['ereunify'].cursor() as cursor:
-            try:
-                cursor.execute("""
-                    SELECT [Status], [$systemModifiedAt], [Processing Date]
-                    FROM [UFAA OPERATIONS$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                """, [claim_no])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'status': row[0] if row[0] else 'Pending',
-                        'updated_at': row[1],
-                        'processing_date': row[2],
-                        'message': 'Status retrieved successfully'
-                    }
-                else:
-                    return {
-                        'success': False,
-                        'message': f'Claim {claim_no} not found'
-                    }
-            except Exception as e:
-                print(f"❌ Error getting claim status: {e}")
-                return {
-                    'success': False,
-                    'message': str(e)
-                }
-
-
-
-
-    @staticmethod
-    def create_new_claim_to_delete(claim_data, claim_lines_data):
-        """Insert a new claim into the live online claims table"""
-        
-        # Generate a unique claim number if not provided
-        claim_no = claim_data.get('claim_no') or f"CLM-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
-        
-        try:
-            with connections['ereunify'].cursor() as cursor:
-                # Begin transaction
-                with transaction.atomic(using='ereunify'):
-                    print(f"📝 Creating claim: {claim_no}")
-                    
-                    # Insert into Online Claim table
-                    insert_claim_sql = """
-                        INSERT INTO [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                            [Claim No],
-                            [Document Date],
-                            [Processing Date],
-                            [Category],
-                            [Sub Category],
-                            [Agent Name],
-                            [Claim Type],
-                            [Claimant Name],
-                            [Claimant ID],
-                            [Claimant Phone],
-                            [Claimant Email],
-                            [Amount],
-                            [Status],
-                            [Payment Category],
-                            [Bank Name],
-                            [Bank Account No],
-                            [Mpesa Mobile No],
-                            [CDS Account No],
-                            [Claimant Passport],
-                            [Created At],
-                            [Updated At]
-                        ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                        )
-                    """
-                    
-                    cursor.execute(insert_claim_sql, [
-                        claim_no,
-                        claim_data.get('document_date'),
-                        claim_data.get('processing_date'),
-                        claim_data.get('category', 'Original_Owner'),
-                        claim_data.get('sub_category', ''),
-                        claim_data.get('agent_name', ''),
-                        claim_data.get('claim_type', 'Cash'),
-                        claim_data.get('claimant_name'),
-                        claim_data.get('claimant_id'),
-                        claim_data.get('claimant_phone', ''),
-                        claim_data.get('claimant_email', ''),
-                        claim_data.get('amount', 0),
-                        'Pending',
-                        claim_data.get('payment_category', ''),
-                        claim_data.get('bank_name', ''),
-                        claim_data.get('bank_account_no', ''),
-                        claim_data.get('mpesa_mobile_no', ''),
-                        claim_data.get('cds_account_no', ''),
-                        claim_data.get('claimant_passport', ''),
-                        timezone.now(),
-                        timezone.now(),
-                    ])
-                    
-                    print(f"  ✅ Claim header inserted")
-                    
-                    # Insert claim lines
-                    for idx, line in enumerate(claim_lines_data, 1):
-                        insert_line_sql = """
-                            INSERT INTO [UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1] (
-                                [Claim No],
-                                [Line No],
-                                [Asset No],
-                                [Asset Type],
-                                [Asset Value],
-                                [Description],
-                                [Holder Name],
-                                [Document Path]
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s, %s, %s
-                            )
-                        """
-                        
-                        cursor.execute(insert_line_sql, [
-                            claim_no,
-                            line.get('line_no', idx),
-                            line.get('asset_no'),
-                            line.get('asset_type'),
-                            line.get('asset_value', 0),
-                            line.get('description', ''),
-                            line.get('holder_name', ''),
-                            line.get('document_path', ''),
-                        ])
-                    
-                    print(f"  ✅ Inserted {len(claim_lines_data)} claim lines")
-                    
-                    return {
-                        'success': True,
-                        'claim_no': claim_no,
-                        'message': 'Claim created successfully'
-                    }
-                    
-        except Exception as e:
-            print(f"❌ Error creating claim: {e}")
-            import traceback
-            traceback.print_exc()
-            return {
-                'success': False,
-                'message': str(e)
-            }
-    
     @staticmethod
     def get_asset_by_no(asset_no):
         """Get a single asset by its asset number"""
@@ -1896,7 +942,7 @@ class LiveDatabaseService:
                 'is_claimable': asset.is_claimable(),
             }
         except Exception as e:
-            print(f"❌ Error getting asset: {e}")
+            logger.error(f"Error getting asset: {e}")
             return None
     
     @staticmethod
@@ -1912,12 +958,26 @@ class LiveDatabaseService:
             return {
                 'claim_no': claim.claim_no,
                 'claimant_name': claim.claimant_name,
-                'claimant_id': claim.claimant_id,
+                'id_number': claim.id_number,
+                'id_number_alt': claim.id_number_alt,
+                'passport_no': claim.passport_no,
                 'claimant_phone': claim.claimant_phone,
                 'claimant_email': claim.claimant_email,
                 'amount': float(claim.amount) if claim.amount else 0,
                 'status': claim.status,
+                'payment_category': claim.payment_category,
+                'bank_name': claim.bank_name,
+                'bank_account_no': claim.bank_account_no,
+                'mpesa_mobile_no': claim.mpesa_mobile_no,
+                'category': claim.category,
+                'sub_category': claim.sub_category,
+                'claim_type': claim.claim_type,
+                'agent_name': claim.agent_name,
+                'asset_no': claim.asset_no,
+                'asset_type': claim.asset_type,
+                'description': claim.description,
                 'created_at': claim.created_at.isoformat() if claim.created_at else None,
+                'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
                 'lines': [
                     {
                         'line_no': line.line_no,
@@ -1931,5 +991,63 @@ class LiveDatabaseService:
                 ]
             }
         except Exception as e:
-            print(f"❌ Error getting claim: {e}")
+            logger.error(f"Error getting claim: {e}")
             return None
+
+    @staticmethod
+    def update_claim_status(claim_no, status, remarks=''):
+        """Update claim status in the live database"""
+        if isinstance(status, str):
+            status_id = LiveDatabaseService.STATUS_MAPPING.get(status)
+            if status_id is None:
+                return {
+                    'success': False,
+                    'message': f'Invalid status: {status}'
+                }
+        else:
+            status_id = status
+        
+        with connections['ereunify'].cursor() as cursor:
+            try:
+                update_sql = """
+                    UPDATE [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+                    SET [Status] = %s, 
+                        [$systemModifiedAt] = %s,
+                        [Internal Remarks] = CASE 
+                            WHEN %s IS NOT NULL AND %s != '' 
+                            THEN CONCAT([Internal Remarks], CHAR(13), CHAR(10), %s)
+                            ELSE [Internal Remarks]
+                        END
+                    WHERE [No_] = %s
+                """
+                
+                cursor.execute(update_sql, [
+                    status_id,
+                    timezone.now(),
+                    remarks, remarks, remarks,
+                    claim_no
+                ])
+                
+                if cursor.rowcount > 0:
+                    # Also sync back to default database if status is 'Rejected' or 'Approved'
+                    if status in ['Rejected', 'Approved', 'Paid', 'Completed']:
+                        LiveDatabaseService.sync_claim_status(claim_no, status)
+                    
+                    return {
+                        'success': True,
+                        'claim_no': claim_no,
+                        'status': status,
+                        'message': f'Claim status updated to {status}'
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'message': f'Claim {claim_no} not found'
+                    }
+                    
+            except Exception as e:
+                logger.error(f"Error updating claim status: {e}")
+                return {
+                    'success': False,
+                    'message': str(e)
+                }
