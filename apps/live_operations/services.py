@@ -23,9 +23,9 @@ class LiveDatabaseService:
     ONLINE_CLAIM_TABLE_NAME = (
         "UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
     )
-    ONLINE_CLAIM_LINES_TABLE_NAME = (
-        "UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
-    )
+    # ONLINE_CLAIM_LINES_TABLE_NAME = (
+    #     "UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
+    # )
     UNCLAIMED_ASSET_TABLE_NAME = (
         "UFAA TRUST FUND$Unclaimed Asset$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
     )
@@ -33,9 +33,9 @@ class LiveDatabaseService:
     ONLINE_CLAIM_TABLE = (
         f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{ONLINE_CLAIM_TABLE_NAME}]"
     )
-    ONLINE_CLAIM_LINES_TABLE = (
-        f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{ONLINE_CLAIM_LINES_TABLE_NAME}]"
-    )
+    # ONLINE_CLAIM_LINES_TABLE = (
+    #     f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{ONLINE_CLAIM_LINES_TABLE_NAME}]"
+    # )
     UNCLAIMED_ASSET_TABLE = (
         f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{UNCLAIMED_ASSET_TABLE_NAME}]"
     )
@@ -268,49 +268,52 @@ class LiveDatabaseService:
                 f"column. Available columns: {header_columns}"
             )
 
-        claim_line_columns = {
-            "parent_claim": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_PARENT_COLUMN_CANDIDATES,
-            ),
-            "line_number": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_NUMBER_COLUMN_CANDIDATES,
-            ),
-            "asset_no": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_ASSET_NO_COLUMN_CANDIDATES,
-            ),
-            "asset_type": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_ASSET_TYPE_COLUMN_CANDIDATES,
-                required=False,
-            ),
-            "description": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_DESCRIPTION_COLUMN_CANDIDATES,
-                required=False,
-            ),
-            "holder_name": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_HOLDER_NAME_COLUMN_CANDIDATES,
-                required=False,
-            ),
-            "asset_value": LiveDatabaseService.resolve_column(
-                LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-                LiveDatabaseService.CLAIM_LINE_VALUE_COLUMN_CANDIDATES,
-                required=False,
-            ),
-        }
+        # Commented out: Claim line validation temporarily disabled
+        # claim_line_columns = {
+        #     "parent_claim": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_PARENT_COLUMN_CANDIDATES,
+        #     ),
+        #     "line_number": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_NUMBER_COLUMN_CANDIDATES,
+        #     ),
+        #     "asset_no": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_ASSET_NO_COLUMN_CANDIDATES,
+        #     ),
+        #     "asset_type": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_ASSET_TYPE_COLUMN_CANDIDATES,
+        #         required=False,
+        #     ),
+        #     "description": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_DESCRIPTION_COLUMN_CANDIDATES,
+        #         required=False,
+        #     ),
+        #     "holder_name": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_HOLDER_NAME_COLUMN_CANDIDATES,
+        #         required=False,
+        #     ),
+        #     "asset_value": LiveDatabaseService.resolve_column(
+        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
+        #         LiveDatabaseService.CLAIM_LINE_VALUE_COLUMN_CANDIDATES,
+        #         required=False,
+        #     ),
+        # }
 
-        logger.info(
-            "Validated live database schema. Claim-line columns: %s",
-            claim_line_columns,
-        )
+        # logger.info(
+        #     "Validated live database schema. Claim-line columns: %s",
+        #     claim_line_columns,
+        # )
 
+        # Return minimal schema with header validation only
         return {
             "header_claim_no_column": "No_",
-            "claim_line_columns": claim_line_columns,
+            # "claim_line_columns": claim_line_columns,
+            "claim_line_columns": {},  # Empty dict since claim lines are disabled
         }
 
     @staticmethod
@@ -778,7 +781,8 @@ class LiveDatabaseService:
 
         try:
             schema = LiveDatabaseService.validate_live_schema()
-            line_columns = schema["claim_line_columns"]
+            # Claim lines are temporarily disabled
+            # line_columns = schema["claim_line_columns"]
 
             with transaction.atomic(using="ereunify"):
                 with connections["ereunify"].cursor() as cursor:
@@ -956,121 +960,121 @@ class LiveDatabaseService:
                         claim_no_truncated,
                     )
 
-                    for index, line in enumerate(
-                        claim_lines_data,
-                        start=1,
-                    ):
-                        operation_stage = (
-                            f"inserting claim line {index}"
-                        )
-
-                        line_field_values = [
-                            (
-                                line_columns["parent_claim"],
-                                claim_no_truncated,
-                            ),
-                            (
-                                line_columns["line_number"],
-                                index,
-                            ),
-                            (
-                                line_columns["asset_no"],
-                                LiveDatabaseService.safe_string(
-                                    line.get("asset_no", ""),
-                                    50,
-                                ),
-                            ),
-                        ]
-
-                        if line_columns["asset_type"]:
-                            line_field_values.append(
-                                (
-                                    line_columns["asset_type"],
-                                    LiveDatabaseService.safe_string(
-                                        line.get("asset_type", ""),
-                                        50,
-                                    ),
-                                )
-                            )
-
-                        if line_columns["description"]:
-                            line_field_values.append(
-                                (
-                                    line_columns["description"],
-                                    LiveDatabaseService.safe_string(
-                                        line.get("description", ""),
-                                        500,
-                                    ),
-                                )
-                            )
-
-                        if line_columns["holder_name"]:
-                            line_field_values.append(
-                                (
-                                    line_columns["holder_name"],
-                                    LiveDatabaseService.safe_string(
-                                        line.get("holder_name", ""),
-                                        200,
-                                    ),
-                                )
-                            )
-
-                        if line_columns["asset_value"]:
-                            line_field_values.append(
-                                (
-                                    line_columns["asset_value"],
-                                    float(line.get("value", 0) or 0),
-                                )
-                            )
-
-                        quoted_columns = ", ".join(
-                            LiveDatabaseService.quote_identifier(column)
-                            for column, _value in line_field_values
-                        )
-                        placeholders = ", ".join(
-                            "%s" for _column, _value in line_field_values
-                        )
-                        params = [
-                            value
-                            for _column, value in line_field_values
-                        ]
-
-                        insert_line_sql = f"""
-                            INSERT INTO
-                                {LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE}
-                            (
-                                {quoted_columns}
-                            )
-                            VALUES (
-                                {placeholders}
-                            )
-                        """
-
-                        logger.debug(
-                            "Inserting claim line %s for claim %s using "
-                            "columns: %s",
-                            index,
-                            claim_no_truncated,
-                            [
-                                column
-                                for column, _value in line_field_values
-                            ],
-                        )
-
-                        cursor.execute(insert_line_sql, params)
-
-                    logger.info(
-                        "Inserted %s line(s) for live claim %s",
-                        len(claim_lines_data),
-                        claim_no_truncated,
-                    )
+                    # Commented out: Claim lines insertion temporarily disabled
+                    # for index, line in enumerate(
+                    #     claim_lines_data,
+                    #     start=1,
+                    # ):
+                    #     operation_stage = (
+                    #         f"inserting claim line {index}"
+                    #     )
+                    #
+                    #     line_field_values = [
+                    #         (
+                    #             line_columns["parent_claim"],
+                    #             claim_no_truncated,
+                    #         ),
+                    #         (
+                    #             line_columns["line_number"],
+                    #             index,
+                    #         ),
+                    #         (
+                    #             line_columns["asset_no"],
+                    #             LiveDatabaseService.safe_string(
+                    #                 line.get("asset_no", ""),
+                    #                 50,
+                    #             ),
+                    #         ),
+                    #     ]
+                    #
+                    #     if line_columns["asset_type"]:
+                    #         line_field_values.append(
+                    #             (
+                    #                 line_columns["asset_type"],
+                    #                 LiveDatabaseService.safe_string(
+                    #                     line.get("asset_type", ""),
+                    #                     50,
+                    #                 ),
+                    #             )
+                    #         )
+                    #
+                    #     if line_columns["description"]:
+                    #         line_field_values.append(
+                    #             (
+                    #                 line_columns["description"],
+                    #                 LiveDatabaseService.safe_string(
+                    #                     line.get("description", ""),
+                    #                     500,
+                    #                 ),
+                    #             )
+                    #         )
+                    #
+                    #     if line_columns["holder_name"]:
+                    #         line_field_values.append(
+                    #             (
+                    #                 line_columns["holder_name"],
+                    #                 LiveDatabaseService.safe_string(
+                    #                     line.get("holder_name", ""),
+                    #                     200,
+                    #                 ),
+                    #             )
+                    #         )
+                    #
+                    #     if line_columns["asset_value"]:
+                    #         line_field_values.append(
+                    #             (
+                    #                 line_columns["asset_value"],
+                    #                 float(line.get("value", 0) or 0),
+                    #             )
+                    #         )
+                    #
+                    #     quoted_columns = ", ".join(
+                    #         LiveDatabaseService.quote_identifier(column)
+                    #         for column, _value in line_field_values
+                    #     )
+                    #     placeholders = ", ".join(
+                    #         "%s" for _column, _value in line_field_values
+                    #     )
+                    #     params = [
+                    #         value
+                    #         for _column, value in line_field_values
+                    #     ]
+                    #
+                    #     insert_line_sql = f"""
+                    #         INSERT INTO
+                    #             {LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE}
+                    #         (
+                    #             {quoted_columns}
+                    #         )
+                    #         VALUES (
+                    #             {placeholders}
+                    #         )
+                    #     """
+                    #
+                    #     logger.debug(
+                    #         "Inserting claim line %s for claim %s using "
+                    #         "columns: %s",
+                    #         index,
+                    #         claim_no_truncated,
+                    #         [
+                    #             column
+                    #             for column, _value in line_field_values
+                    #         ],
+                    #     )
+                    #
+                    #     cursor.execute(insert_line_sql, params)
+                    #
+                    # logger.info(
+                    #     "Inserted %s line(s) for live claim %s",
+                    #     len(claim_lines_data),
+                    #     claim_no_truncated,
+                    # )
 
             return {
                 "success": True,
                 "claim_no": claim_no_truncated,
                 "message": (
-                    f"Claim created successfully with "
-                    f"{len(claim_lines_data)} asset line(s)"
+                    f"Claim created successfully (claim lines temporarily disabled)"
                 ),
             }
 

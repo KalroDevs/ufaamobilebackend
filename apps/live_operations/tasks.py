@@ -1,304 +1,609 @@
 # apps/live_operations/tasks.py
-from celery import shared_task
-from django.core.management import call_command
-from django.utils import timezone
-from datetime import timedelta
 import logging
-from .services import LiveDatabaseService
+from datetime import timedelta
+
+from celery import shared_task
+from django.db import connections
+from django.utils import timezone
+
 from apps.claims.models import Claim
+from .services import LiveDatabaseService
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(name='apps.live_operations.tasks.push_pending_claims_to_live')
-def push_pending_claims_to_live():
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.push_pending_claims_to_live",
+)
+def push_pending_claims_to_live(self):
     """
-    Celery task to push all pending claims to live database
-    Runs every 3 hours
+    Push all pending and under-review claims to the live Online Claim table.
+
+    Online Claim Lines insertion is disabled in LiveDatabaseService.
     """
-    logger.info("Starting scheduled task: push_pending_claims_to_live")
-    
+    logger.info(
+        "Starting scheduled task: push_pending_claims_to_live "
+        "(task_id=%s)",
+        self.request.id,
+    )
+
     try:
         result = LiveDatabaseService.push_pending_claims_to_live()
-        
-        logger.info(f"Push task completed: {result}")
-        
-        # Log summary
-        if result.get('success'):
+
+        if result.get("success"):
             logger.info(
-                f"Claims pushed: {result.get('pushed', 0)}, "
-                f"Failed: {result.get('failed', 0)}, "
-                f"Skipped: {result.get('skipped', 0)}"
+                "Push task completed. Pushed=%s, Failed=%s, Skipped=%s",
+                result.get("pushed", 0),
+                result.get("failed", 0),
+                result.get("skipped", 0),
             )
         else:
-            logger.error(f"Push task failed: {result.get('message', 'Unknown error')}")
-        
+            logger.error(
+                "Push task failed: %s",
+                result.get("message", "Unknown error"),
+            )
+
         return result
-        
-    except Exception as e:
-        logger.error(f"Error in push_pending_claims_to_live task: {e}")
-        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Unhandled error in push_pending_claims_to_live: %s",
+            exc,
+        )
+        return {
+            "success": False,
+            "message": str(exc),
+            "pushed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "details": [],
+        }
 
 
-@shared_task(name='apps.live_operations.tasks.push_single_claim_to_live')
-def push_single_claim_to_live(claim_id):
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.push_single_claim_to_live",
+)
+def push_single_claim_to_live(self, claim_id):
     """
-    Celery task to push a single claim to live database
-    
-    Args:
-        claim_id: The ID of the claim to push
+    Push one claim header to the live Online Claim table.
     """
-    logger.info(f"Starting task: push_single_claim_to_live for claim ID {claim_id}")
-    
+    logger.info(
+        "Starting push_single_claim_to_live for claim ID %s "
+        "(task_id=%s)",
+        claim_id,
+        self.request.id,
+    )
+
     try:
         result = LiveDatabaseService.push_claim_to_live(claim_id)
-        
-        logger.info(f"Single push completed for claim ID {claim_id}: {result}")
+
+        if result.get("success"):
+            logger.info(
+                "Claim ID %s pushed successfully as %s",
+                claim_id,
+                result.get("claim_no"),
+            )
+        else:
+            logger.error(
+                "Failed to push claim ID %s: %s",
+                claim_id,
+                result.get("message", "Unknown error"),
+            )
+
         return result
-        
-    except Exception as e:
-        logger.error(f"Error in push_single_claim_to_live task for claim ID {claim_id}: {e}")
-        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Unhandled error pushing claim ID %s: %s",
+            claim_id,
+            exc,
+        )
+        return {
+            "success": False,
+            "claim_id": claim_id,
+            "message": str(exc),
+        }
 
 
-@shared_task(name='apps.live_operations.tasks.push_claims_by_ids')
-def push_claims_by_ids(claim_ids):
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.push_claims_by_ids",
+)
+def push_claims_by_ids(self, claim_ids):
     """
-    Celery task to push specific claims by IDs
-    
-    Args:
-        claim_ids: List of claim IDs to push
+    Push selected claim headers to the live Online Claim table.
+
+    This implementation does not depend on a push_claims_by_ids service
+    method. Each claim is pushed independently so one failure does not stop
+    the rest of the batch.
     """
-    logger.info(f"Starting task: push_claims_by_ids for {len(claim_ids)} claims")
-    logger.info(f"Claim IDs: {claim_ids}")
-    
-    try:
-        result = LiveDatabaseService.push_claims_by_ids(claim_ids)
-        
-        logger.info(f"Push by IDs completed: {result}")
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error in push_claims_by_ids task: {e}")
-        raise
+    claim_ids = list(dict.fromkeys(claim_ids or []))
+
+    logger.info(
+        "Starting push_claims_by_ids for %s claim(s) "
+        "(task_id=%s)",
+        len(claim_ids),
+        self.request.id,
+    )
+
+    if not claim_ids:
+        return {
+            "success": True,
+            "message": "No claim IDs were provided",
+            "pushed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "details": [],
+        }
+
+    pushed = 0
+    failed = 0
+    skipped = 0
+    details = []
+
+    for claim_id in claim_ids:
+        try:
+            claim = Claim.objects.filter(id=claim_id).only(
+                "id",
+                "no",
+                "status",
+            ).first()
+
+            if not claim:
+                failed += 1
+                details.append(
+                    {
+                        "claim_id": claim_id,
+                        "status": "failed",
+                        "message": "Claim not found",
+                    }
+                )
+                continue
+
+            if claim.status not in ["Pending", "Under_Review"]:
+                skipped += 1
+                details.append(
+                    {
+                        "claim_id": claim_id,
+                        "claim_no": claim.no,
+                        "status": "skipped",
+                        "message": (
+                            f"Claim status {claim.status} is not pushable"
+                        ),
+                    }
+                )
+                continue
+
+            if (
+                claim.no
+                and LiveDatabaseService.claim_exists_in_live(claim.no)
+            ):
+                skipped += 1
+                details.append(
+                    {
+                        "claim_id": claim_id,
+                        "claim_no": claim.no,
+                        "status": "skipped",
+                        "message": "Already exists in live database",
+                    }
+                )
+                continue
+
+            result = LiveDatabaseService.push_claim_to_live(claim_id)
+
+            if result.get("success"):
+                pushed += 1
+                status = "success"
+            else:
+                failed += 1
+                status = "failed"
+
+            detail = {
+                "claim_id": claim_id,
+                "claim_no": claim.no,
+                "status": status,
+                "message": result.get("message", ""),
+            }
+
+            if result.get("claim_no"):
+                detail["live_claim_no"] = result["claim_no"]
+
+            if result.get("stage"):
+                detail["stage"] = result["stage"]
+
+            details.append(detail)
+
+        except Exception as exc:
+            failed += 1
+            logger.exception(
+                "Error processing claim ID %s in batch: %s",
+                claim_id,
+                exc,
+            )
+            details.append(
+                {
+                    "claim_id": claim_id,
+                    "status": "failed",
+                    "message": str(exc),
+                }
+            )
+
+    return {
+        "success": failed == 0,
+        "message": (
+            f"Push completed: {pushed} pushed, "
+            f"{failed} failed, {skipped} skipped"
+        ),
+        "pushed": pushed,
+        "failed": failed,
+        "skipped": skipped,
+        "details": details,
+    }
 
 
-@shared_task(name='apps.live_operations.tasks.sync_claim_statuses')
-def sync_claim_statuses():
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.sync_claim_statuses",
+)
+def sync_claim_statuses(self):
     """
-    Celery task to sync claim statuses from live database back to default database
-    Runs every 6 hours
+    Synchronize statuses from the live Online Claim table to local claims.
+
+    This task uses the existing LiveOnlineClaim model and does not access
+    the Online Claim Lines table.
     """
-    logger.info("Starting scheduled task: sync_claim_statuses")
-    
+    logger.info(
+        "Starting scheduled task: sync_claim_statuses "
+        "(task_id=%s)",
+        self.request.id,
+    )
+
     try:
         from .models import LiveOnlineClaim
-        
-        # Use iterator to avoid loading all records into memory
-        live_claims = LiveOnlineClaim.objects.all().iterator()
-        synced_count = 0
-        failed_count = 0
-        skipped_count = 0
-        
-        for live_claim in live_claims:
-            try:
-                # Find matching claim in default database
-                claim = Claim.objects.filter(no=live_claim.claim_no).first()
-                
-                if not claim:
-                    skipped_count += 1
-                    logger.debug(f"Claim {live_claim.claim_no} not found in default database")
-                    continue
-                
-                # Map status from live database to default database status
-                # Live status is stored as integer, map to string
-                status_mapping = {
-                    0: 'Draft',
-                    1: 'Pending',
-                    2: 'Under_Review',
-                    3: 'In_Progress',
-                    4: 'Processing',
-                    5: 'Approved',
-                    6: 'Rejected',
-                    7: 'Paid',
-                    8: 'Completed',
-                    9: 'Archived',
-                    10: 'Cancelled',
-                }
-                
-                # Get status string from mapping
-                live_status_int = live_claim.status
-                if isinstance(live_status_int, int):
-                    live_status_str = status_mapping.get(live_status_int, 'Pending')
-                else:
-                    live_status_str = live_status_int
-                
-                if claim.status != live_status_str:
-                    # Sync status
-                    result = LiveDatabaseService.sync_claim_status(
-                        live_claim.claim_no, 
-                        live_status_str
-                    )
-                    
-                    if result.get('success'):
-                        synced_count += 1
-                        logger.info(f"Synced claim {live_claim.claim_no} status to {live_status_str}")
-                    else:
-                        failed_count += 1
-                        logger.error(f"Failed to sync claim {live_claim.claim_no}: {result.get('message')}")
-                else:
-                    skipped_count += 1
-                    
-            except Exception as e:
-                failed_count += 1
-                logger.error(f"Error syncing claim {live_claim.claim_no}: {e}")
-        
-        result = {
-            'success': True,
-            'synced': synced_count,
-            'failed': failed_count,
-            'skipped': skipped_count,
-            'total': synced_count + failed_count + skipped_count,
-            'message': f'Synced {synced_count} claims, {failed_count} failed, {skipped_count} skipped'
+
+        status_mapping = {
+            0: "Draft",
+            1: "Pending",
+            2: "Under_Review",
+            3: "In_Progress",
+            4: "Processing",
+            5: "Approved",
+            6: "Rejected",
+            7: "Paid",
+            8: "Completed",
+            9: "Archived",
+            10: "Cancelled",
         }
-        
-        logger.info(f"Sync task completed: {result}")
+
+        synced = 0
+        failed = 0
+        skipped = 0
+        details = []
+
+        live_claims = LiveOnlineClaim.objects.all().iterator(
+            chunk_size=500
+        )
+
+        for live_claim in live_claims:
+            claim_no = getattr(live_claim, "claim_no", None)
+
+            try:
+                if not claim_no:
+                    skipped += 1
+                    continue
+
+                claim = Claim.objects.filter(no=claim_no).first()
+
+                if not claim:
+                    skipped += 1
+                    continue
+
+                live_status = getattr(live_claim, "status", None)
+
+                if isinstance(live_status, int):
+                    live_status = status_mapping.get(
+                        live_status,
+                        "Pending",
+                    )
+
+                if not live_status or claim.status == live_status:
+                    skipped += 1
+                    continue
+
+                claim.status = live_status
+                claim.save(update_fields=["status"])
+                synced += 1
+
+                details.append(
+                    {
+                        "claim_no": claim_no,
+                        "status": "synced",
+                        "new_status": live_status,
+                    }
+                )
+
+            except Exception as exc:
+                failed += 1
+                logger.exception(
+                    "Error syncing claim %s: %s",
+                    claim_no,
+                    exc,
+                )
+                details.append(
+                    {
+                        "claim_no": claim_no,
+                        "status": "failed",
+                        "message": str(exc),
+                    }
+                )
+
+        result = {
+            "success": failed == 0,
+            "synced": synced,
+            "failed": failed,
+            "skipped": skipped,
+            "total": synced + failed + skipped,
+            "message": (
+                f"Synced {synced} claims, "
+                f"{failed} failed, {skipped} skipped"
+            ),
+            "details": details,
+        }
+
+        logger.info("Sync task completed: %s", result["message"])
         return result
-        
-    except Exception as e:
-        logger.error(f"Error in sync_claim_statuses task: {e}")
-        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Unhandled error in sync_claim_statuses: %s",
+            exc,
+        )
+        return {
+            "success": False,
+            "message": str(exc),
+            "synced": 0,
+            "failed": 0,
+            "skipped": 0,
+            "total": 0,
+            "details": [],
+        }
 
 
-@shared_task(name='apps.live_operations.tasks.push_pending_claims_with_filter')
-def push_pending_claims_with_filter(status_filter=None, days_old=None, limit=None):
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.push_pending_claims_with_filter",
+)
+def push_pending_claims_with_filter(
+    self,
+    status_filter=None,
+    days_old=None,
+    limit=None,
+):
     """
-    Celery task to push pending claims with filters
-    
-    Args:
-        status_filter: List of statuses to filter (e.g., ['Pending', 'Under_Review'])
-        days_old: Only push claims older than X days
-        limit: Maximum number of claims to push
+    Push claim headers matching optional status, age and limit filters.
     """
-    logger.info(f"Starting filtered push task with status_filter={status_filter}, days_old={days_old}, limit={limit}")
-    
+    logger.info(
+        "Starting filtered push task. status_filter=%s, "
+        "days_old=%s, limit=%s, task_id=%s",
+        status_filter,
+        days_old,
+        limit,
+        self.request.id,
+    )
+
     try:
-        # Build the query
-        claims = Claim.objects.filter(status__in=['Pending', 'Under_Review'])
-        
-        # Apply status filter if provided
+        allowed_statuses = ["Pending", "Under_Review"]
+
         if status_filter:
             if isinstance(status_filter, str):
-                status_filter = [status_filter]
-            claims = claims.filter(status__in=status_filter)
-        
-        # Apply days filter if provided
-        if days_old:
-            cutoff_date = timezone.now() - timedelta(days=days_old)
-            # Use date_created or created_at - adjust field name as needed
-            # Check which date field exists on your Claim model
-            if hasattr(Claim, 'created_at'):
-                claims = claims.filter(created_at__lte=cutoff_date)
-            elif hasattr(Claim, 'date_created'):
-                claims = claims.filter(date_created__lte=cutoff_date)
-            elif hasattr(Claim, 'submitted_at'):
-                claims = claims.filter(submitted_at__lte=cutoff_date)
+                requested_statuses = [status_filter]
             else:
-                # If no date field, use id as fallback
-                logger.warning("No date field found on Claim model, using id filter")
-                claims = claims.filter(id__lte=cutoff_date)
-        
-        # Apply limit if provided
-        if limit:
+                requested_statuses = list(status_filter)
+
+            selected_statuses = [
+                status
+                for status in requested_statuses
+                if status in allowed_statuses
+            ]
+        else:
+            selected_statuses = allowed_statuses
+
+        if not selected_statuses:
+            return {
+                "success": True,
+                "message": "No valid pushable statuses were supplied",
+                "pushed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "details": [],
+            }
+
+        claims = Claim.objects.filter(
+            status__in=selected_statuses
+        ).order_by("id")
+
+        if days_old is not None:
+            days_old = int(days_old)
+
+            if days_old < 0:
+                raise ValueError("days_old cannot be negative")
+
+            cutoff = timezone.now() - timedelta(days=days_old)
+            field_names = {
+                field.name
+                for field in Claim._meta.get_fields()
+            }
+
+            date_field = next(
+                (
+                    field
+                    for field in (
+                        "created_at",
+                        "date_created",
+                        "submitted_at",
+                        "document_date",
+                    )
+                    if field in field_names
+                ),
+                None,
+            )
+
+            if date_field:
+                claims = claims.filter(
+                    **{f"{date_field}__lte": cutoff}
+                )
+            else:
+                logger.warning(
+                    "No supported date field exists on Claim; "
+                    "days_old filter was ignored"
+                )
+
+        if limit is not None:
+            limit = int(limit)
+
+            if limit <= 0:
+                return {
+                    "success": True,
+                    "message": "Limit must be greater than zero",
+                    "pushed": 0,
+                    "failed": 0,
+                    "skipped": 0,
+                    "details": [],
+                }
+
             claims = claims[:limit]
-        
-        claim_ids = list(claims.values_list('id', flat=True))
-        
+
+        claim_ids = list(
+            claims.values_list("id", flat=True)
+        )
+
         if not claim_ids:
             return {
-                'success': True,
-                'message': 'No claims found matching the filters',
-                'pushed': 0,
-                'failed': 0,
-                'skipped': 0
+                "success": True,
+                "message": "No claims matched the supplied filters",
+                "pushed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "details": [],
             }
-        
-        logger.info(f"Found {len(claim_ids)} claims matching filters")
-        
-        # Push the filtered claims
-        result = LiveDatabaseService.push_claims_by_ids(claim_ids)
-        
-        logger.info(f"Filtered push completed: {result}")
+
+        result = push_claims_by_ids.run(claim_ids)
+
+        logger.info(
+            "Filtered push completed: %s",
+            result.get("message"),
+        )
         return result
-        
-    except Exception as e:
-        logger.error(f"Error in push_pending_claims_with_filter task: {e}")
-        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Error in push_pending_claims_with_filter: %s",
+            exc,
+        )
+        return {
+            "success": False,
+            "message": str(exc),
+            "pushed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "details": [],
+        }
 
 
-@shared_task(name='apps.live_operations.tasks.cleanup_duplicate_claims')
-def cleanup_duplicate_claims():
+@shared_task(
+    bind=True,
+    name="apps.live_operations.tasks.cleanup_duplicate_claims",
+)
+def cleanup_duplicate_claims(self):
     """
-    Celery task to find and cleanup duplicate claims in the live database
+    Remove older duplicate records from the live Online Claim header table.
+
+    This task does not access the Online Claim Lines table.
     """
-    logger.info("Starting cleanup_duplicate_claims task")
-    
+    logger.info(
+        "Starting cleanup_duplicate_claims task "
+        "(task_id=%s)",
+        self.request.id,
+    )
+
+    table = LiveDatabaseService.ONLINE_CLAIM_TABLE
+
     try:
-        from django.db import connections
-        
-        with connections['ereunify'].cursor() as cursor:
-            # Find duplicate claim numbers
-            cursor.execute("""
-                SELECT [No_], COUNT(*) as count
-                FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                GROUP BY [No_]
-                HAVING COUNT(*) > 1
-            """)
-            
+        with connections["ereunify"].cursor() as cursor:
+            cursor.execute(
+                f"""
+                    SELECT [No_], COUNT(*) AS duplicate_count
+                    FROM {table}
+                    GROUP BY [No_]
+                    HAVING COUNT(*) > 1
+                """
+            )
             duplicates = cursor.fetchall()
-            
+
             if not duplicates:
-                logger.info("No duplicate claims found")
                 return {
-                    'success': True,
-                    'message': 'No duplicate claims found',
-                    'duplicates_found': 0,
-                    'cleaned': 0
+                    "success": True,
+                    "message": "No duplicate claims found",
+                    "duplicates_found": 0,
+                    "cleaned": 0,
+                    "details": [],
                 }
-            
-            logger.info(f"Found {len(duplicates)} duplicate claim numbers")
-            
-            cleaned_count = 0
-            for claim_no, count in duplicates:
-                # Keep the most recent one, delete others
-                cursor.execute("""
-                    SELECT TOP 1 [No_], [$systemCreatedAt]
-                    FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                    ORDER BY [$systemCreatedAt] DESC
-                """, [claim_no])
-                
-                # Delete all but the most recent
-                cursor.execute("""
-                    DELETE FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
-                    WHERE [No_] = %s
-                    AND [$systemCreatedAt] < (
-                        SELECT MAX([$systemCreatedAt])
-                        FROM [UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1]
+
+            cleaned = 0
+            details = []
+
+            for claim_no, duplicate_count in duplicates:
+                cursor.execute(
+                    f"""
+                        DELETE FROM {table}
                         WHERE [No_] = %s
-                    )
-                """, [claim_no, claim_no])
-                
-                cleaned_count += cursor.rowcount
-                logger.info(f"Cleaned {cursor.rowcount} duplicate entries for claim {claim_no}")
-            
+                          AND [$systemCreatedAt] < (
+                              SELECT MAX([$systemCreatedAt])
+                              FROM {table}
+                              WHERE [No_] = %s
+                          )
+                    """,
+                    [claim_no, claim_no],
+                )
+
+                removed = cursor.rowcount
+                cleaned += removed
+
+                details.append(
+                    {
+                        "claim_no": claim_no,
+                        "duplicates": duplicate_count,
+                        "removed": removed,
+                    }
+                )
+
+                logger.info(
+                    "Removed %s duplicate record(s) for claim %s",
+                    removed,
+                    claim_no,
+                )
+
             return {
-                'success': True,
-                'message': f'Cleaned {cleaned_count} duplicate entries',
-                'duplicates_found': len(duplicates),
-                'cleaned': cleaned_count
+                "success": True,
+                "message": (
+                    f"Cleaned {cleaned} duplicate claim record(s)"
+                ),
+                "duplicates_found": len(duplicates),
+                "cleaned": cleaned,
+                "details": details,
             }
-            
-    except Exception as e:
-        logger.error(f"Error in cleanup_duplicate_claims task: {e}")
-        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Error in cleanup_duplicate_claims: %s",
+            exc,
+        )
+        return {
+            "success": False,
+            "message": str(exc),
+            "duplicates_found": 0,
+            "cleaned": 0,
+            "details": [],
+        }
