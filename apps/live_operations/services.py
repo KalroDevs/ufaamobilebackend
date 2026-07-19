@@ -396,9 +396,15 @@ class LiveDatabaseService:
 
     @staticmethod
     def search_unclaimed_assets(identifier, search_type="id"):
-        """Search for unclaimed assets using raw SQL only."""
+        """Search for unclaimed assets in the live Business Central table."""
+        identifier = LiveDatabaseService.safe_string(identifier, 255)
+        search_type = LiveDatabaseService.safe_string(search_type, 20).lower()
+
+        if not identifier:
+            raise ValueError("Search identifier is required")
+
         logger.info(
-            "Searching live unclaimed assets. Identifier=%s, search_type=%s",
+            "Searching live unclaimed assets. Identifier=%r, search_type=%s",
             identifier,
             search_type,
         )
@@ -411,14 +417,17 @@ class LiveDatabaseService:
                     [Middle Name],
                     [Last Name],
                     [Holder Name],
+                    [Owner Name],
                     [ID Number],
                     [Passport No_],
                     [CDS Account No_],
+                    [CDS No_],
                     [Asset Type],
                     [Source],
                     [Status],
                     [Description_],
                     [Amount Due to Owner],
+                    [Amount LCY],
                     [Date of Birth],
                     [Owners Postal Address],
                     [Owners City_Town],
@@ -430,16 +439,19 @@ class LiveDatabaseService:
                     sql = f"""
                         SELECT {selected_columns}
                         FROM {LiveDatabaseService.UNCLAIMED_ASSET_TABLE}
-                        WHERE [ID Number] = %s
-                           OR [ID Number_] = %s
+                        WHERE LTRIM(
+                            RTRIM(CAST([ID Number] AS VARCHAR(100)))
+                        ) = %s
                     """
-                    params = [identifier, identifier]
+                    params = [identifier]
 
                 elif search_type == "passport":
                     sql = f"""
                         SELECT {selected_columns}
                         FROM {LiveDatabaseService.UNCLAIMED_ASSET_TABLE}
-                        WHERE [Passport No_] = %s
+                        WHERE LTRIM(
+                            RTRIM(CAST([Passport No_] AS VARCHAR(100)))
+                        ) = %s
                     """
                     params = [identifier]
 
@@ -447,11 +459,17 @@ class LiveDatabaseService:
                     sql = f"""
                         SELECT {selected_columns}
                         FROM {LiveDatabaseService.UNCLAIMED_ASSET_TABLE}
-                        WHERE [CDS Account No_] = %s
+                        WHERE LTRIM(
+                            RTRIM(CAST([CDS Account No_] AS VARCHAR(100)))
+                        ) = %s
+                           OR LTRIM(
+                               RTRIM(CAST([CDS No_] AS VARCHAR(100)))
+                           ) = %s
                     """
-                    params = [identifier]
+                    params = [identifier, identifier]
 
-                else:
+                elif search_type in {"name", "owner", "holder"}:
+                    search_pattern = f"%{identifier}%"
                     sql = f"""
                         SELECT {selected_columns}
                         FROM {LiveDatabaseService.UNCLAIMED_ASSET_TABLE}
@@ -459,20 +477,36 @@ class LiveDatabaseService:
                            OR [Middle Name] LIKE %s
                            OR [Last Name] LIKE %s
                            OR [Holder Name] LIKE %s
+                           OR [Owner Name] LIKE %s
+                           OR [Search Name] LIKE %s
                     """
-                    search_pattern = f"%{identifier}%"
-                    params = [
-                        search_pattern,
-                        search_pattern,
-                        search_pattern,
-                        search_pattern,
-                    ]
+                    params = [search_pattern] * 6
+
+                else:
+                    raise ValueError(
+                        "Unsupported search type. Expected one of: "
+                        "id, passport, cds, name, owner, holder"
+                    )
+
+                logger.debug(
+                    "Executing live asset search. search_type=%s, "
+                    "identifier=%r, params_count=%s",
+                    search_type,
+                    identifier,
+                    len(params),
+                )
 
                 cursor.execute(sql, params)
 
                 columns = [column[0] for column in cursor.description]
                 rows = cursor.fetchall()
                 results = []
+
+                logger.info(
+                    "Live asset query completed. Identifier=%r, rows=%s",
+                    identifier,
+                    len(rows),
+                )
 
                 for row in rows:
                     asset = dict(zip(columns, row))
@@ -489,7 +523,11 @@ class LiveDatabaseService:
                     ).strip()
 
                     if not owner_name:
-                        owner_name = asset.get("Holder Name") or "N/A"
+                        owner_name = (
+                            asset.get("Owner Name")
+                            or asset.get("Holder Name")
+                            or "N/A"
+                        )
 
                     asset_type = asset.get("Asset Type")
                     is_cash = asset_type == 1
@@ -507,7 +545,11 @@ class LiveDatabaseService:
                         4: "Archived",
                     }
 
-                    amount = asset.get("Amount Due to Owner") or 0
+                    amount = (
+                        asset.get("Amount Due to Owner")
+                        or asset.get("Amount LCY")
+                        or 0
+                    )
 
                     results.append(
                         {
@@ -517,8 +559,13 @@ class LiveDatabaseService:
                             "owner_name": owner_name,
                             "id_number": asset.get("ID Number") or "",
                             "passport_no": asset.get("Passport No_") or "",
-                            "cds_account_no": asset.get("CDS Account No_") or "",
+                            "cds_account_no": (
+                                asset.get("CDS Account No_")
+                                or asset.get("CDS No_")
+                                or ""
+                            ),
                             "asset_type": "Cash" if is_cash else "Non-Cash",
+                            "asset_type_code": asset_type,
                             "is_cash": is_cash,
                             "source": source_map.get(
                                 asset.get("Source"),
@@ -541,9 +588,7 @@ class LiveDatabaseService:
                             "postal_address": (
                                 asset.get("Owners Postal Address") or ""
                             ),
-                            "city_town": (
-                                asset.get("Owners City_Town") or ""
-                            ),
+                            "city_town": asset.get("Owners City_Town") or "",
                             "telephone": (
                                 asset.get("Owners Telephnone No_") or ""
                             ),
@@ -555,12 +600,24 @@ class LiveDatabaseService:
                 logger.info("Found %s unclaimed asset(s)", len(results))
                 return results
 
-        except Exception:
+        except ValueError:
             logger.exception(
-                "Error searching unclaimed assets for identifier %s",
+                "Invalid live asset search request. Identifier=%r, "
+                "search_type=%s",
                 identifier,
+                search_type,
             )
-            return []
+            raise
+
+        except Exception as exc:
+            logger.exception(
+                "Error searching live assets. Identifier=%r, search_type=%s",
+                identifier,
+                search_type,
+            )
+            raise RuntimeError(
+                f"Live asset database search failed: {exc}"
+            ) from exc
 
     # ==================== PUSH TO LIVE METHODS ====================
 
