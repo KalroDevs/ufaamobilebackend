@@ -23,9 +23,6 @@ class LiveDatabaseService:
     ONLINE_CLAIM_TABLE_NAME = (
         "UFAA TRUST FUND$Online Claim$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
     )
-    # ONLINE_CLAIM_LINES_TABLE_NAME = (
-    #     "UFAA TRUST FUND$Online Claim Lines$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
-    # )
     UNCLAIMED_ASSET_TABLE_NAME = (
         "UFAA TRUST FUND$Unclaimed Asset$2636ffcf-1aea-4b3a-808a-c1da12e824c1"
     )
@@ -33,9 +30,6 @@ class LiveDatabaseService:
     ONLINE_CLAIM_TABLE = (
         f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{ONLINE_CLAIM_TABLE_NAME}]"
     )
-    # ONLINE_CLAIM_LINES_TABLE = (
-    #     f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{ONLINE_CLAIM_LINES_TABLE_NAME}]"
-    # )
     UNCLAIMED_ASSET_TABLE = (
         f"[{DATABASE_NAME}].[{DATABASE_SCHEMA}].[{UNCLAIMED_ASSET_TABLE_NAME}]"
     )
@@ -121,48 +115,6 @@ class LiveDatabaseService:
         "": 0,
     }
 
-    # Candidate names for the parent claim reference in the claim-lines table.
-    CLAIM_LINE_PARENT_COLUMN_CANDIDATES = (
-        "Document No_",
-        "Claim No_",
-        "Online Claim No_",
-        "Header No_",
-        "No_",
-    )
-
-    CLAIM_LINE_NUMBER_COLUMN_CANDIDATES = (
-        "Line No_",
-        "Document Line No_",
-        "Line No",
-    )
-
-    CLAIM_LINE_ASSET_NO_COLUMN_CANDIDATES = (
-        "Asset No_",
-        "Unclaimed Asset No_",
-        "Asset No",
-    )
-
-    CLAIM_LINE_ASSET_TYPE_COLUMN_CANDIDATES = (
-        "Asset Type",
-        "Asset Type Code",
-    )
-
-    CLAIM_LINE_DESCRIPTION_COLUMN_CANDIDATES = (
-        "Description",
-        "Description_",
-    )
-
-    CLAIM_LINE_HOLDER_NAME_COLUMN_CANDIDATES = (
-        "Holder Name",
-        "Name",
-    )
-
-    CLAIM_LINE_VALUE_COLUMN_CANDIDATES = (
-        "Asset Value",
-        "Value",
-        "Amount",
-    )
-
     # ==================== HELPER METHODS ====================
 
     @staticmethod
@@ -189,22 +141,12 @@ class LiveDatabaseService:
 
     @staticmethod
     def quote_identifier(identifier):
-        """
-        Quote a SQL Server identifier safely.
-
-        Only identifiers read from INFORMATION_SCHEMA or fixed internal
-        candidate lists should be passed to this method.
-        """
+        """Quote a SQL Server identifier safely."""
         return f"[{str(identifier).replace(']', ']]')}]"
 
     @staticmethod
     def get_table_columns(table_name):
-        """
-        Return the actual SQL Server column names for a table.
-
-        The query uses INFORMATION_SCHEMA because Business Central tables
-        often contain spaces, punctuation and underscores in field names.
-        """
+        """Return the actual SQL Server column names for a table."""
         sql = f"""
             SELECT COLUMN_NAME
             FROM [{LiveDatabaseService.DATABASE_NAME}].INFORMATION_SCHEMA.COLUMNS
@@ -225,18 +167,12 @@ class LiveDatabaseService:
 
     @staticmethod
     def resolve_column(table_name, candidates, required=True):
-        """
-        Return the first candidate column found in the target table.
-
-        Matching is case-insensitive. The exact database column name is
-        returned for use in the generated SQL.
-        """
+        """Return the first candidate column found in the target table."""
         columns = LiveDatabaseService.get_table_columns(table_name)
         lookup = {column.lower(): column for column in columns}
 
         for candidate in candidates:
             matched = lookup.get(candidate.lower())
-
             if matched:
                 return matched
 
@@ -252,12 +188,7 @@ class LiveDatabaseService:
 
     @staticmethod
     def validate_live_schema():
-        """
-        Validate all columns required for inserting a claim and its lines.
-
-        Returns exact claim-line column names so that no invalid-column
-        assumptions are made.
-        """
+        """Validate all columns required for inserting a claim."""
         header_columns = LiveDatabaseService.get_table_columns(
             LiveDatabaseService.ONLINE_CLAIM_TABLE_NAME
         )
@@ -268,101 +199,10 @@ class LiveDatabaseService:
                 f"column. Available columns: {header_columns}"
             )
 
-        # Commented out: Claim line validation temporarily disabled
-        # claim_line_columns = {
-        #     "parent_claim": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_PARENT_COLUMN_CANDIDATES,
-        #     ),
-        #     "line_number": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_NUMBER_COLUMN_CANDIDATES,
-        #     ),
-        #     "asset_no": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_ASSET_NO_COLUMN_CANDIDATES,
-        #     ),
-        #     "asset_type": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_ASSET_TYPE_COLUMN_CANDIDATES,
-        #         required=False,
-        #     ),
-        #     "description": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_DESCRIPTION_COLUMN_CANDIDATES,
-        #         required=False,
-        #     ),
-        #     "holder_name": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_HOLDER_NAME_COLUMN_CANDIDATES,
-        #         required=False,
-        #     ),
-        #     "asset_value": LiveDatabaseService.resolve_column(
-        #         LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE_NAME,
-        #         LiveDatabaseService.CLAIM_LINE_VALUE_COLUMN_CANDIDATES,
-        #         required=False,
-        #     ),
-        # }
-
-        # logger.info(
-        #     "Validated live database schema. Claim-line columns: %s",
-        #     claim_line_columns,
-        # )
-
-        # Return minimal schema with header validation only
         return {
             "header_claim_no_column": "No_",
-            # "claim_line_columns": claim_line_columns,
-            "claim_line_columns": {},  # Empty dict since claim lines are disabled
+            "claim_line_columns": {},
         }
-
-    @staticmethod
-    def generate_claim_number():
-        """Generate a unique claim number for the SQL Server claims table."""
-        formats = [
-            lambda: f"CLM-{random.randint(10000, 99999)}",
-            lambda: (
-                f"CM{str(int(time.time() * 1000))[-10:]}"
-                f"{random.randint(100, 999)}"
-            ),
-            lambda: (
-                f"CLM-{str(int(time.time()))[-8:]}-"
-                f"{random.randint(100, 999)}"
-            ),
-        ]
-
-        for format_func in formats:
-            for _attempt in range(5):
-                claim_no = LiveDatabaseService.safe_string(
-                    format_func(),
-                    15,
-                )
-
-                try:
-                    with connections["ereunify"].cursor() as cursor:
-                        cursor.execute(
-                            f"""
-                                SELECT COUNT(*)
-                                FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
-                                WHERE [No_] = %s
-                            """,
-                            [claim_no],
-                        )
-
-                        count = cursor.fetchone()[0]
-
-                        if count == 0:
-                            return claim_no
-
-                except Exception as exc:
-                    logger.warning(
-                        "Error checking generated claim number %s: %s",
-                        claim_no,
-                        exc,
-                    )
-
-        fallback = f"CLM-{int(time.time())}"
-        return LiveDatabaseService.safe_string(fallback, 15)
 
     @staticmethod
     def claim_exists_in_live(claim_no):
@@ -488,25 +328,11 @@ class LiveDatabaseService:
                         "id, passport, cds, name, owner, holder"
                     )
 
-                logger.debug(
-                    "Executing live asset search. search_type=%s, "
-                    "identifier=%r, params_count=%s",
-                    search_type,
-                    identifier,
-                    len(params),
-                )
-
                 cursor.execute(sql, params)
 
                 columns = [column[0] for column in cursor.description]
                 rows = cursor.fetchall()
                 results = []
-
-                logger.info(
-                    "Live asset query completed. Identifier=%r, rows=%s",
-                    identifier,
-                    len(rows),
-                )
 
                 for row in rows:
                     asset = dict(zip(columns, row))
@@ -623,7 +449,10 @@ class LiveDatabaseService:
 
     @staticmethod
     def push_claim_to_live(claim_id):
-        """Push one pending or under-review claim to the live database."""
+        """
+        Push one pending or under-review claim to the live database.
+        Uses the existing claim number and sets Location Source = 1.
+        """
         try:
             logger.info("Pushing claim ID %s to the live database", claim_id)
 
@@ -644,25 +473,32 @@ class LiveDatabaseService:
                     ),
                 }
 
-            original_claim_no = claim.no
-            new_claim_no = LiveDatabaseService.generate_claim_number()
+            # Use the existing claim number
+            claim_no = claim.no
+
+            if not claim_no:
+                return {
+                    "success": False,
+                    "message": f"Claim {claim_id} does not have a claim number",
+                }
 
             logger.info(
-                "Generated live claim number %s for local claim %s",
-                new_claim_no,
-                original_claim_no,
+                "Pushing claim %s to live database using existing claim number",
+                claim_no,
             )
 
-            if LiveDatabaseService.claim_exists_in_live(new_claim_no):
-                new_claim_no = LiveDatabaseService.generate_claim_number()
+            # Check if claim already exists in live database
+            if LiveDatabaseService.claim_exists_in_live(claim_no):
+                return {
+                    "success": False,
+                    "message": f"Claim {claim_no} already exists in live database",
+                    "claim_no": claim_no,
+                    "status": "already_exists",
+                }
 
-                logger.info(
-                    "Regenerated live claim number as %s",
-                    new_claim_no,
-                )
-
+            # Prepare claim data
             claim_data = {
-                "claim_no": new_claim_no,
+                "claim_no": claim_no,
                 "document_date": (
                     claim.document_date or timezone.now().date()
                 ),
@@ -692,8 +528,10 @@ class LiveDatabaseService:
                 "county": claim.county or "",
                 "city": claim.city or "",
                 "internal_remarks": claim.internal_remarks or "",
+                "location_source": 1,  # Set Location Source to 1
             }
 
+            # Get claim assets
             claim_assets = ClaimAsset.objects.filter(claim=claim)
             claim_lines_data = []
 
@@ -708,35 +546,34 @@ class LiveDatabaseService:
                     }
                 )
 
+            # Create the claim in live database
             result = LiveDatabaseService.create_new_claim(
                 claim_data,
                 claim_lines_data,
             )
 
             if result.get("success"):
-                claim.no = result.get("claim_no", new_claim_no)
+                # Update local claim status
                 claim.status = "Under_Review"
-                claim.save(update_fields=["no", "status"])
+                claim.save(update_fields=["status"])
 
                 return {
                     "success": True,
                     "claim_no": claim.no,
-                    "original_claim_no": original_claim_no,
                     "message": (
-                        f"Claim {original_claim_no} was pushed with live "
-                        f"number {claim.no}"
+                        f"Claim {claim.no} was successfully pushed to live"
                     ),
                 }
-
-            return {
-                "success": False,
-                "claim_no": original_claim_no,
-                "stage": result.get("stage"),
-                "message": (
-                    f"Failed to push claim: "
-                    f"{result.get('message', 'Unknown error')}"
-                ),
-            }
+            else:
+                return {
+                    "success": False,
+                    "claim_no": claim.no,
+                    "stage": result.get("stage"),
+                    "message": (
+                        f"Failed to push claim: "
+                        f"{result.get('message', 'Unknown error')}"
+                    ),
+                }
 
         except Exception as exc:
             logger.exception(
@@ -753,9 +590,7 @@ class LiveDatabaseService:
     def create_new_claim(claim_data, claim_lines_data):
         """
         Insert a claim and its lines into the live database.
-
-        Header and line inserts are executed in a single transaction. If
-        any line fails, the header insert is rolled back.
+        Uses existing claim number and sets Location Source = 1.
         """
         claim_no = claim_data.get("claim_no")
 
@@ -770,6 +605,34 @@ class LiveDatabaseService:
             15,
         )
 
+        # Check if claim already exists
+        try:
+            with connections["ereunify"].cursor() as cursor:
+                cursor.execute(
+                    f"""
+                        SELECT COUNT(*)
+                        FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                        WHERE [No_] = %s
+                    """,
+                    [claim_no_truncated],
+                )
+                exists = cursor.fetchone()[0] > 0
+
+                if exists:
+                    return {
+                        "success": False,
+                        "claim_no": claim_no_truncated,
+                        "message": f"Claim {claim_no_truncated} already exists in live database",
+                        "status": "already_exists",
+                    }
+        except Exception as e:
+            return {
+                "success": False,
+                "claim_no": claim_no_truncated,
+                "message": f"Error checking claim existence: {str(e)}",
+            }
+
+        # Map values
         category_id = LiveDatabaseService.CATEGORY_MAPPING.get(
             claim_data.get("category", "Original_Owner"),
             1,
@@ -798,7 +661,6 @@ class LiveDatabaseService:
         )
 
         claim_origin_value = claim_data.get("claim_origin", "")
-
         if isinstance(claim_origin_value, str):
             claim_origin_id = (
                 LiveDatabaseService.CLAIM_ORIGIN_MAPPING.get(
@@ -814,7 +676,6 @@ class LiveDatabaseService:
             )
 
         sub_category_value = claim_data.get("sub_category", "")
-
         if isinstance(sub_category_value, str):
             sub_category_id = (
                 LiveDatabaseService.SUB_CATEGORY_MAPPING.get(
@@ -834,62 +695,15 @@ class LiveDatabaseService:
             claim_data.get("processing_date")
         )
 
-        operation_stage = "schema validation"
+        # Location Source - always set to 1
+        location_source = claim_data.get("location_source", 1)
 
+        operation_stage = "schema validation"
         try:
-            schema = LiveDatabaseService.validate_live_schema()
-            # Claim lines are temporarily disabled
-            # line_columns = schema["claim_line_columns"]
+            LiveDatabaseService.validate_live_schema()
 
             with transaction.atomic(using="ereunify"):
                 with connections["ereunify"].cursor() as cursor:
-                    operation_stage = "checking header claim existence"
-
-                    cursor.execute(
-                        f"""
-                            SELECT COUNT(*)
-                            FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
-                            WHERE [No_] = %s
-                        """,
-                        [claim_no_truncated],
-                    )
-
-                    exists = cursor.fetchone()[0] > 0
-
-                    if exists:
-                        operation_stage = "updating existing header claim"
-
-                        cursor.execute(
-                            f"""
-                                UPDATE
-                                    {LiveDatabaseService.ONLINE_CLAIM_TABLE}
-                                SET
-                                    [Status] = %s,
-                                    [$systemModifiedAt] = %s
-                                WHERE [No_] = %s
-                            """,
-                            [
-                                status_id,
-                                timezone.now(),
-                                claim_no_truncated,
-                            ],
-                        )
-
-                        if cursor.rowcount <= 0:
-                            raise RuntimeError(
-                                f"Claim {claim_no_truncated} exists but "
-                                "could not be updated"
-                            )
-
-                        return {
-                            "success": True,
-                            "claim_no": claim_no_truncated,
-                            "message": (
-                                "Existing live claim status updated "
-                                "successfully"
-                            ),
-                        }
-
                     operation_stage = "inserting claim header"
 
                     insert_claim_sql = f"""
@@ -922,6 +736,7 @@ class LiveDatabaseService:
                             [County],
                             [City],
                             [Internal Remarks],
+                            [Location Source],
                             [$systemCreatedAt],
                             [$systemModifiedAt]
                         )
@@ -929,7 +744,7 @@ class LiveDatabaseService:
                             %s, %s, %s, %s, %s, %s, %s,
                             %s, %s, %s, %s, %s, %s, %s,
                             %s, %s, %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s, %s, %s
+                            %s, %s, %s, %s, %s, %s, %s, %s
                         )
                     """
 
@@ -1007,131 +822,24 @@ class LiveDatabaseService:
                                 claim_data.get("internal_remarks", ""),
                                 500,
                             ),
+                            location_source,  # Location Source = 1
                             timezone.now(),
                             timezone.now(),
                         ],
                     )
 
                     logger.info(
-                        "Inserted live claim header %s",
+                        "Inserted live claim header %s with Location Source = %s",
                         claim_no_truncated,
+                        location_source,
                     )
 
-                    # Commented out: Claim lines insertion temporarily disabled
-                    # for index, line in enumerate(
-                    #     claim_lines_data,
-                    #     start=1,
-                    # ):
-                    #     operation_stage = (
-                    #         f"inserting claim line {index}"
-                    #     )
-                    #
-                    #     line_field_values = [
-                    #         (
-                    #             line_columns["parent_claim"],
-                    #             claim_no_truncated,
-                    #         ),
-                    #         (
-                    #             line_columns["line_number"],
-                    #             index,
-                    #         ),
-                    #         (
-                    #             line_columns["asset_no"],
-                    #             LiveDatabaseService.safe_string(
-                    #                 line.get("asset_no", ""),
-                    #                 50,
-                    #             ),
-                    #         ),
-                    #     ]
-                    #
-                    #     if line_columns["asset_type"]:
-                    #         line_field_values.append(
-                    #             (
-                    #                 line_columns["asset_type"],
-                    #                 LiveDatabaseService.safe_string(
-                    #                     line.get("asset_type", ""),
-                    #                     50,
-                    #                 ),
-                    #             )
-                    #         )
-                    #
-                    #     if line_columns["description"]:
-                    #         line_field_values.append(
-                    #             (
-                    #                 line_columns["description"],
-                    #                 LiveDatabaseService.safe_string(
-                    #                     line.get("description", ""),
-                    #                     500,
-                    #                 ),
-                    #             )
-                    #         )
-                    #
-                    #     if line_columns["holder_name"]:
-                    #         line_field_values.append(
-                    #             (
-                    #                 line_columns["holder_name"],
-                    #                 LiveDatabaseService.safe_string(
-                    #                     line.get("holder_name", ""),
-                    #                     200,
-                    #                 ),
-                    #             )
-                    #         )
-                    #
-                    #     if line_columns["asset_value"]:
-                    #         line_field_values.append(
-                    #             (
-                    #                 line_columns["asset_value"],
-                    #                 float(line.get("value", 0) or 0),
-                    #             )
-                    #         )
-                    #
-                    #     quoted_columns = ", ".join(
-                    #         LiveDatabaseService.quote_identifier(column)
-                    #         for column, _value in line_field_values
-                    #     )
-                    #     placeholders = ", ".join(
-                    #         "%s" for _column, _value in line_field_values
-                    #     )
-                    #     params = [
-                    #         value
-                    #         for _column, value in line_field_values
-                    #     ]
-                    #
-                    #     insert_line_sql = f"""
-                    #         INSERT INTO
-                    #             {LiveDatabaseService.ONLINE_CLAIM_LINES_TABLE}
-                    #         (
-                    #             {quoted_columns}
-                    #         )
-                    #         VALUES (
-                    #             {placeholders}
-                    #         )
-                    #     """
-                    #
-                    #     logger.debug(
-                    #         "Inserting claim line %s for claim %s using "
-                    #         "columns: %s",
-                    #         index,
-                    #         claim_no_truncated,
-                    #         [
-                    #             column
-                    #             for column, _value in line_field_values
-                    #         ],
-                    #     )
-                    #
-                    #     cursor.execute(insert_line_sql, params)
-                    #
-                    # logger.info(
-                    #     "Inserted %s line(s) for live claim %s",
-                    #     len(claim_lines_data),
-                    #     claim_no_truncated,
-                    # )
-
+            # Note: Claim lines are disabled for now
             return {
                 "success": True,
                 "claim_no": claim_no_truncated,
                 "message": (
-                    f"Claim created successfully (claim lines temporarily disabled)"
+                    f"Claim created successfully with Location Source = {location_source}"
                 ),
             }
 
@@ -1144,39 +852,6 @@ class LiveDatabaseService:
                 operation_stage,
                 error_message,
             )
-
-            duplicate_indicators = (
-                "duplicate",
-                "unique",
-                "violation of primary key",
-                "violation of unique key",
-                "2627",
-                "2601",
-            )
-
-            is_duplicate = any(
-                indicator in error_message.lower()
-                for indicator in duplicate_indicators
-            )
-
-            if is_duplicate:
-                new_claim_no = (
-                    LiveDatabaseService.generate_claim_number()
-                )
-
-                logger.info(
-                    "Duplicate live claim number %s. Retrying as %s",
-                    claim_no_truncated,
-                    new_claim_no,
-                )
-
-                retry_data = dict(claim_data)
-                retry_data["claim_no"] = new_claim_no
-
-                return LiveDatabaseService.create_new_claim(
-                    retry_data,
-                    claim_lines_data,
-                )
 
             return {
                 "success": False,
@@ -1196,8 +871,7 @@ class LiveDatabaseService:
                 "Starting push of pending claims to the live database"
             )
 
-            # Validate once before processing the batch so configuration
-            # problems are reported immediately.
+            # Validate once before processing the batch
             LiveDatabaseService.validate_live_schema()
 
             claims = Claim.objects.filter(
@@ -1211,6 +885,7 @@ class LiveDatabaseService:
                     "pushed": 0,
                     "failed": 0,
                     "skipped": 0,
+                    "already_exists": 0,
                     "details": [],
                 }
 
@@ -1218,6 +893,7 @@ class LiveDatabaseService:
             pushed_count = 0
             failed_count = 0
             skipped_count = 0
+            already_exists_count = 0
 
             for claim in claims.iterator():
                 logger.info(
@@ -1226,6 +902,7 @@ class LiveDatabaseService:
                     claim.id,
                 )
 
+                # Check if claim exists in live database
                 try:
                     exists = (
                         LiveDatabaseService.claim_exists_in_live(
@@ -1234,7 +911,6 @@ class LiveDatabaseService:
                     )
                 except Exception as exc:
                     failed_count += 1
-
                     results.append(
                         {
                             "claim_no": claim.no,
@@ -1248,12 +924,11 @@ class LiveDatabaseService:
                     continue
 
                 if exists:
-                    skipped_count += 1
-
+                    already_exists_count += 1
                     results.append(
                         {
                             "claim_no": claim.no,
-                            "status": "skipped",
+                            "status": "already_exists",
                             "message": (
                                 "Already exists in live database"
                             ),
@@ -1261,6 +936,20 @@ class LiveDatabaseService:
                     )
                     continue
 
+                # Skip claims without a claim number
+                if not claim.no:
+                    skipped_count += 1
+                    results.append(
+                        {
+                            "claim_no": "N/A",
+                            "claim_id": claim.id,
+                            "status": "skipped",
+                            "message": "Claim does not have a claim number",
+                        }
+                    )
+                    continue
+
+                # Push the claim
                 result = LiveDatabaseService.push_claim_to_live(
                     claim.id
                 )
@@ -1286,18 +975,41 @@ class LiveDatabaseService:
 
                 results.append(detail)
 
-            return {
+            # Prepare summary
+            summary = {
                 "success": True,
                 "message": (
                     f"Push completed: {pushed_count} pushed, "
                     f"{failed_count} failed, "
-                    f"{skipped_count} skipped"
+                    f"{skipped_count} skipped, "
+                    f"{already_exists_count} already exist"
                 ),
                 "pushed": pushed_count,
                 "failed": failed_count,
                 "skipped": skipped_count,
+                "already_exists": already_exists_count,
                 "details": results,
             }
+
+            # Log failed claims
+            if failed_count > 0:
+                failed_claims = [d for d in results if d.get("status") == "failed"]
+                logger.warning(
+                    "Failed claims (%d): %s",
+                    len(failed_claims),
+                    [d.get("claim_no") for d in failed_claims]
+                )
+
+            # Log already existing claims
+            if already_exists_count > 0:
+                existing_claims = [d for d in results if d.get("status") == "already_exists"]
+                logger.warning(
+                    "Claims already exist in live (%d): %s",
+                    len(existing_claims),
+                    [d.get("claim_no") for d in existing_claims]
+                )
+
+            return summary
 
         except Exception as exc:
             logger.exception(
@@ -1310,5 +1022,146 @@ class LiveDatabaseService:
                 "pushed": 0,
                 "failed": 0,
                 "skipped": 0,
+                "already_exists": 0,
                 "details": [],
+            }
+
+    @staticmethod
+    def push_claims_by_ids(claim_ids):
+        """Push specific claims by their IDs."""
+        try:
+            logger.info(
+                "Starting push of %s claims by IDs",
+                len(claim_ids)
+            )
+
+            results = []
+            pushed_count = 0
+            failed_count = 0
+            skipped_count = 0
+            already_exists_count = 0
+
+            for claim_id in claim_ids:
+                try:
+                    claim = Claim.objects.filter(id=claim_id).first()
+
+                    if not claim:
+                        failed_count += 1
+                        results.append({
+                            "claim_id": claim_id,
+                            "status": "failed",
+                            "message": "Claim not found",
+                        })
+                        continue
+
+                    if claim.status not in ["Pending", "Under_Review"]:
+                        skipped_count += 1
+                        results.append({
+                            "claim_no": claim.no,
+                            "claim_id": claim.id,
+                            "status": "skipped",
+                            "message": f"Not in pushable status: {claim.status}",
+                        })
+                        continue
+
+                    if not claim.no:
+                        skipped_count += 1
+                        results.append({
+                            "claim_no": "N/A",
+                            "claim_id": claim.id,
+                            "status": "skipped",
+                            "message": "Claim does not have a claim number",
+                        })
+                        continue
+
+                    # Check if already exists
+                    if LiveDatabaseService.claim_exists_in_live(claim.no):
+                        already_exists_count += 1
+                        results.append({
+                            "claim_no": claim.no,
+                            "status": "already_exists",
+                            "message": "Already exists in live database",
+                        })
+                        continue
+
+                    result = LiveDatabaseService.push_claim_to_live(claim_id)
+
+                    if result.get("success"):
+                        pushed_count += 1
+                    else:
+                        failed_count += 1
+
+                    results.append({
+                        "claim_no": claim.no,
+                        "claim_id": claim.id,
+                        "status": "success" if result.get("success") else "failed",
+                        "message": result.get("message", ""),
+                    })
+
+                except Exception as e:
+                    failed_count += 1
+                    results.append({
+                        "claim_id": claim_id,
+                        "status": "failed",
+                        "message": str(e),
+                    })
+
+            return {
+                "success": True,
+                "message": (
+                    f"Push completed: {pushed_count} pushed, "
+                    f"{failed_count} failed, "
+                    f"{skipped_count} skipped, "
+                    f"{already_exists_count} already exist"
+                ),
+                "pushed": pushed_count,
+                "failed": failed_count,
+                "skipped": skipped_count,
+                "already_exists": already_exists_count,
+                "details": results,
+            }
+
+        except Exception as exc:
+            logger.exception("Error pushing claims by IDs")
+            return {
+                "success": False,
+                "message": str(exc),
+                "pushed": 0,
+                "failed": len(claim_ids),
+                "skipped": 0,
+                "already_exists": 0,
+                "details": [],
+            }
+
+    @staticmethod
+    def sync_claim_status(claim_no, new_status):
+        """Sync claim status from live database back to default database."""
+        try:
+            logger.info(
+                "Syncing claim %s status to %s",
+                claim_no,
+                new_status
+            )
+
+            claim = Claim.objects.filter(no=claim_no).first()
+
+            if not claim:
+                return {
+                    "success": False,
+                    "message": f"Claim {claim_no} not found",
+                }
+
+            claim.status = new_status
+            claim.save(update_fields=["status"])
+
+            return {
+                "success": True,
+                "message": f"Claim {claim_no} status synced to {new_status}",
+            }
+
+        except Exception as e:
+            logger.exception("Error syncing claim status")
+            return {
+                "success": False,
+                "message": str(e),
             }

@@ -46,6 +46,7 @@ class Claim(models.Model):
     
     CLAIM_ORIGIN_CHOICES = [
         ('', 'Blank'),
+        ('WhatsApp', 'WhatsApp'),
         ('OnlinePortal', 'Online Portal'),
         ('Android_Mobile_App', 'Android Mobile App'),
         ('iOS_Mobile_App', 'iOS Mobile App'),

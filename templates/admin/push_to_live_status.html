@@ -1,0 +1,61 @@
+<!-- templates/admin/push_to_live_status.html -->
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 1000px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h2 style="color: #17a2b8;">📊 Live Database Status</h2>
+    
+    <div style="display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px; padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+            <h3 style="margin: 0;">Total Claims</h3>
+            <p style="font-size: 32px; margin: 5px 0; font-weight: bold;">{{ total }}</p>
+        </div>
+        
+        <div style="flex: 1; min-width: 200px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <h3 style="margin: 0;">Pending Sync</h3>
+            <p style="font-size: 32px; margin: 5px 0; font-weight: bold;">
+                {{ recent|length }}
+            </p>
+        </div>
+    </div>
+    
+    <h3 style="margin-top: 30px;">Recent Claims</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+            <tr style="background: #f8f9fa;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Claim No</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Name</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Status</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Created At</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Synced</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in recent %}
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;"><strong>{{ claim.claim_no }}</strong></td>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ claim.name }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ claim.get_status_display }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">{{ claim.created_at|date:"Y-m-d H:i" }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                    {% if claim.synced_at %}
+                        ✅ {{ claim.synced_at|date:"Y-m-d H:i" }}
+                    {% else %}
+                        ❌ Not synced
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 20px; text-align: center; color: #6c757d;">No claims found in live database</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+        <a href="{% url 'admin:claims_claim_changelist' %}" class="button" style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none;">Back to Claims</a>
+        <a href="{% url 'admin:live_operations_liveonlineclaim_changelist' %}" class="button" style="background: #28a745; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none;">View Live Claims</a>
+    </div>
+</div>
+{% endblock %}

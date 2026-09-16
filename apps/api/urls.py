@@ -92,6 +92,13 @@ urlpatterns = [
     # Alternative short URLs for convenience
     path('docs/<int:document_id>/', view_document_by_id, name='doc_view'),
     path('docs/<int:document_id>/download/', download_document_by_id, name='doc_download'),
+
+
+    # This intercepts the mobile app's requests to the UFAA API
+    path('api/live/', include('apps.live_operations.urls')),
+
+
+
 ]
 
 # ============================================================

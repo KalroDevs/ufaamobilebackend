@@ -1,5 +1,5 @@
 # apps/live_operations/urls.py
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -27,4 +27,15 @@ urlpatterns = [
     path('push/claims/', views.push_pending_claims, name='push_pending_claims'),
     path('push/status/<str:task_id>/', views.check_push_status, name='check_push_status'),
     path('push/trigger/', views.trigger_push_to_live, name='trigger_push_to_live'),
+
+
+    # ============================================================
+    # UFAA COMPATIBILITY ENDPOINTS (Match the mobile app's expectations)
+    # ============================================================
+    # These endpoints exactly match what the mobile app expects
+#    re_path(r'^api/live/search/assets/$', views.search_unclaimed_assets, name='search_assets_ufaa'),
+#    re_path(r'^api/live/search/assets/?$', views.search_unclaimed_assets, name='search_assets_ufaa_alt'),
+
+
+
 ]

@@ -227,7 +227,19 @@ def search_claims_universal(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def search_unclaimed_assets(request):
-    """Search for unclaimed assets by ID, Passport, CDS, or Name"""
+    """
+    Search for unclaimed assets using direct database access.
+    
+    This method queries the Business Central database directly using
+    SQL, which avoids the CAPTCHA issues that occur when using the
+    external HTTP API.
+    
+    Search types:
+    - id: Search by National ID Number
+    - passport: Search by Passport Number  
+    - cds: Search by CDS Account Number
+    - name: Search by Owner/Holder Name
+    """
     identifier = request.data.get('identifier', '').strip()
     search_type = request.data.get('search_type', 'id').strip()
     
@@ -238,28 +250,206 @@ def search_unclaimed_assets(request):
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    logger.info(f"Searching assets - Identifier: {identifier}, Type: {search_type}")
+    # Validate search type
+    valid_types = ['id', 'passport', 'cds', 'name', 'owner', 'holder']
+    if search_type not in valid_types:
+        return Response({
+            'error': f'Invalid search_type. Must be one of: {", ".join(valid_types)}',
+            'count': 0,
+            'results': []
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    logger.info(f"🔍 Searching assets via direct database access - Identifier: {identifier}, Type: {search_type}")
     
     try:
+        # Use direct database access through the service
+        # This queries Business Central directly and doesn't trigger CAPTCHAs
+        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
+        
+        logger.info(f"✅ Found {len(assets)} assets for identifier: {identifier}")
+        
+        return Response({
+            'count': len(assets),
+            'results': assets,
+            'search_type': search_type,
+            'identifier': identifier,
+            'source': 'direct_database'  # Indicate we used direct DB access
+        }, status=status.HTTP_200_OK)
+        
+    except ValueError as e:
+        # Handle validation errors
+        logger.error(f"❌ Validation error in asset search: {str(e)}")
+        return Response({
+            'error': str(e),
+            'count': 0,
+            'results': []
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Exception as e:
+        error_msg = str(e)
+        error_traceback = traceback.format_exc()
+        
+        logger.error(f"❌ Error searching assets via direct database: {error_msg}")
+        logger.error(f"Traceback: {error_traceback}")
+        
+        return Response({
+            'error': 'An error occurred while searching for assets',
+            'detail': error_msg if request.user.is_staff else None,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def search_unclaimed_assets_fallback(request):
+    """
+    Search for unclaimed assets with automatic fallback handling.
+    
+    This method attempts direct database access first, and if that fails,
+    provides helpful error messages instead of triggering CAPTCHAs.
+    """
+    identifier = request.data.get('identifier', '').strip()
+    search_type = request.data.get('search_type', 'id').strip()
+    
+    if not identifier:
+        return Response({
+            'error': 'identifier is required',
+            'count': 0,
+            'results': []
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    logger.info(f"🔍 Searching assets with fallback - Identifier: {identifier}, Type: {search_type}")
+    
+    try:
+        # First attempt: Direct database access
         assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
         
         return Response({
             'count': len(assets),
             'results': assets,
             'search_type': search_type,
-            'identifier': identifier
+            'identifier': identifier,
+            'method': 'direct_database'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        error_msg = str(e)
+        
+        # Check if it's a connection issue
+        if "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+            logger.error(f"⚠️ Database connection issue: {error_msg}")
+            
+            return Response({
+                'error': 'Unable to connect to the asset database. Please try again later.',
+                'count': 0,
+                'results': [],
+                'method': 'failed'
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        
+        # Check if it's a table/column issue
+        elif "column" in error_msg.lower() or "table" in error_msg.lower():
+            logger.error(f"⚠️ Database schema issue: {error_msg}")
+            
+            return Response({
+                'error': 'Database schema issue. Please contact support.',
+                'count': 0,
+                'results': [],
+                'method': 'failed'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Generic error
+        logger.error(f"❌ Error in fallback search: {error_msg}")
+        
+        return Response({
+            'error': 'An error occurred while searching for assets',
+            'detail': error_msg if request.user.is_staff else None,
+            'count': 0,
+            'results': [],
+            'method': 'failed'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==================== ASSET ENDPOINTS ====================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_asset_details(request, asset_no):
+    """Get asset details by asset number using direct database access"""
+    
+    logger.info(f"Getting asset details for: {asset_no}")
+    
+    try:
+        asset = LiveDatabaseService.get_asset_by_no(asset_no)
+        
+        if asset:
+            return Response({
+                'success': True,
+                'asset': asset,
+                'source': 'direct_database'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'message': 'Asset not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+            
+    except Exception as e:
+        error_msg = str(e)
+        error_traceback = traceback.format_exc()
+        
+        logger.error(f"Error getting asset details: {error_msg}")
+        logger.error(f"Traceback: {error_traceback}")
+        
+        return Response({
+            'success': False,
+            'message': 'An error occurred while fetching asset details',
+            'detail': error_msg if request.user.is_staff else None
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_assets(request):
+    """
+    Get all unclaimed assets for the authenticated user using direct database access.
+    This avoids CAPTCHA issues.
+    """
+    user = request.user
+    identifier = None
+    search_type = None
+    
+    if user.id_number:
+        identifier = user.id_number
+        search_type = 'id'
+    elif user.passport_no:
+        identifier = user.passport_no
+        search_type = 'passport'
+    else:
+        return Response({
+            'error': 'User has no ID number or passport number on file'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    logger.info(f"Getting user assets via direct database - User: {user.username}, Identifier: {identifier}")
+    
+    try:
+        # Use direct database access
+        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
+        
+        return Response({
+            'count': len(assets),
+            'results': assets,
+            'source': 'direct_database'
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
         
-        logger.error(f"Error searching assets: {error_msg}")
+        logger.error(f"Error getting user assets: {error_msg}")
         logger.error(f"Traceback: {error_traceback}")
         
         return Response({
-            'error': 'An error occurred while searching for assets',
-            'detail': error_msg if request.user.is_staff else None,
+            'error': 'An error occurred while fetching user assets',
+            'detail': error_msg if request.user.is_staff else None
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -440,86 +630,6 @@ def submit_claim_for_review(request, claim_no):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== ASSET ENDPOINTS ====================
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_asset_details(request, asset_no):
-    """Get asset details by asset number"""
-    
-    logger.info(f"Getting asset details for: {asset_no}")
-    
-    try:
-        asset = LiveDatabaseService.get_asset_by_no(asset_no)
-        
-        if asset:
-            return Response({
-                'success': True,
-                'asset': asset
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({
-                'success': False,
-                'message': 'Asset not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-            
-    except Exception as e:
-        error_msg = str(e)
-        error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting asset details: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
-        return Response({
-            'success': False,
-            'message': 'An error occurred while fetching asset details',
-            'detail': error_msg if request.user.is_staff else None
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_assets(request):
-    """Get all unclaimed assets for the authenticated user"""
-    
-    user = request.user
-    identifier = None
-    search_type = None
-    
-    if user.id_number:
-        identifier = user.id_number
-        search_type = 'id'
-    elif user.passport_no:
-        identifier = user.passport_no
-        search_type = 'passport'
-    else:
-        return Response({
-            'error': 'User has no ID number or passport number on file'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"Getting user assets - User: {user.username}, Identifier: {identifier}")
-    
-    try:
-        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
-        
-        return Response({
-            'count': len(assets),
-            'results': assets
-        }, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        error_msg = str(e)
-        error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting user assets: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
-        return Response({
-            'error': 'An error occurred while fetching user assets',
-            'detail': error_msg if request.user.is_staff else None
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 # ==================== TEST ENDPOINTS ====================
 
 @api_view(['GET'])
@@ -616,6 +726,47 @@ def check_data_fields(request):
         return Response({
             'success': False,
             'error': error_msg,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_database_asset_search(request):
+    """
+    Test endpoint to verify direct database asset search is working.
+    This helps debug any issues with the database connection or schema.
+    """
+    try:
+        # Test with a sample ID (you might want to make this configurable)
+        test_identifier = request.GET.get('identifier', '12345678')
+        test_search_type = request.GET.get('search_type', 'id')
+        
+        logger.info(f"Testing direct database asset search - ID: {test_identifier}")
+        
+        # Attempt the search
+        assets = LiveDatabaseService.search_unclaimed_assets(test_identifier, test_search_type)
+        
+        return Response({
+            'success': True,
+            'message': 'Direct database search is working',
+            'test_identifier': test_identifier,
+            'search_type': test_search_type,
+            'assets_found': len(assets),
+            'sample_assets': assets[:5] if assets else [],
+            'database': 'ereunify'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        error_msg = str(e)
+        error_traceback = traceback.format_exc()
+        
+        logger.error(f"Test database search failed: {error_msg}")
+        logger.error(f"Traceback: {error_traceback}")
+        
+        return Response({
+            'success': False,
+            'error': str(e),
+            'detail': error_traceback
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

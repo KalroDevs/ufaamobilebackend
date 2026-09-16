@@ -1,0 +1,35 @@
+<!-- templates/admin/push_to_live_bulk_form.html -->
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h2 style="color: #17a2b8;">📤 Bulk Push to Live</h2>
+    <p>Filter claims and push them to the live database.</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin: 20px 0;">
+            <h4>Status Filter</h4>
+            {{ form.status }}
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h4>Date Filter</h4>
+            <label>{{ form.days_old.label }}</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                {{ form.days_old }}
+                <span>days old</span>
+            </div>
+            <p style="color: #6c757d; font-size: 0.9rem;">{{ form.days_old.help_text }}</p>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <a href="{% url 'admin:claims_claim_changelist' %}" class="button" style="background: #6c757d; color: white; padding: 8px 20px; border-radius: 4px; text-decoration: none;">Cancel</a>
+            <button type="submit" style="background: #ffc107; color: black; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;">
+                📤 Push Claims
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
