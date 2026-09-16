@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'apps.api',
     'apps.soap',
     'apps.live_operations',
+    'apps.iprs',
 
     'guest_portal', 
 ]

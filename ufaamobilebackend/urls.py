@@ -63,6 +63,7 @@ urlpatterns = [
      # REST API endpoints
     path('api/', include('apps.api.urls')),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/iprs/', include('apps.iprs.urls')),
 
     # Claims REST API endpoints
     path('claims/', include('apps.claims.urls')),

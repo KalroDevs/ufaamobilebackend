@@ -17209,3 +17209,63 @@ Traceback (most recent call last):
 django.db.utils.IntegrityError: duplicate key value violates unique constraint "users_passport_no_key"
 DETAIL:  Key (passport_no)=() already exists.
 
+ERROR 2026-09-16 12:50:38,301 exceptions 656710 132942289985664 Unhandled exception: relation "iprs_search_logs" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "iprs_search_logs" WHERE (...
+                                          ^
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "iprs_search_logs" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "iprs_search_logs" WHERE (...
+                                          ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/iprs/views.py", line 69, in post
+    result = service.lookup_id(
+             ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/iprs/services.py", line 168, in lookup_id
+    self._check_rate_limit(requested_from_ip)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/iprs/services.py", line 294, in _check_rate_limit
+    count = IprsSearchLog.get_ip_search_count(ip_address, hours=1)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaamobilebackend/apps/iprs/models.py", line 130, in get_ip_search_count
+    ).count()
+      ^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/query.py", line 610, in count
+    return self.query.get_count(using=self.db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 656, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/sql/query.py", line 638, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1624, in execute_sql
+    cursor.execute(sql, params)
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/var/www/ufaa_reunify_mobile_backend/ufaa_env/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "iprs_search_logs" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "iprs_search_logs" WHERE (...
+                                          ^
+
