@@ -1,7 +1,10 @@
 # apps/asset_tracking/models.py
+import os
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.files.storage import storages
 
 from apps.accounts.models import User
 
@@ -144,6 +147,9 @@ class AssetLocationLog(models.Model):
 class AssetTrackingDocument(models.Model):
     """
     Documents attached to a tracking record (photos, forms, etc.).
+
+    File bytes go to SharePoint; only the relative path is stored in
+    Postgres. The storage alias is declared in settings.STORAGES.
     """
 
     DOCUMENT_TYPES = [
@@ -168,7 +174,18 @@ class AssetTrackingDocument(models.Model):
     file = models.FileField(
         upload_to='asset_tracking/%Y/%m/%d/',
         max_length=500,
+        storage=storages['sharepoint'],       # 👈 ADD THIS
+        help_text="Upload the document file (stored on SharePoint)",
     )
+
+    # Breadcrumb for operators / diagnostics.
+    storage_backend = models.CharField(
+        max_length=50,
+        default='sharepoint',
+        editable=False,
+        help_text="Which storage backend holds the file bytes.",
+    )
+
     file_size = models.IntegerField(default=0)
     file_extension = models.CharField(max_length=10, blank=True)
 
@@ -190,3 +207,59 @@ class AssetTrackingDocument(models.Model):
 
     def __str__(self):
         return f"{self.tracked_asset.asset_no} - {self.get_document_type_display()}"
+
+    @property
+    def file_url(self):
+        """Return the SharePoint download URL (or local fallback)."""
+        if self.file:
+            try:
+                return self.file.url
+            except Exception:
+                return None
+        return None
+
+    @property
+    def file_exists(self):
+        """Check if the file exists on the storage backend."""
+        if self.file:
+            try:
+                return self.file.storage.exists(self.file.name)
+            except Exception:
+                return False
+        return False
+
+    def save(self, *args, **kwargs):
+        """Populate file metadata on first save (tolerant of Graph hiccups)."""
+        if self.file and not self.file_size:
+            try:
+                self.file_size = self.file.size
+                self.file_extension = (
+                    os.path.splitext(self.file.name)[1].lower().lstrip('.')
+                )
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "Could not read file size for %s: %s", self.file.name, exc
+                )
+                self.file_size = self.file_size or 0
+                self.file_extension = (
+                    self.file_extension
+                    or os.path.splitext(self.file.name)[1].lower().lstrip('.')
+                )
+
+            if not self.document_name:
+                self.document_name = os.path.basename(self.file.name)
+
+        if not self.storage_backend:
+            self.storage_backend = 'sharepoint'
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Delete the SharePoint file when the row is deleted."""
+        if self.file:
+            try:
+                self.file.delete(save=False)
+            except Exception:
+                pass
+        super().delete(*args, **kwargs)

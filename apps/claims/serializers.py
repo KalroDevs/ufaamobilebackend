@@ -1,14 +1,20 @@
 # apps/claims/serializers.py
 
-from rest_framework import serializers
 from decimal import Decimal
+
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
 from .models import (
     Claim, ClaimAsset, ClaimDocument, ClaimNote, ClaimStatusHistory
 )
 
 User = get_user_model()
 
+
+# ============================================================
+# ASSET SERIALIZER
+# ============================================================
 
 class ClaimAssetSerializer(serializers.ModelSerializer):
     asset_details = serializers.SerializerMethodField()
@@ -21,7 +27,7 @@ class ClaimAssetSerializer(serializers.ModelSerializer):
             'key', 'rejected', 'class_code', 'class_field',
             'asset_code', 'description', 'name', 'id_number',
             'cds_account_no', 'broker_name', 'broker_code', 'stock_exchange',
-            'added_at'
+            'added_at',
         ]
         read_only_fields = ['id', 'added_at']
         extra_kwargs = {
@@ -32,92 +38,153 @@ class ClaimAssetSerializer(serializers.ModelSerializer):
         }
 
     def get_asset_details(self, obj):
-        """Get asset details from the live database using asset_no"""
-        if obj.asset_no:
-            try:
-                from apps.live_operations.models import LiveUnclaimedAsset
-                asset = LiveUnclaimedAsset.objects.using('ereunify').get(no=obj.asset_no)
-                return {
-                    'id': asset.no,
-                    'asset_no': asset.no,
-                    'holder_name': asset.holder_name,
-                    'asset_type': asset.get_asset_type_display_name(),
-                    'source': asset.get_source_display_name(),
-                    'amount': float(asset.amount_due_to_owner) if asset.amount_due_to_owner else 0,
-                    'status': asset.get_status_display_name(),
-                    'is_claimable': asset.is_claimable(),
-                    'owner_name': asset.get_full_name(),
-                }
-            except LiveUnclaimedAsset.DoesNotExist:
-                pass
-        return None
+        """Look up the asset in the live MSSQL database by asset_no."""
+        if not obj.asset_no:
+            return None
 
+        try:
+            from apps.live_operations.models import LiveUnclaimedAsset
+
+            asset = (
+                LiveUnclaimedAsset.objects
+                .using('ereunify')
+                .get(no=obj.asset_no)
+            )
+            return {
+                'id': asset.no,
+                'asset_no': asset.no,
+                'holder_name': asset.holder_name,
+                'asset_type': asset.get_asset_type_display_name(),
+                'source': asset.get_source_display_name(),
+                'amount': (
+                    float(asset.amount_due_to_owner)
+                    if asset.amount_due_to_owner else 0
+                ),
+                'status': asset.get_status_display_name(),
+                'is_claimable': asset.is_claimable(),
+                'owner_name': asset.get_full_name(),
+            }
+        except Exception:
+            return None
+
+
+# ============================================================
+# DOCUMENT SERIALIZER
+# ============================================================
 
 class ClaimDocumentSerializer(serializers.ModelSerializer):
-    uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
-    verified_by_name = serializers.CharField(source='verified_by.get_full_name', read_only=True)
-    document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
+    """
+    Serializer for ClaimDocument.
+
+    The file bytes live on SharePoint (via ``ClaimDocument.file`` with
+    ``storage=storages['sharepoint']``). This serializer:
+      - exposes ``file_url`` by reading ``FileField.url`` (a short-lived
+        Graph download link), never ``FileField.path``;
+      - exposes ``storage_backend`` so clients can see where the bytes
+        are stored;
+      - makes ``file`` write-only in responses.
+    """
+
+    uploaded_by_name = serializers.CharField(
+        source='uploaded_by.get_full_name', read_only=True
+    )
+    verified_by_name = serializers.CharField(
+        source='verified_by.get_full_name', read_only=True
+    )
+    document_type_display = serializers.CharField(
+        source='get_document_type_display', read_only=True
+    )
     file_url = serializers.SerializerMethodField(read_only=True)
     file_name = serializers.SerializerMethodField(read_only=True)
+    storage_backend = serializers.CharField(read_only=True)
 
     class Meta:
         model = ClaimDocument
         fields = [
             'id', 'claim', 'document_type', 'document_type_display',
-            'document_name', 'file', 'file_url', 'file_name', 'file_size', 'file_extension',
+            'document_name',
+            'file', 'file_url', 'file_name',
+            'file_size', 'file_extension',
+            'storage_backend',
             'uploaded_by', 'uploaded_by_name', 'uploaded_at',
             'is_verified', 'verified_by', 'verified_by_name', 'verified_at',
-            'verification_notes', 'is_rejected', 'rejection_reason',
-            'rejected_at', 'rejected_by', 'version', 'is_latest'
+            'verification_notes',
+            'is_rejected', 'rejection_reason',
+            'rejected_at', 'rejected_by',
+            'version', 'is_latest',
         ]
         read_only_fields = [
-            'id', 'uploaded_at', 'file_size', 'file_extension',
-            'file_url', 'file_name',
+            'id', 'uploaded_at',
+            'file_size', 'file_extension',
+            'file_url', 'file_name', 'storage_backend',
         ]
         extra_kwargs = {
-            'file': {'write_only': True}  # file is write-only in API responses
+            # The raw FileField is only used on POST; responses use file_url.
+            'file': {'write_only': True},
         }
 
     def get_file_url(self, obj):
-        """Get the URL to access the file"""
-        if obj.file:
-            try:
-                return obj.file.url
-            except Exception:
-                return None
-        return None
+        """
+        Return the SharePoint download URL.
+
+        ``SharePointStorage.path()`` raises ``NotImplementedError`` for
+        cloud files, so we never call it. ``FileField.url`` resolves
+        through the storage backend and returns a short-lived,
+        pre-authenticated Microsoft Graph link.
+        """
+        if not obj.file:
+            return None
+        try:
+            return obj.file.url
+        except Exception:
+            # Logged on the storage side; return None so the API stays clean.
+            return None
 
     def get_file_name(self, obj):
-        """Get the original filename"""
-        if obj.file:
-            return obj.file.name
-        return None
+        """Return the storage-relative path."""
+        if not obj.file:
+            return None
+        return obj.file.name
 
+
+# ============================================================
+# NOTE & HISTORY SERIALIZERS
+# ============================================================
 
 class ClaimNoteSerializer(serializers.ModelSerializer):
-    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    note_type_display = serializers.CharField(source='get_note_type_display', read_only=True)
+    created_by_name = serializers.CharField(
+        source='created_by.get_full_name', read_only=True
+    )
+    note_type_display = serializers.CharField(
+        source='get_note_type_display', read_only=True
+    )
 
     class Meta:
         model = ClaimNote
         fields = [
             'id', 'claim', 'note_type', 'note_type_display', 'content',
-            'created_by', 'created_by_name', 'created_at', 'is_public'
+            'created_by', 'created_by_name', 'created_at', 'is_public',
         ]
         read_only_fields = ['id', 'created_at']
 
 
 class ClaimStatusHistorySerializer(serializers.ModelSerializer):
-    changed_by_name = serializers.CharField(source='changed_by.get_full_name', read_only=True)
+    changed_by_name = serializers.CharField(
+        source='changed_by.get_full_name', read_only=True
+    )
 
     class Meta:
         model = ClaimStatusHistory
         fields = [
             'id', 'claim', 'previous_status', 'new_status',
-            'changed_by', 'changed_by_name', 'reason', 'changed_at'
+            'changed_by', 'changed_by_name', 'reason', 'changed_at',
         ]
         read_only_fields = ['id', 'changed_at']
 
+
+# ============================================================
+# STATUS SERIALIZER
+# ============================================================
 
 class ClaimStatusSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(read_only=True)
@@ -136,7 +203,8 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
             'documents_uploaded', 'documents_verified',
             'created_at', 'updated_at', 'submitted_at',
             'approved_at', 'paid_at', 'completed_at',
-            'amount', 'internal_remarks', 'portal_comments',
+            'amount',
+            'internal_remarks', 'portal_comments',
             'rejection_reason', 'rejected', 'claimant_action_required',
         ]
 
@@ -194,6 +262,10 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
             return 0
 
 
+# ============================================================
+# FULL CLAIM SERIALIZER
+# ============================================================
+
 class ClaimSerializer(serializers.ModelSerializer):
     assets = ClaimAssetSerializer(source='claim_assets', many=True, read_only=True)
     documents = ClaimDocumentSerializer(many=True, read_only=True)
@@ -228,10 +300,12 @@ class ClaimSerializer(serializers.ModelSerializer):
                 representation['amount'] = 0.0
         return representation
 
+    # ---- Validation ----
+
     def validate(self, attrs):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            if self.instance and self.instance.claimant != request.user:
+        if request and request.user.is_authenticated and self.instance:
+            if self.instance.claimant != request.user:
                 if not (
                     request.user.is_staff
                     or getattr(request.user, 'role', '') in ['staff', 'admin']
@@ -240,6 +314,8 @@ class ClaimSerializer(serializers.ModelSerializer):
                         "You do not have permission to modify this claim."
                     )
         return attrs
+
+    # ---- Read-only helpers ----
 
     def get_user_id(self, obj):
         return obj.claimant.id if obj.claimant else None
@@ -256,11 +332,13 @@ class ClaimSerializer(serializers.ModelSerializer):
     def get_user_email(self, obj):
         return obj.claimant.email if obj.claimant else None
 
+    # ---- Create / update ----
+
     def create(self, validated_data):
         asset_ids = validated_data.pop('asset_ids', [])
         request = self.context.get('request')
 
-        if 'amount' in validated_data and validated_data['amount'] is not None:
+        if validated_data.get('amount') is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
 
         if request and request.user.is_authenticated:
@@ -268,24 +346,7 @@ class ClaimSerializer(serializers.ModelSerializer):
 
         claim = Claim.objects.create(**validated_data)
 
-        for asset_id in asset_ids:
-            try:
-                from apps.live_operations.models import LiveUnclaimedAsset
-                asset = LiveUnclaimedAsset.objects.using('ereunify').get(no=str(asset_id))
-                ClaimAsset.objects.create(
-                    claim=claim,
-                    asset_no=asset.no,
-                    value=asset.amount_due_to_owner,
-                    holder_name=asset.holder_name,
-                    asset_type=asset.get_asset_type_display_name(),
-                    source=asset.get_source_display_name(),
-                    name=asset.get_full_name(),
-                    id_number=asset.id_number,
-                    description=asset.description,
-                    cds_account_no=asset.cds_account_no,
-                )
-            except Exception:
-                continue
+        self._attach_assets_to_claim(claim, asset_ids)
 
         ClaimStatusHistory.objects.create(
             claim=claim,
@@ -312,7 +373,7 @@ class ClaimSerializer(serializers.ModelSerializer):
                         "You do not have permission to modify this claim."
                     )
 
-        if 'amount' in validated_data and validated_data['amount'] is not None:
+        if validated_data.get('amount') is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
 
         for key, value in validated_data.items():
@@ -330,27 +391,50 @@ class ClaimSerializer(serializers.ModelSerializer):
 
         if asset_ids is not None:
             instance.claim_assets.all().delete()
-            for asset_id in asset_ids:
-                try:
-                    from apps.live_operations.models import LiveUnclaimedAsset
-                    asset = LiveUnclaimedAsset.objects.using('ereunify').get(no=str(asset_id))
-                    ClaimAsset.objects.create(
-                        claim=instance,
-                        asset_no=asset.no,
-                        value=asset.amount_due_to_owner,
-                        holder_name=asset.holder_name,
-                        asset_type=asset.get_asset_type_display_name(),
-                        source=asset.get_source_display_name(),
-                        name=asset.get_full_name(),
-                        id_number=asset.id_number,
-                        description=asset.description,
-                        cds_account_no=asset.cds_account_no,
-                    )
-                except Exception:
-                    continue
+            self._attach_assets_to_claim(instance, asset_ids)
 
         return instance
 
+    # ---- Asset helper ----
+
+    @staticmethod
+    def _attach_assets_to_claim(claim, asset_ids):
+        """
+        Copy asset snapshots from the live Unclaimed Asset table into
+        ClaimAsset rows. Silently skips assets that cannot be resolved.
+        """
+        if not asset_ids:
+            return
+
+        from apps.live_operations.models import LiveUnclaimedAsset
+
+        for asset_id in asset_ids:
+            try:
+                asset = (
+                    LiveUnclaimedAsset.objects
+                    .using('ereunify')
+                    .get(no=str(asset_id))
+                )
+                ClaimAsset.objects.create(
+                    claim=claim,
+                    asset_no=asset.no,
+                    value=asset.amount_due_to_owner,
+                    holder_name=asset.holder_name,
+                    asset_type=asset.get_asset_type_display_name(),
+                    source=asset.get_source_display_name(),
+                    name=asset.get_full_name(),
+                    id_number=asset.id_number,
+                    description=asset.description,
+                    cds_account_no=asset.cds_account_no,
+                )
+            except Exception:
+                # Missing asset or MSSQL hiccup — skip this one, keep going.
+                continue
+
+
+# ============================================================
+# CLAIM CREATE SERIALIZER
+# ============================================================
 
 class ClaimCreateSerializer(serializers.ModelSerializer):
     asset_ids = serializers.ListField(write_only=True, required=True)
@@ -367,12 +451,14 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
             'post_code', 'county', 'city', 'home_county', 'e_mail',
             'posting_date', 'amount', 'amount_lcy', 'shares', 'safe_deposit',
             'location', 'location_sent_to', 'location_sent_to_name',
-            'location_source', 'profile_id', 'submit', 'claimant_action_required',
-            'payment_category', 'bank_code', 'bank_account_no', 'bank_account_name',
-            'bank_name', 'branch_code', 'branch_name', 'account_currency',
-            'swift_code', 'international_payment', 'international_bank_name',
-            'international_branch_name', 'sort_code', 'country_region_code',
-            'mpesa_mobile_no', 'asset_ids',
+            'location_source', 'profile_id', 'submit',
+            'claimant_action_required',
+            'payment_category', 'bank_code', 'bank_account_no',
+            'bank_account_name', 'bank_name', 'branch_code', 'branch_name',
+            'account_currency', 'swift_code', 'international_payment',
+            'international_bank_name', 'international_branch_name',
+            'sort_code', 'country_region_code', 'mpesa_mobile_no',
+            'asset_ids',
         ]
         read_only_fields = ['no']
 
@@ -389,9 +475,10 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
                 "asset_ids": "At least one asset is required to create a claim."
             })
 
+        from apps.live_operations.models import LiveUnclaimedAsset
+
         for asset_id in asset_ids:
             try:
-                from apps.live_operations.models import LiveUnclaimedAsset
                 if not LiveUnclaimedAsset.objects.using('ereunify').filter(
                     no=str(asset_id)
                 ).exists():
@@ -412,29 +499,12 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
         asset_ids = validated_data.pop('asset_ids', [])
         request = self.context.get('request')
 
-        if 'amount' in validated_data and validated_data['amount'] is not None:
+        if validated_data.get('amount') is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
 
         claim = Claim.objects.create(**validated_data)
 
-        for asset_id in asset_ids:
-            try:
-                from apps.live_operations.models import LiveUnclaimedAsset
-                asset = LiveUnclaimedAsset.objects.using('ereunify').get(no=str(asset_id))
-                ClaimAsset.objects.create(
-                    claim=claim,
-                    asset_no=asset.no,
-                    value=asset.amount_due_to_owner,
-                    holder_name=asset.holder_name,
-                    asset_type=asset.get_asset_type_display_name(),
-                    source=asset.get_source_display_name(),
-                    name=asset.get_full_name(),
-                    id_number=asset.id_number,
-                    description=asset.description,
-                    cds_account_no=asset.cds_account_no,
-                )
-            except Exception:
-                continue
+        ClaimSerializer._attach_assets_to_claim(claim, asset_ids)
 
         ClaimStatusHistory.objects.create(
             claim=claim,
@@ -446,6 +516,10 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
 
         return claim
 
+
+# ============================================================
+# ACTION / SEARCH SERIALIZERS
+# ============================================================
 
 class ClaimActionSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=[
@@ -497,12 +571,16 @@ class ClaimSearchSerializer(serializers.Serializer):
         return attrs
 
 
+# ============================================================
+# DOCUMENT UPLOAD SERIALIZER
+# ============================================================
+
 class ClaimDocumentUploadSerializer(serializers.Serializer):
     """
-    Validates a document upload and, if used with `.save()`, creates
+    Validates a document upload and, if used with ``.save()``, creates
     the corresponding ClaimDocument row.
 
-    Usage in a view:
+    Usage in a view::
 
         serializer = ClaimDocumentUploadSerializer(
             data=request.data,
@@ -510,6 +588,10 @@ class ClaimDocumentUploadSerializer(serializers.Serializer):
         )
         serializer.is_valid(raise_exception=True)
         document = serializer.save()
+
+    The ``file`` field is written through ``ClaimDocument.file``, which
+    is backed by ``SharePointStorage``. Bytes end up in SharePoint; the
+    Postgres row stores only the relative path plus metadata.
     """
 
     document_type = serializers.ChoiceField(
@@ -519,7 +601,6 @@ class ClaimDocumentUploadSerializer(serializers.Serializer):
     document_name = serializers.CharField(required=False, allow_blank=True)
 
     def validate_file(self, value):
-        """Validate file size and type."""
         max_size = 10 * 1024 * 1024  # 10 MB
         if value.size > max_size:
             raise serializers.ValidationError(
@@ -555,7 +636,8 @@ class ClaimDocumentUploadSerializer(serializers.Serializer):
                         or getattr(request.user, 'role', '') in ['staff', 'admin']
                     ):
                         raise serializers.ValidationError(
-                            "You do not have permission to upload documents for this claim."
+                            "You do not have permission to upload documents "
+                            "for this claim."
                         )
 
             attrs['claim'] = claim
@@ -563,11 +645,6 @@ class ClaimDocumentUploadSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        """
-        Persist the ClaimDocument. Requires `claim` to have been set
-        by `validate()` (i.e. `claim_id` must be in the serializer
-        context).
-        """
         claim = validated_data.get('claim')
         if claim is None:
             raise serializers.ValidationError(

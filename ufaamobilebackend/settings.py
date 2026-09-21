@@ -241,6 +241,18 @@ STORAGES = {
     },
 }
 
+# ------------------------------------------------------------------
+# SharePoint storage instance (shared by claim & asset tracking docs)
+# ------------------------------------------------------------------
+# Import lazily to avoid a circular import at settings load time.
+def _sharepoint_storage():
+    from django.core.files.storage import storages
+    return storages['sharepoint']
+
+# Expose as a string identifier for FileField(storage=...) usage.
+SHAREPOINT_STORAGE_ALIAS = 'sharepoint'
+
+
 # SharePoint Integration Coordinates
 SHAREPOINT_URL = os.getenv('SHAREPOINT_URL')
 SHAREPOINT_SITE = os.getenv('SHAREPOINT_SITE')

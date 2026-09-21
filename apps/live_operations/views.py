@@ -11,7 +11,11 @@ from celery.result import AsyncResult
 
 from .models import LiveOnlineClaim, LiveUnclaimedAsset
 from .services import LiveDatabaseService
-from .tasks import push_pending_claims_to_live, push_single_claim_to_live, push_claims_by_ids
+from .tasks import (
+    push_pending_claims_to_live,
+    push_single_claim_to_live,
+    push_claims_by_ids,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +30,20 @@ def search_existing_claims(request):
     - National ID Number
     - Passport Number
     - Claim Number
+
+    Response now includes `rejected` and `rejection_reason`
+    (from `[Send Remarks]`).
     """
     identifier = request.data.get('identifier', '').strip()
-    search_type = request.data.get('search_type', '').strip()
-    
+    search_type = request.data.get('search_type', '').strip().lower()
+
     if not identifier:
         return Response({
             'error': 'identifier is required',
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
+
     valid_types = ['id', 'claim_no', 'passport']
     if search_type not in valid_types:
         return Response({
@@ -44,87 +51,41 @@ def search_existing_claims(request):
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"Searching claims - Identifier: {identifier}, Type: {search_type}")
-    
+
+    logger.info(
+        "Searching claims - Identifier: %s, Type: %s", identifier, search_type,
+    )
+
     try:
-        if search_type == 'id':
-            claims = LiveOnlineClaim.objects.filter(
-                Q(id_number=identifier) |
-                Q(id_number_alt=identifier)
-            ).distinct()
-            
-            if claims.count() == 0:
-                stripped_id = identifier.lstrip('0')
-                if stripped_id != identifier:
-                    claims = LiveOnlineClaim.objects.filter(
-                        Q(id_number=stripped_id) |
-                        Q(id_number_alt=stripped_id)
-                    ).distinct()
-            
-            if claims.count() == 0:
-                claims = LiveOnlineClaim.objects.filter(
-                    Q(id_number__contains=identifier) |
-                    Q(id_number_alt__contains=identifier)
-                ).distinct()
-            
-        elif search_type == 'claim_no':
-            claims = LiveOnlineClaim.objects.filter(
-                Q(claim_no=identifier) |
-                Q(claim_no__icontains=identifier)
-            )
-            
-        elif search_type == 'passport':
-            claims = LiveOnlineClaim.objects.filter(
-                Q(passport_no=identifier) |
-                Q(passport_no__icontains=identifier)
-            )
-        
-        else:
-            claims = LiveOnlineClaim.objects.none()
-        
-        logger.info(f"Found {claims.count()} claims for identifier: {identifier}")
-        
-        results = []
-        for claim in claims:
-            results.append({
-                'claim_no': claim.claim_no,
-                'claimant_name': claim.claimant_name,
-                'id_number': claim.id_number,
-                'id_number_alt': claim.id_number_alt,
-                'passport_no': claim.passport_no,
-                'claimant_phone': claim.claimant_phone,
-                'claimant_email': claim.claimant_email,
-                'amount': float(claim.amount) if claim.amount else None,
-                'status': claim.status,
-                'payment_category': claim.payment_category,
-                'bank_name': claim.bank_name,
-                'bank_account_no': claim.bank_account_no,
-                'mpesa_mobile_no': claim.mpesa_mobile_no,
-                'category': claim.category,
-                'sub_category': claim.sub_category,
-                'claim_type': claim.claim_type,
-                'agent_name': claim.agent_name,
-                'asset_no': claim.asset_no,
-                'asset_type': claim.asset_type,
-                'created_at': claim.created_at.isoformat() if claim.created_at else None,
-                'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
-            })
-        
+        results = LiveDatabaseService.search_live_claims(
+            identifier, search_type,
+        )
+
+        logger.info(
+            "Found %s claims for identifier: %s", len(results), identifier,
+        )
+
         return Response({
             'count': len(results),
             'results': results,
             'search_type': search_type,
-            'identifier': identifier
+            'identifier': identifier,
         }, status=status.HTTP_200_OK)
-        
+
+    except ValueError as e:
+        return Response({
+            'error': str(e),
+            'count': 0,
+            'results': [],
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error searching claims: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error searching claims: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'error': 'An error occurred while searching for claims',
             'detail': error_msg if request.user.is_staff else None,
@@ -139,85 +100,66 @@ def search_claims_universal(request):
     - National ID Number
     - Passport Number
     - Claim Number
+
+    Tries ID match first, then passport, then exact claim number.
+    Response includes `rejected` and `rejection_reason`.
     """
     identifier = request.data.get('identifier', '').strip()
-    
+
     if not identifier:
         return Response({
             'error': 'identifier is required',
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"Universal search for: {identifier}")
-    
+
+    logger.info("Universal search for: %s", identifier)
+
     try:
-        claims = LiveOnlineClaim.objects.filter(
-            Q(id_number=identifier) |
-            Q(id_number_alt=identifier) |
-            Q(id_number__contains=identifier) |
-            Q(id_number_alt__contains=identifier) |
-            Q(claim_no=identifier) |
-            Q(claim_no__icontains=identifier) |
-            Q(passport_no=identifier) |
-            Q(passport_no__icontains=identifier)
-        ).distinct()
-        
-        if claims.count() == 0:
-            stripped_id = identifier.lstrip('0')
-            if stripped_id != identifier:
-                claims = LiveOnlineClaim.objects.filter(
-                    Q(id_number=stripped_id) |
-                    Q(id_number_alt=stripped_id)
-                ).distinct()
-        
-        logger.info(f"Universal search found {claims.count()} claims for: {identifier}")
-        
-        results = []
-        for claim in claims:
-            results.append({
-                'claim_no': claim.claim_no,
-                'claimant_name': claim.claimant_name,
-                'id_number': claim.id_number,
-                'id_number_alt': claim.id_number_alt,
-                'passport_no': claim.passport_no,
-                'claimant_phone': claim.claimant_phone,
-                'claimant_email': claim.claimant_email,
-                'amount': float(claim.amount) if claim.amount else None,
-                'status': claim.status,
-                'payment_category': claim.payment_category,
-                'bank_name': claim.bank_name,
-                'bank_account_no': claim.bank_account_no,
-                'mpesa_mobile_no': claim.mpesa_mobile_no,
-                'category': claim.category,
-                'sub_category': claim.sub_category,
-                'claim_type': claim.claim_type,
-                'agent_name': claim.agent_name,
-                'asset_no': claim.asset_no,
-                'asset_type': claim.asset_type,
-                'description': claim.description,
-                'created_at': claim.created_at.isoformat() if claim.created_at else None,
-                'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
-            })
-        
+        merged = []
+        seen = set()
+
+        for search_type in ('id', 'passport', 'claim_no'):
+            try:
+                partial = LiveDatabaseService.search_live_claims(
+                    identifier, search_type,
+                )
+            except Exception:
+                logger.exception(
+                    "Universal search: %s search failed for %s",
+                    search_type, identifier,
+                )
+                continue
+
+            for item in partial:
+                key = item.get('claim_no')
+                if key and key not in seen:
+                    seen.add(key)
+                    merged.append(item)
+
+        logger.info(
+            "Universal search found %s claims for: %s",
+            len(merged), identifier,
+        )
+
         return Response({
-            'count': len(results),
-            'results': results,
+            'count': len(merged),
+            'results': merged,
             'identifier': identifier,
             'search_fields': [
                 'National ID Number',
                 'Passport Number',
-                'Claim Number'
-            ]
+                'Claim Number',
+            ],
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error in universal search: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error in universal search: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'error': 'An error occurred while searching',
             'detail': error_msg if request.user.is_staff else None,
@@ -229,28 +171,23 @@ def search_claims_universal(request):
 def search_unclaimed_assets(request):
     """
     Search for unclaimed assets using direct database access.
-    
-    This method queries the Business Central database directly using
-    SQL, which avoids the CAPTCHA issues that occur when using the
-    external HTTP API.
-    
+
     Search types:
     - id: Search by National ID Number
-    - passport: Search by Passport Number  
+    - passport: Search by Passport Number
     - cds: Search by CDS Account Number
     - name: Search by Owner/Holder Name
     """
     identifier = request.data.get('identifier', '').strip()
     search_type = request.data.get('search_type', 'id').strip()
-    
+
     if not identifier:
         return Response({
             'error': 'identifier is required',
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Validate search type
+
     valid_types = ['id', 'passport', 'cds', 'name', 'owner', 'holder']
     if search_type not in valid_types:
         return Response({
@@ -258,40 +195,46 @@ def search_unclaimed_assets(request):
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"🔍 Searching assets via direct database access - Identifier: {identifier}, Type: {search_type}")
-    
+
+    logger.info(
+        "🔍 Searching assets via direct database access - Identifier: %s, Type: %s",
+        identifier, search_type,
+    )
+
     try:
-        # Use direct database access through the service
-        # This queries Business Central directly and doesn't trigger CAPTCHAs
-        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
-        
-        logger.info(f"✅ Found {len(assets)} assets for identifier: {identifier}")
-        
+        assets = LiveDatabaseService.search_unclaimed_assets(
+            identifier, search_type,
+        )
+
+        logger.info(
+            "✅ Found %s assets for identifier: %s", len(assets), identifier,
+        )
+
         return Response({
             'count': len(assets),
             'results': assets,
             'search_type': search_type,
             'identifier': identifier,
-            'source': 'direct_database'  # Indicate we used direct DB access
+            'source': 'direct_database',
         }, status=status.HTTP_200_OK)
-        
+
     except ValueError as e:
-        # Handle validation errors
-        logger.error(f"❌ Validation error in asset search: {str(e)}")
+        logger.error("❌ Validation error in asset search: %s", str(e))
         return Response({
             'error': str(e),
             'count': 0,
-            'results': []
+            'results': [],
         }, status=status.HTTP_400_BAD_REQUEST)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"❌ Error searching assets via direct database: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error(
+            "❌ Error searching assets via direct database: %s", error_msg,
+        )
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'error': 'An error occurred while searching for assets',
             'detail': error_msg if request.user.is_staff else None,
@@ -303,68 +246,63 @@ def search_unclaimed_assets(request):
 def search_unclaimed_assets_fallback(request):
     """
     Search for unclaimed assets with automatic fallback handling.
-    
-    This method attempts direct database access first, and if that fails,
-    provides helpful error messages instead of triggering CAPTCHAs.
     """
     identifier = request.data.get('identifier', '').strip()
     search_type = request.data.get('search_type', 'id').strip()
-    
+
     if not identifier:
         return Response({
             'error': 'identifier is required',
             'count': 0,
             'results': []
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"🔍 Searching assets with fallback - Identifier: {identifier}, Type: {search_type}")
-    
+
+    logger.info(
+        "🔍 Searching assets with fallback - Identifier: %s, Type: %s",
+        identifier, search_type,
+    )
+
     try:
-        # First attempt: Direct database access
-        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
-        
+        assets = LiveDatabaseService.search_unclaimed_assets(
+            identifier, search_type,
+        )
+
         return Response({
             'count': len(assets),
             'results': assets,
             'search_type': search_type,
             'identifier': identifier,
-            'method': 'direct_database'
+            'method': 'direct_database',
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
-        
-        # Check if it's a connection issue
+
         if "connection" in error_msg.lower() or "timeout" in error_msg.lower():
-            logger.error(f"⚠️ Database connection issue: {error_msg}")
-            
+            logger.error("⚠️ Database connection issue: %s", error_msg)
             return Response({
                 'error': 'Unable to connect to the asset database. Please try again later.',
                 'count': 0,
                 'results': [],
-                'method': 'failed'
+                'method': 'failed',
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        
-        # Check if it's a table/column issue
-        elif "column" in error_msg.lower() or "table" in error_msg.lower():
-            logger.error(f"⚠️ Database schema issue: {error_msg}")
-            
+
+        if "column" in error_msg.lower() or "table" in error_msg.lower():
+            logger.error("⚠️ Database schema issue: %s", error_msg)
             return Response({
                 'error': 'Database schema issue. Please contact support.',
                 'count': 0,
                 'results': [],
-                'method': 'failed'
+                'method': 'failed',
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        # Generic error
-        logger.error(f"❌ Error in fallback search: {error_msg}")
-        
+
+        logger.error("❌ Error in fallback search: %s", error_msg)
         return Response({
             'error': 'An error occurred while searching for assets',
             'detail': error_msg if request.user.is_staff else None,
             'count': 0,
             'results': [],
-            'method': 'failed'
+            'method': 'failed',
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -374,35 +312,35 @@ def search_unclaimed_assets_fallback(request):
 @permission_classes([IsAuthenticated])
 def get_asset_details(request, asset_no):
     """Get asset details by asset number using direct database access"""
-    
-    logger.info(f"Getting asset details for: {asset_no}")
-    
+
+    logger.info("Getting asset details for: %s", asset_no)
+
     try:
         asset = LiveDatabaseService.get_asset_by_no(asset_no)
-        
+
         if asset:
             return Response({
                 'success': True,
                 'asset': asset,
-                'source': 'direct_database'
+                'source': 'direct_database',
             }, status=status.HTTP_200_OK)
         else:
             return Response({
                 'success': False,
-                'message': 'Asset not found'
+                'message': 'Asset not found',
             }, status=status.HTTP_404_NOT_FOUND)
-            
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting asset details: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error getting asset details: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'message': 'An error occurred while fetching asset details',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -411,12 +349,11 @@ def get_asset_details(request, asset_no):
 def get_user_assets(request):
     """
     Get all unclaimed assets for the authenticated user using direct database access.
-    This avoids CAPTCHA issues.
     """
     user = request.user
     identifier = None
     search_type = None
-    
+
     if user.id_number:
         identifier = user.id_number
         search_type = 'id'
@@ -427,29 +364,33 @@ def get_user_assets(request):
         return Response({
             'error': 'User has no ID number or passport number on file'
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    logger.info(f"Getting user assets via direct database - User: {user.username}, Identifier: {identifier}")
-    
+
+    logger.info(
+        "Getting user assets via direct database - User: %s, Identifier: %s",
+        user.username, identifier,
+    )
+
     try:
-        # Use direct database access
-        assets = LiveDatabaseService.search_unclaimed_assets(identifier, search_type)
-        
+        assets = LiveDatabaseService.search_unclaimed_assets(
+            identifier, search_type,
+        )
+
         return Response({
             'count': len(assets),
             'results': assets,
-            'source': 'direct_database'
+            'source': 'direct_database',
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting user assets: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error getting user assets: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'error': 'An error occurred while fetching user assets',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -458,98 +399,77 @@ def get_user_assets(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_claim_details(request, claim_no):
-    """Get claim details by claim number"""
-    
-    logger.info(f"Getting claim details for: {claim_no}")
-    
+    """Get claim details by claim number (includes rejection info)"""
+
+    logger.info("Getting claim details for: %s", claim_no)
+
     try:
-        claim = LiveOnlineClaim.objects.filter(claim_no=claim_no).first()
-        
+        claim = LiveDatabaseService.get_live_claim(claim_no)
+
         if not claim:
             return Response({
                 'success': False,
-                'message': 'Claim not found'
+                'message': 'Claim not found',
             }, status=status.HTTP_404_NOT_FOUND)
-        
+
         return Response({
             'success': True,
-            'claim': {
-                'claim_no': claim.claim_no,
-                'claimant_name': claim.claimant_name,
-                'id_number': claim.id_number,
-                'id_number_alt': claim.id_number_alt,
-                'passport_no': claim.passport_no,
-                'claimant_phone': claim.claimant_phone,
-                'claimant_email': claim.claimant_email,
-                'amount': float(claim.amount) if claim.amount else None,
-                'status': claim.status,
-                'payment_category': claim.payment_category,
-                'bank_name': claim.bank_name,
-                'bank_account_no': claim.bank_account_no,
-                'mpesa_mobile_no': claim.mpesa_mobile_no,
-                'category': claim.category,
-                'sub_category': claim.sub_category,
-                'claim_type': claim.claim_type,
-                'agent_name': claim.agent_name,
-                'asset_no': claim.asset_no,
-                'asset_type': claim.asset_type,
-                'description': claim.description,
-                'created_at': claim.created_at.isoformat() if claim.created_at else None,
-                'updated_at': claim.updated_at.isoformat() if claim.updated_at else None,
-            }
+            'claim': claim,
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting claim details: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error getting claim details: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'error': 'An error occurred while fetching claim details',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_claim_summary(request, claim_no):
-    """Get claim summary with statistics"""
-    
-    logger.info(f"Getting claim summary for: {claim_no}")
-    
+    """Get claim summary with statistics (includes rejection info)"""
+
+    logger.info("Getting claim summary for: %s", claim_no)
+
     try:
-        claim = LiveOnlineClaim.objects.filter(claim_no=claim_no).first()
-        
+        claim = LiveDatabaseService.get_live_claim(claim_no)
+
         if not claim:
             return Response({
                 'success': False,
-                'message': 'Claim not found'
+                'message': 'Claim not found',
             }, status=status.HTTP_404_NOT_FOUND)
-        
+
         return Response({
             'success': True,
-            'claim_no': claim.claim_no,
-            'status': claim.status,
-            'amount': float(claim.amount) if claim.amount else None,
-            'created_at': claim.created_at.isoformat() if claim.created_at else None,
-            'claimant_name': claim.claimant_name,
-            'claimant_id': claim.id_number,
+            'claim_no': claim.get('claim_no'),
+            'status': claim.get('status'),
+            'amount': claim.get('amount'),
+            'created_at': claim.get('created_at'),
+            'claimant_name': claim.get('claimant_name'),
+            'claimant_id': claim.get('id_number'),
+            'rejected': claim.get('rejected', False),
+            'rejection_reason': claim.get('rejection_reason', ''),
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error getting claim summary: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error getting claim summary: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'error': 'An error occurred while fetching claim summary',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -557,44 +477,53 @@ def get_claim_summary(request, claim_no):
 @permission_classes([IsAuthenticated])
 def update_claim_status(request, claim_no):
     """Update claim status"""
-    
+
     status_value = request.data.get('status', '').strip()
     remarks = request.data.get('remarks', '')
-    
+
     if not status_value:
         return Response({
             'error': 'status is required',
-            'valid_statuses': ['Pending', 'Under_Review', 'Approved', 'Rejected', 'Paid', 'Completed']
+            'valid_statuses': [
+                'Pending', 'Under_Review', 'Approved',
+                'Rejected', 'Paid', 'Completed',
+            ],
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Check if user has permission
+
     if status_value in ['Approved', 'Paid'] and not request.user.is_staff:
         return Response({
             'success': False,
-            'message': 'Only staff members can approve or process payments'
+            'message': 'Only staff members can approve or process payments',
         }, status=status.HTTP_403_FORBIDDEN)
-    
-    logger.info(f"Updating claim status - Claim: {claim_no}, Status: {status_value}")
-    
+
+    logger.info(
+        "Updating claim status - Claim: %s, Status: %s",
+        claim_no, status_value,
+    )
+
     try:
-        result = LiveDatabaseService.update_claim_status(claim_no, status_value, remarks)
-        
+        result = LiveDatabaseService.update_claim_status(
+            claim_no, status_value, remarks,
+        )
+
         if result['success']:
             return Response(result, status=status.HTTP_200_OK)
         else:
-            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+            return Response(
+                result, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error updating claim status: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error updating claim status: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'message': 'An error occurred while updating claim status',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -602,31 +531,35 @@ def update_claim_status(request, claim_no):
 @permission_classes([IsAuthenticated])
 def submit_claim_for_review(request, claim_no):
     """Submit a claim for review (change status to Pending)"""
-    
-    logger.info(f"Submitting claim for review - Claim: {claim_no}")
-    
+
+    logger.info("Submitting claim for review - Claim: %s", claim_no)
+
     try:
-        result = LiveDatabaseService.update_claim_status(claim_no, 'Pending', 'Claim submitted for review')
-        
+        result = LiveDatabaseService.update_claim_status(
+            claim_no, 'Pending', 'Claim submitted for review',
+        )
+
         if result['success']:
             return Response({
                 'success': True,
-                'message': 'Claim submitted for review successfully'
+                'message': 'Claim submitted for review successfully',
             }, status=status.HTTP_200_OK)
         else:
-            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+            return Response(
+                result, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error submitting claim: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error submitting claim: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'message': 'An error occurred while submitting the claim',
-            'detail': error_msg if request.user.is_staff else None
+            'detail': error_msg if request.user.is_staff else None,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -640,9 +573,9 @@ def test_live_connection(request):
         with connections['ereunify'].cursor() as cursor:
             cursor.execute("SELECT @@VERSION")
             version = cursor.fetchone()
-        
+
         count = LiveOnlineClaim.objects.count()
-        
+
         first_record = LiveOnlineClaim.objects.first()
         sample = None
         if first_record:
@@ -653,22 +586,24 @@ def test_live_connection(request):
                 'id_number_alt': first_record.id_number_alt,
                 'passport_no': first_record.passport_no,
                 'status': first_record.status,
+                'rejected': bool(first_record.rejected),
+                'rejection_reason': first_record.rejection_reason,
             }
-        
+
         return Response({
             'success': True,
             'database_version': version[0] if version else 'Unknown',
             'record_count': count,
             'sample_record': sample,
         })
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Connection test failed: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Connection test failed: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'error': error_msg,
@@ -681,20 +616,24 @@ def check_data_fields(request):
     """Check what data exists in the database"""
     try:
         total = LiveOnlineClaim.objects.count()
-        logger.info(f"Total claims: {total}")
-        
+        logger.info("Total claims: %s", total)
+
         with_id_number = LiveOnlineClaim.objects.filter(
             id_number__isnull=False
         ).exclude(id_number='').count()
-        
+
         with_id_number_alt = LiveOnlineClaim.objects.filter(
             id_number_alt__isnull=False
         ).exclude(id_number_alt='').count()
-        
+
         with_passport = LiveOnlineClaim.objects.filter(
             passport_no__isnull=False
         ).exclude(passport_no='').count()
-        
+
+        rejected_count = LiveOnlineClaim.objects.filter(
+            rejected=True,
+        ).count()
+
         samples = LiveOnlineClaim.objects.all()[:5]
         sample_data = []
         for s in samples:
@@ -705,24 +644,27 @@ def check_data_fields(request):
                 'id_number_alt': s.id_number_alt,
                 'passport_no': s.passport_no,
                 'status': s.status,
+                'rejected': bool(s.rejected),
+                'rejection_reason': s.rejection_reason,
             })
-        
+
         return Response({
             'success': True,
             'total_claims': total,
             'claims_with_id_number': with_id_number,
             'claims_with_id_number_alt': with_id_number_alt,
             'claims_with_passport': with_passport,
+            'claims_rejected': rejected_count,
             'sample_records': sample_data,
         })
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error checking data: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error checking data: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'error': error_msg,
@@ -732,20 +674,19 @@ def check_data_fields(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def test_database_asset_search(request):
-    """
-    Test endpoint to verify direct database asset search is working.
-    This helps debug any issues with the database connection or schema.
-    """
+    """Test endpoint to verify direct database asset search is working."""
     try:
-        # Test with a sample ID (you might want to make this configurable)
         test_identifier = request.GET.get('identifier', '12345678')
         test_search_type = request.GET.get('search_type', 'id')
-        
-        logger.info(f"Testing direct database asset search - ID: {test_identifier}")
-        
-        # Attempt the search
-        assets = LiveDatabaseService.search_unclaimed_assets(test_identifier, test_search_type)
-        
+
+        logger.info(
+            "Testing direct database asset search - ID: %s", test_identifier,
+        )
+
+        assets = LiveDatabaseService.search_unclaimed_assets(
+            test_identifier, test_search_type,
+        )
+
         return Response({
             'success': True,
             'message': 'Direct database search is working',
@@ -753,20 +694,20 @@ def test_database_asset_search(request):
             'search_type': test_search_type,
             'assets_found': len(assets),
             'sample_assets': assets[:5] if assets else [],
-            'database': 'ereunify'
+            'database': 'ereunify',
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Test database search failed: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Test database search failed: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
             'error': str(e),
-            'detail': error_traceback
+            'detail': error_traceback,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -775,230 +716,207 @@ def test_database_asset_search(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def push_claim_to_live(request, claim_id):
-    """
-    Push a specific claim to the live database
-    
-    Args:
-        claim_id: The ID of the claim to push
-    """
+    """Push a specific claim to the live database"""
     try:
-        # Check if user has staff permission
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
-        # Push the claim
+
         result = LiveDatabaseService.push_claim_to_live(claim_id)
-        
+
         if result.get('success'):
             return Response(result, status=status.HTTP_200_OK)
         else:
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
-            
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error pushing claim to live: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error pushing claim to live: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def push_pending_claims(request):
-    """
-    Push all pending claims to the live database
-    """
+    """Push all pending claims to the live database"""
     try:
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
+
         result = LiveDatabaseService.push_pending_claims_to_live()
-        
+
         return Response(result, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error pushing pending claims: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error pushing pending claims: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def check_push_status(request, task_id):
-    """
-    Check the status of a Celery push task
-    
-    Args:
-        task_id: The Celery task ID
-    """
+    """Check the status of a Celery push task"""
     try:
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
+
         task = AsyncResult(task_id)
-        
+
         return Response({
             'task_id': task_id,
             'status': task.status,
             'ready': task.ready(),
             'result': task.result if task.ready() else None,
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error checking task status: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error checking task status: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def trigger_push_to_live(request):
-    """
-    Manually trigger the Celery task to push claims to live database
-    """
+    """Manually trigger the Celery task to push claims to live database"""
     try:
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
-        # Trigger the Celery task
+
         task = push_pending_claims_to_live.delay()
-        
+
         return Response({
             'success': True,
             'task_id': task.id,
             'status': 'queued',
-            'message': 'Push task triggered successfully'
+            'message': 'Push task triggered successfully',
         }, status=status.HTTP_202_ACCEPTED)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error triggering push task: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error triggering push task: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def trigger_push_claims_by_ids(request):
-    """
-    Manually trigger push for specific claims by IDs
-    """
+    """Manually trigger push for specific claims by IDs"""
     try:
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
+
         claim_ids = request.data.get('claim_ids', [])
-        
+
         if not claim_ids:
             return Response({
                 'success': False,
-                'message': 'claim_ids list is required'
+                'message': 'claim_ids list is required',
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Trigger the Celery task
+
         task = push_claims_by_ids.delay(claim_ids)
-        
+
         return Response({
             'success': True,
             'task_id': task.id,
             'status': 'queued',
             'claim_ids': claim_ids,
-            'message': f'Push task triggered for {len(claim_ids)} claims'
+            'message': f'Push task triggered for {len(claim_ids)} claims',
         }, status=status.HTTP_202_ACCEPTED)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error triggering push by IDs: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error triggering push by IDs: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def push_single_claim_async(request):
-    """
-    Asynchronously push a single claim to the live database via Celery
-    """
+    """Asynchronously push a single claim to the live database via Celery"""
     try:
         if not request.user.is_staff:
             return Response({
                 'success': False,
-                'message': 'Permission denied. Staff access required.'
+                'message': 'Permission denied. Staff access required.',
             }, status=status.HTTP_403_FORBIDDEN)
-        
+
         claim_id = request.data.get('claim_id')
-        
+
         if not claim_id:
             return Response({
                 'success': False,
-                'message': 'claim_id is required'
+                'message': 'claim_id is required',
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Trigger the Celery task
+
         task = push_single_claim_to_live.delay(claim_id)
-        
+
         return Response({
             'success': True,
             'task_id': task.id,
             'status': 'queued',
             'claim_id': claim_id,
-            'message': f'Push task triggered for claim ID {claim_id}'
+            'message': f'Push task triggered for claim ID {claim_id}',
         }, status=status.HTTP_202_ACCEPTED)
-        
+
     except Exception as e:
         error_msg = str(e)
         error_traceback = traceback.format_exc()
-        
-        logger.error(f"Error triggering single push: {error_msg}")
-        logger.error(f"Traceback: {error_traceback}")
-        
+
+        logger.error("Error triggering single push: %s", error_msg)
+        logger.error("Traceback: %s", error_traceback)
+
         return Response({
             'success': False,
-            'message': str(e)
+            'message': str(e),
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

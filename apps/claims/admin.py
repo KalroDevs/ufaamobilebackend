@@ -73,6 +73,32 @@ class LiveRejectedFilter(SimpleListFilter):
         return queryset.filter(no__in=matching)
 
 
+class StorageBackendFilter(SimpleListFilter):
+    """
+    Filter documents by which storage backend holds the bytes.
+
+    Useful during the local → SharePoint migration to find rows that
+    still resolve through the local filesystem.
+    """
+
+    title = 'Storage backend'
+    parameter_name = 'storage_backend'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('sharepoint', 'SharePoint'),
+            ('local', 'Local disk'),
+        )
+
+    def queryset(self, request, queryset):
+        val = self.value()
+        if val == 'sharepoint':
+            return queryset.filter(storage_backend='sharepoint')
+        if val == 'local':
+            return queryset.exclude(storage_backend='sharepoint')
+        return queryset
+
+
 # ============================================================
 # INLINES
 # ============================================================
@@ -87,23 +113,37 @@ class ClaimAssetInline(admin.TabularInline):
 class ClaimDocumentInline(admin.TabularInline):
     model = ClaimDocument
     extra = 1
-    fields = ['document_links', 'document_type', 'document_name', 'is_verified', 'is_rejected']
-    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']
+    fields = [
+        'document_links',
+        'document_type',
+        'document_name',
+        'storage_backend',
+        'is_verified',
+        'is_rejected',
+    ]
+    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links', 'storage_backend']
 
     def document_links(self, obj):
-        if obj and obj.id:
-            if hasattr(obj, 'file') and obj.file:
-                try:
-                    view_url = f"/api/documents/{obj.id}/view/"
-                    download_url = f"/api/documents/{obj.id}/download/"
-                    return format_html(
-                        '<div><a href="{}" target="_blank">View</a> | '
-                        '<a href="{}">Download</a></div>',
-                        view_url,
-                        download_url,
-                    )
-                except Exception:
-                    return "Error"
+        """
+        Render View/Download links pointing at the API endpoints.
+
+        The API endpoints redirect to SharePoint, so this never
+        touches ``obj.file.path``.
+        """
+        if obj and obj.id and getattr(obj, 'file', None):
+            try:
+                view_url = f"/api/documents/{obj.id}/view/"
+                download_url = f"/api/documents/{obj.id}/download/"
+                return format_html(
+                    '<div>'
+                    '<a href="{}" target="_blank">View</a> | '
+                    '<a href="{}">Download</a>'
+                    '</div>',
+                    view_url,
+                    download_url,
+                )
+            except Exception:
+                return "Error"
         return "No file"
 
     document_links.short_description = 'Document'
@@ -129,7 +169,10 @@ class ClaimStatusHistoryInline(admin.TabularInline):
 class JointOwnerInline(admin.TabularInline):
     model = JointOwner
     extra = 1
-    fields = ['full_name', 'id_number', 'phone_number', 'email', 'ownership_percentage', 'has_consented']
+    fields = [
+        'full_name', 'id_number', 'phone_number', 'email',
+        'ownership_percentage', 'has_consented',
+    ]
 
 
 # ============================================================
@@ -156,7 +199,10 @@ class ClaimAdmin(admin.ModelAdmin):
         LiveRejectedFilter,
     ]
     search_fields = ['no', 'name', 'id_number', 'phone_no', 'e_mail', 'claimant__username']
-    readonly_fields = ['no', 'created_at', 'updated_at', 'submitted_at', 'approved_at', 'paid_at', 'completed_at']
+    readonly_fields = [
+        'no', 'created_at', 'updated_at', 'submitted_at',
+        'approved_at', 'paid_at', 'completed_at',
+    ]
 
     actions = [
         'push_to_live_action',
@@ -165,30 +211,50 @@ class ClaimAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Claim Information', {
-            'fields': ('no', 'status', 'claim_type', 'category', 'sub_category', 'agent_name', 'claim_origin')
+            'fields': (
+                'no', 'status', 'claim_type', 'category',
+                'sub_category', 'agent_name', 'claim_origin',
+            )
         }),
         ('Claimant Information', {
-            'fields': ('name', 'id_number', 'phone_no', 'e_mail', 'address', 'city', 'county',
-                       'gender', 'passport_no', 'kra_pin', 'claimant_birth_date')
+            'fields': (
+                'name', 'id_number', 'phone_no', 'e_mail',
+                'address', 'city', 'county', 'gender',
+                'passport_no', 'kra_pin', 'claimant_birth_date',
+            )
         }),
         ('Asset Details', {
             'fields': ('asset_no', 'amount', 'currency', 'shares', 'safe_deposit')
         }),
         ('Payment Information', {
-            'fields': ('payment_category', 'bank_name', 'bank_account_no', 'mpesa_mobile_no',
-                       'bank_code', 'branch_code', 'swift_code', 'international_payment')
+            'fields': (
+                'payment_category', 'bank_name', 'bank_account_no',
+                'mpesa_mobile_no', 'bank_code', 'branch_code',
+                'swift_code', 'international_payment',
+            )
         }),
         ('Status & Tracking', {
-            'fields': ('submitted_at', 'approved_at', 'paid_at', 'completed_at',
-                       'rejection_reason', 'internal_remarks', 'portal_comments')
+            'fields': (
+                'submitted_at', 'approved_at', 'paid_at', 'completed_at',
+                'rejection_reason', 'internal_remarks', 'portal_comments',
+            )
         }),
         ('Staff Information', {
-            'fields': ('claimant', 'assigned_to', 'approved_by', 'created_by', 'customer_care_id'),
+            'fields': (
+                'claimant', 'assigned_to', 'approved_by',
+                'created_by', 'customer_care_id',
+            ),
             'classes': ('collapse',)
         }),
     )
 
-    inlines = [ClaimAssetInline, ClaimDocumentInline, ClaimNoteInline, ClaimStatusHistoryInline, JointOwnerInline]
+    inlines = [
+        ClaimAssetInline,
+        ClaimDocumentInline,
+        ClaimNoteInline,
+        ClaimStatusHistoryInline,
+        JointOwnerInline,
+    ]
 
     # ---------------------------------------------------------------- #
     # Display columns
@@ -225,9 +291,13 @@ class ClaimAdmin(admin.ModelAdmin):
             if obj.no:
                 exists = LiveDatabaseService.claim_exists_in_live(obj.no)
                 if exists:
-                    return mark_safe('<span style="color: green; font-weight: bold;">✅ In Live</span>')
-                else:
-                    return mark_safe('<span style="color: gray;">⏳ Not Pushed</span>')
+                    return mark_safe(
+                        '<span style="color: green; font-weight: bold;">'
+                        '✅ In Live</span>'
+                    )
+                return mark_safe(
+                    '<span style="color: gray;">⏳ Not Pushed</span>'
+                )
             return mark_safe('<span style="color: gray;">-</span>')
         except Exception:
             return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
@@ -254,7 +324,9 @@ class ClaimAdmin(admin.ModelAdmin):
                 row = cursor.fetchone()
 
             if row is None:
-                return mark_safe('<span style="color: gray;">Not in live</span>')
+                return mark_safe(
+                    '<span style="color: gray;">Not in live</span>'
+                )
 
             if bool(row[0]):
                 return mark_safe(
@@ -288,7 +360,9 @@ class ClaimAdmin(admin.ModelAdmin):
         if 'apply' in request.POST:
             selected = request.POST.getlist(ACTION_CHECKBOX_NAME)
             if not selected:
-                self.message_user(request, 'No claims selected', level='ERROR')
+                self.message_user(
+                    request, 'No claims selected', level='ERROR'
+                )
                 return HttpResponseRedirect(request.get_full_path())
 
             pushed = 0
@@ -302,7 +376,10 @@ class ClaimAdmin(admin.ModelAdmin):
                     claim = Claim.objects.get(id=claim_id)
                     if claim.status not in ['Pending', 'Under_Review']:
                         skipped += 1
-                        errors.append(f"{claim.no}: Not in pushable status (current: {claim.status})")
+                        errors.append(
+                            f"{claim.no}: Not in pushable status "
+                            f"(current: {claim.status})"
+                        )
                         continue
 
                     from apps.live_operations.services import LiveDatabaseService
@@ -311,11 +388,15 @@ class ClaimAdmin(admin.ModelAdmin):
                         exists = LiveDatabaseService.claim_exists_in_live(claim.no)
                         if exists:
                             already_exists += 1
-                            errors.append(f"{claim.no}: Already exists in live database")
+                            errors.append(
+                                f"{claim.no}: Already exists in live database"
+                            )
                             continue
                     except Exception as e:
                         failed += 1
-                        errors.append(f"{claim.no}: Error checking existence - {str(e)}")
+                        errors.append(
+                            f"{claim.no}: Error checking existence - {str(e)}"
+                        )
                         continue
 
                     result = LiveDatabaseService.push_claim_to_live(claim_id)
@@ -326,7 +407,10 @@ class ClaimAdmin(admin.ModelAdmin):
                         claim.save(update_fields=['status'])
                     else:
                         failed += 1
-                        errors.append(f"{claim.no}: {result.get('message', 'Unknown error')}")
+                        errors.append(
+                            f"{claim.no}: "
+                            f"{result.get('message', 'Unknown error')}"
+                        )
 
                 except Claim.DoesNotExist:
                     failed += 1
@@ -339,14 +423,16 @@ class ClaimAdmin(admin.ModelAdmin):
                 self.message_user(
                     request,
                     f'✅ Successfully pushed {pushed} claims to live. '
-                    f'Failed: {failed}, Skipped: {skipped}, Already exists: {already_exists}',
-                    level='SUCCESS'
+                    f'Failed: {failed}, Skipped: {skipped}, '
+                    f'Already exists: {already_exists}',
+                    level='SUCCESS',
                 )
             else:
                 self.message_user(
                     request,
-                    f'❌ No claims were pushed. Failed: {failed}, Skipped: {skipped}, Already exists: {already_exists}',
-                    level='WARNING'
+                    f'❌ No claims were pushed. Failed: {failed}, '
+                    f'Skipped: {skipped}, Already exists: {already_exists}',
+                    level='WARNING',
                 )
 
             if errors:
@@ -356,14 +442,16 @@ class ClaimAdmin(admin.ModelAdmin):
                 self.message_user(
                     request,
                     mark_safe(f'<b>Details:</b><br>{error_list}'),
-                    level='ERROR'
+                    level='ERROR',
                 )
 
             return HttpResponseRedirect(request.get_full_path())
 
         return self._show_push_confirmation(request, queryset)
 
-    push_to_live_action.short_description = "Push selected claims to live database"
+    push_to_live_action.short_description = (
+        "Push selected claims to live database"
+    )
 
     # ---------------------------------------------------------------- #
     # Check rejected claims action
@@ -410,7 +498,9 @@ class ClaimAdmin(admin.ModelAdmin):
                         [claim.no],
                     )
                     row = cursor.fetchone()
-                    columns = [c[0] for c in cursor.description] if row else []
+                    columns = (
+                        [c[0] for c in cursor.description] if row else []
+                    )
 
                 if not row:
                     not_in_live += 1
@@ -433,7 +523,10 @@ class ClaimAdmin(admin.ModelAdmin):
                     related_object_id=str(claim.id),
                 ).first()
 
-                if existing and existing.metadata.get('modified_at') == modified_at_str:
+                if (
+                    existing
+                    and existing.metadata.get('modified_at') == modified_at_str
+                ):
                     skipped += 1
                     continue
 
@@ -472,7 +565,9 @@ class ClaimAdmin(admin.ModelAdmin):
                             related_model='Claim',
                             related_object_id=str(claim.id),
                             defaults={
-                                'title': f"Claim {claim.no} needs your attention",
+                                'title': (
+                                    f"Claim {claim.no} needs your attention"
+                                ),
                                 'body': (
                                     reason
                                     or 'Please review your claim and resubmit.'
@@ -524,7 +619,9 @@ class ClaimAdmin(admin.ModelAdmin):
                 level='ERROR',
             )
 
-    check_rejected_claims_action.short_description = "Check rejected claims in live database"
+    check_rejected_claims_action.short_description = (
+        "Check rejected claims in live database"
+    )
 
     # ---------------------------------------------------------------- #
     # Actions / URLs / helpers
@@ -542,22 +639,22 @@ class ClaimAdmin(admin.ModelAdmin):
             path(
                 'push-to-live/<int:claim_id>/',
                 self.admin_site.admin_view(self.push_to_live_single_view),
-                name='push_to_live_single'
+                name='push_to_live_single',
             ),
             path(
                 'push-to-live-bulk/',
                 self.admin_site.admin_view(self.push_to_live_bulk_view),
-                name='push_to_live_bulk'
+                name='push_to_live_bulk',
             ),
             path(
                 'push-all-pending/',
                 self.admin_site.admin_view(self.push_all_pending_view),
-                name='push_all_pending'
+                name='push_all_pending',
             ),
             path(
                 'push-live-status/',
                 self.admin_site.admin_view(self.push_live_status_view),
-                name='push_live_status'
+                name='push_live_status',
             ),
         ]
         return custom_urls + urls
@@ -569,10 +666,13 @@ class ClaimAdmin(admin.ModelAdmin):
             if claim.status not in ['Pending', 'Under_Review']:
                 self.message_user(
                     request,
-                    f'⚠️ Claim {claim.no} is not in pushable status (current: {claim.status})',
-                    level='WARNING'
+                    f'⚠️ Claim {claim.no} is not in pushable status '
+                    f'(current: {claim.status})',
+                    level='WARNING',
                 )
-                return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+                return HttpResponseRedirect(
+                    reverse('admin:claims_claim_changelist')
+                )
 
             from apps.live_operations.services import LiveDatabaseService
 
@@ -582,16 +682,20 @@ class ClaimAdmin(admin.ModelAdmin):
                     self.message_user(
                         request,
                         f'⚠️ Claim {claim.no} already exists in live database',
-                        level='WARNING'
+                        level='WARNING',
                     )
-                    return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+                    return HttpResponseRedirect(
+                        reverse('admin:claims_claim_changelist')
+                    )
             except Exception as e:
                 self.message_user(
                     request,
                     f'❌ Error checking if claim exists: {str(e)}',
-                    level='ERROR'
+                    level='ERROR',
                 )
-                return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+                return HttpResponseRedirect(
+                    reverse('admin:claims_claim_changelist')
+                )
 
             result = LiveDatabaseService.push_claim_to_live(claim_id)
 
@@ -601,22 +705,28 @@ class ClaimAdmin(admin.ModelAdmin):
 
                 self.message_user(
                     request,
-                    f'✅ Claim {claim.no} was successfully pushed to live with Location Source = 1',
-                    level='SUCCESS'
+                    f'✅ Claim {claim.no} was successfully pushed to live '
+                    f'with Location Source = 1',
+                    level='SUCCESS',
                 )
             else:
                 self.message_user(
                     request,
-                    f'❌ Failed to push claim {claim.no}: {result.get("message")}',
-                    level='ERROR'
+                    f'❌ Failed to push claim {claim.no}: '
+                    f'{result.get("message")}',
+                    level='ERROR',
                 )
 
         except Claim.DoesNotExist:
-            self.message_user(request, f'Claim {claim_id} not found', level='ERROR')
+            self.message_user(
+                request, f'Claim {claim_id} not found', level='ERROR'
+            )
         except Exception as e:
             self.message_user(request, f'Error: {str(e)}', level='ERROR')
 
-        return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+        return HttpResponseRedirect(
+            reverse('admin:claims_claim_changelist')
+        )
 
     def push_to_live_bulk_view(self, request):
         if request.method == 'POST':
@@ -639,18 +749,26 @@ class ClaimAdmin(admin.ModelAdmin):
             claim_ids = list(claims.values_list('id', flat=True))
 
             if not claim_ids:
-                self.message_user(request, 'No claims found matching the filters', level='WARNING')
+                self.message_user(
+                    request,
+                    'No claims found matching the filters',
+                    level='WARNING',
+                )
                 return HttpResponseRedirect(request.get_full_path())
 
             try:
                 from apps.live_operations.tasks import push_claims_by_ids
 
-                if hasattr(settings, 'CELERY_BROKER_URL') and settings.CELERY_BROKER_URL:
+                if (
+                    hasattr(settings, 'CELERY_BROKER_URL')
+                    and settings.CELERY_BROKER_URL
+                ):
                     task = push_claims_by_ids.delay(claim_ids)
                     self.message_user(
                         request,
-                        f'📤 Scheduled {len(claim_ids)} claims for pushing. Task ID: {task.id}',
-                        level='SUCCESS'
+                        f'📤 Scheduled {len(claim_ids)} claims for pushing. '
+                        f'Task ID: {task.id}',
+                        level='SUCCESS',
                     )
                 else:
                     result = push_claims_by_ids(claim_ids)
@@ -659,7 +777,7 @@ class ClaimAdmin(admin.ModelAdmin):
                         f'✅ Pushed {result.get("pushed", 0)} claims. '
                         f'Failed: {result.get("failed", 0)}, '
                         f'Already exists: {result.get("already_exists", 0)}',
-                        level='SUCCESS'
+                        level='SUCCESS',
                     )
             except (ImportError, ModuleNotFoundError):
                 from apps.live_operations.services import LiveDatabaseService
@@ -673,7 +791,9 @@ class ClaimAdmin(admin.ModelAdmin):
                         if LiveDatabaseService.claim_exists_in_live(claim.no):
                             already_exists += 1
                             continue
-                        result = LiveDatabaseService.push_claim_to_live(claim_id)
+                        result = LiveDatabaseService.push_claim_to_live(
+                            claim_id
+                        )
                         if result.get('success'):
                             pushed += 1
                             claim.status = 'Under_Review'
@@ -685,11 +805,14 @@ class ClaimAdmin(admin.ModelAdmin):
 
                 self.message_user(
                     request,
-                    f'✅ Pushed {pushed} claims. Failed: {failed}, Already exists: {already_exists}',
-                    level='SUCCESS' if pushed > 0 else 'WARNING'
+                    f'✅ Pushed {pushed} claims. Failed: {failed}, '
+                    f'Already exists: {already_exists}',
+                    level='SUCCESS' if pushed > 0 else 'WARNING',
                 )
 
-            return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+            return HttpResponseRedirect(
+                reverse('admin:claims_claim_changelist')
+            )
 
         from django import forms
 
@@ -701,13 +824,13 @@ class ClaimAdmin(admin.ModelAdmin):
                 ],
                 required=False,
                 widget=forms.CheckboxSelectMultiple,
-                label='Status Filter'
+                label='Status Filter',
             )
             days_old = forms.IntegerField(
                 required=False,
                 min_value=1,
                 label='Only push claims older than X days',
-                help_text='Leave empty for all claims'
+                help_text='Leave empty for all claims',
             )
 
         form = BulkPushForm()
@@ -719,17 +842,25 @@ class ClaimAdmin(admin.ModelAdmin):
             'app_label': self.model._meta.app_label,
         }
 
-        return self.admin_site.admin_view(self._render_bulk_push_form)(request, context)
+        return self.admin_site.admin_view(
+            self._render_bulk_push_form
+        )(request, context)
 
     def push_all_pending_view(self, request):
         try:
             from apps.live_operations.services import LiveDatabaseService
 
-            claims = Claim.objects.filter(status__in=['Pending', 'Under_Review'])
+            claims = Claim.objects.filter(
+                status__in=['Pending', 'Under_Review']
+            )
 
             if not claims.exists():
-                self.message_user(request, 'No pending claims to push', level='WARNING')
-                return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+                self.message_user(
+                    request, 'No pending claims to push', level='WARNING'
+                )
+                return HttpResponseRedirect(
+                    reverse('admin:claims_claim_changelist')
+                )
 
             pushed = 0
             failed = 0
@@ -753,18 +884,21 @@ class ClaimAdmin(admin.ModelAdmin):
 
             self.message_user(
                 request,
-                f'✅ Pushed {pushed} claims. Failed: {failed}, Already exists: {already_exists}',
-                level='SUCCESS' if pushed > 0 else 'WARNING'
+                f'✅ Pushed {pushed} claims. Failed: {failed}, '
+                f'Already exists: {already_exists}',
+                level='SUCCESS' if pushed > 0 else 'WARNING',
             )
 
         except Exception as e:
             self.message_user(
                 request,
                 f'❌ Error pushing pending claims: {str(e)}',
-                level='ERROR'
+                level='ERROR',
             )
 
-        return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
+        return HttpResponseRedirect(
+            reverse('admin:claims_claim_changelist')
+        )
 
     def push_live_status_view(self, request):
         try:
@@ -784,7 +918,9 @@ class ClaimAdmin(admin.ModelAdmin):
             'app_label': self.model._meta.app_label,
         }
 
-        return self.admin_site.admin_view(self._render_status_page)(request, context)
+        return self.admin_site.admin_view(
+            self._render_status_page
+        )(request, context)
 
     def _show_push_confirmation(self, request, queryset):
         context = {
@@ -797,14 +933,16 @@ class ClaimAdmin(admin.ModelAdmin):
             'media': self.media,
         }
 
-        return self.admin_site.admin_view(self._render_confirmation)(request, context)
+        return self.admin_site.admin_view(
+            self._render_confirmation
+        )(request, context)
 
     def _render_confirmation(self, request, context):
         return self.admin_site.admin_view(
             lambda r: self._render_template(
                 r,
                 'admin/push_to_live_confirmation.html',
-                context
+                context,
             )
         )(request)
 
@@ -813,7 +951,7 @@ class ClaimAdmin(admin.ModelAdmin):
             lambda r: self._render_template(
                 r,
                 'admin/push_to_live_bulk_form.html',
-                context
+                context,
             )
         )(request)
 
@@ -822,7 +960,7 @@ class ClaimAdmin(admin.ModelAdmin):
             lambda r: self._render_template(
                 r,
                 'admin/push_to_live_status.html',
-                context
+                context,
             )
         )(request)
 
@@ -845,7 +983,8 @@ class ClaimAdmin(admin.ModelAdmin):
                 exists = LiveDatabaseService.claim_exists_in_live(obj.no)
                 if exists:
                     return mark_safe(
-                        '<span style="color: green; font-weight: bold;">✅ Already in Live</span>'
+                        '<span style="color: green; font-weight: bold;">'
+                        '✅ Already in Live</span>'
                     )
             except Exception:
                 pass
@@ -853,15 +992,22 @@ class ClaimAdmin(admin.ModelAdmin):
             url = reverse('admin:push_to_live_single', args=[obj.id])
             return format_html(
                 '<a class="button" href="{}" '
-                'style="background-color: #28a745; color: white; padding: 4px 8px; '
-                'border-radius: 3px; text-decoration: none; font-size: 12px;">'
+                'style="background-color: #28a745; color: white; '
+                'padding: 4px 8px; border-radius: 3px; '
+                'text-decoration: none; font-size: 12px;">'
                 '🚀 Push to Live</a>',
-                url
+                url,
             )
         elif obj.status in ['Approved', 'Paid', 'Completed']:
-            return mark_safe('<span style="color: green; font-weight: bold;">✅ Processed</span>')
+            return mark_safe(
+                '<span style="color: green; font-weight: bold;">'
+                '✅ Processed</span>'
+            )
         else:
-            return mark_safe('<span style="color: gray; font-size: 12px;">Not pushable</span>')
+            return mark_safe(
+                '<span style="color: gray; font-size: 12px;">'
+                'Not pushable</span>'
+            )
 
     push_to_live_button.short_description = 'Push to Live'
     push_to_live_button.allow_tags = True
@@ -885,10 +1031,15 @@ class ClaimAssetAdmin(admin.ModelAdmin):
         'added_at',
     ]
     list_filter = ['asset_type', 'source']
-    search_fields = ['asset_no', 'holder_name', 'name', 'id_number', 'claim__no']
+    search_fields = [
+        'asset_no', 'holder_name', 'name', 'id_number', 'claim__no',
+    ]
     readonly_fields = ['added_at']
-    fields = ['claim', 'asset_no', 'is_selected', 'value', 'holder_name', 'asset_type',
-              'source', 'name', 'id_number', 'description', 'cds_account_no', 'added_at']
+    fields = [
+        'claim', 'asset_no', 'is_selected', 'value', 'holder_name',
+        'asset_type', 'source', 'name', 'id_number', 'description',
+        'cds_account_no', 'added_at',
+    ]
 
     actions = ['push_selected_lines_to_live']
 
@@ -923,13 +1074,21 @@ class ClaimAssetAdmin(admin.ModelAdmin):
                         WHERE [Batch No_] = %s
                           AND [Asset No_] = %s
                     """,
-                    [batch_no, LiveDatabaseService.safe_string(obj.asset_no, 100)],
+                    [
+                        batch_no,
+                        LiveDatabaseService.safe_string(obj.asset_no, 100),
+                    ],
                 )
                 exists = cursor.fetchone()[0] > 0
 
             if exists:
-                return mark_safe('<span style="color: green; font-weight: bold;">✅ In Live</span>')
-            return mark_safe('<span style="color: orange;">⏳ Not Pushed</span>')
+                return mark_safe(
+                    '<span style="color: green; font-weight: bold;">'
+                    '✅ In Live</span>'
+                )
+            return mark_safe(
+                '<span style="color: orange;">⏳ Not Pushed</span>'
+            )
         except Exception:
             return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
 
@@ -937,16 +1096,23 @@ class ClaimAssetAdmin(admin.ModelAdmin):
 
     def push_line_button(self, obj):
         if not obj or not obj.asset_no or not obj.claim or not obj.claim.no:
-            return mark_safe('<span style="color: gray; font-size: 12px;">-</span>')
+            return mark_safe(
+                '<span style="color: gray; font-size: 12px;">-</span>'
+            )
 
         try:
             from apps.live_operations.services import LiveDatabaseService
-            header_exists = LiveDatabaseService.claim_exists_in_live(obj.claim.no)
+            header_exists = LiveDatabaseService.claim_exists_in_live(
+                obj.claim.no
+            )
         except Exception:
             header_exists = False
 
         if not header_exists:
-            return mark_safe('<span style="color: gray; font-size: 12px;">Header not in live</span>')
+            return mark_safe(
+                '<span style="color: gray; font-size: 12px;">'
+                'Header not in live</span>'
+            )
 
         url = reverse('admin:claims_claimasset_push_line', args=[obj.id])
         return format_html(
@@ -976,19 +1142,27 @@ class ClaimAssetAdmin(admin.ModelAdmin):
             try:
                 if not asset.claim or not asset.claim.no:
                     skipped_total += 1
-                    errors.append(f"Asset {asset.id}: no parent claim or claim number")
+                    errors.append(
+                        f"Asset {asset.id}: no parent claim or claim number"
+                    )
                     continue
 
                 claim_no = asset.claim.no
                 if claim_no not in claim_cache:
-                    claim_cache[claim_no] = LiveDatabaseService.claim_exists_in_live(claim_no)
+                    claim_cache[claim_no] = (
+                        LiveDatabaseService.claim_exists_in_live(claim_no)
+                    )
 
                 if not claim_cache[claim_no]:
                     skipped_total += 1
-                    errors.append(f"{claim_no}: Header not in live — push header first")
+                    errors.append(
+                        f"{claim_no}: Header not in live — push header first"
+                    )
                     continue
 
-                result = LiveDatabaseService.push_claim_lines_to_live(asset.claim.id)
+                result = LiveDatabaseService.push_claim_lines_to_live(
+                    asset.claim.id
+                )
 
                 pushed_total += result.get("pushed", 0)
                 failed_total += result.get("failed", 0)
@@ -1024,7 +1198,9 @@ class ClaimAssetAdmin(admin.ModelAdmin):
             if len(errors) > 10:
                 preview += f"<br>... and {len(errors) - 10} more"
             self.message_user(
-                request, mark_safe(f"<b>Details:</b><br>{preview}"), level="ERROR",
+                request,
+                mark_safe(f"<b>Details:</b><br>{preview}"),
+                level="ERROR",
             )
 
     push_selected_lines_to_live.short_description = (
@@ -1049,32 +1225,48 @@ class ClaimAssetAdmin(admin.ModelAdmin):
 
             if not asset.claim or not asset.claim.no:
                 self.message_user(
-                    request, "⚠️ Asset has no parent claim or claim number",
+                    request,
+                    "⚠️ Asset has no parent claim or claim number",
                     level="WARNING",
                 )
-                return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+                return HttpResponseRedirect(
+                    reverse("admin:claims_claimasset_changelist")
+                )
 
             if not LiveDatabaseService.claim_exists_in_live(asset.claim.no):
                 self.message_user(
                     request,
-                    f"⚠️ Claim header {asset.claim.no} is not in the live database. Push the header first.",
+                    f"⚠️ Claim header {asset.claim.no} is not in the live "
+                    f"database. Push the header first.",
                     level="WARNING",
                 )
-                return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+                return HttpResponseRedirect(
+                    reverse("admin:claims_claimasset_changelist")
+                )
 
-            result = LiveDatabaseService.push_claim_lines_to_live(asset.claim.id)
+            result = LiveDatabaseService.push_claim_lines_to_live(
+                asset.claim.id
+            )
 
             if result.get("failed", 0) > 0:
-                self.message_user(request, f"⚠️ {result.get('message')}", level="WARNING")
+                self.message_user(
+                    request, f"⚠️ {result.get('message')}", level="WARNING"
+                )
             else:
-                self.message_user(request, f"✅ {result.get('message')}", level="SUCCESS")
+                self.message_user(
+                    request, f"✅ {result.get('message')}", level="SUCCESS"
+                )
 
         except ClaimAsset.DoesNotExist:
-            self.message_user(request, f"Asset {asset_id} not found", level="ERROR")
+            self.message_user(
+                request, f"Asset {asset_id} not found", level="ERROR"
+            )
         except Exception as e:
             self.message_user(request, f"Error: {str(e)}", level="ERROR")
 
-        return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+        return HttpResponseRedirect(
+            reverse("admin:claims_claimasset_changelist")
+        )
 
 
 # ============================================================
@@ -1089,16 +1281,33 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
         'document_type',
         'document_name',
         'is_verified',
+        'storage_badge',                 # 👈 NEW
         'live_document_status_display',
         'push_document_button',
         'uploaded_at',
     ]
-    list_filter = ['document_type', 'is_verified', 'is_rejected', 'uploaded_at']
+    list_filter = [
+        'document_type',
+        'is_verified',
+        'is_rejected',
+        StorageBackendFilter,            # 👈 NEW
+        'uploaded_at',
+    ]
     search_fields = ['document_name', 'claim__no', 'uploaded_by__username']
-    readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']
-    fields = ['claim', 'document_type', 'document_name', 'document_links', 'file',
-              'uploaded_by', 'uploaded_at', 'is_verified', 'verified_by', 'verified_at',
-              'verification_notes', 'is_rejected', 'rejection_reason', 'version', 'is_latest']
+    readonly_fields = [
+        'uploaded_at',
+        'uploaded_by',
+        'document_links',
+        'storage_backend',               # 👈 NEW
+    ]
+    fields = [
+        'claim', 'document_type', 'document_name', 'document_links', 'file',
+        'storage_backend',               # 👈 NEW
+        'uploaded_by', 'uploaded_at',
+        'is_verified', 'verified_by', 'verified_at',
+        'verification_notes', 'is_rejected', 'rejection_reason',
+        'version', 'is_latest',
+    ]
 
     actions = ['push_documents_action']
 
@@ -1111,32 +1320,67 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def document_links(self, obj):
-        if obj and obj.id:
-            if hasattr(obj, 'file') and obj.file:
-                try:
-                    view_url = f"/api/documents/{obj.id}/view/"
-                    download_url = f"/api/documents/{obj.id}/download/"
-                    return format_html(
-                        '<div>'
-                        '<a href="{}" target="_blank" '
-                        'style="background-color: #4CAF50; color: white; padding: 5px 10px; '
-                        'text-decoration: none; border-radius: 3px; margin-right: 5px;">📄 View</a>'
-                        '<a href="{}" '
-                        'style="background-color: #008CBA; color: white; padding: 5px 10px; '
-                        'text-decoration: none; border-radius: 3px;">⬇️ Download</a>'
-                        '</div>',
-                        view_url, download_url,
-                    )
-                except Exception:
-                    return "Error loading document"
+        """
+        Render the View / Download buttons.
+
+        These point at the API endpoints, which redirect to SharePoint.
+        They never touch ``obj.file.path``.
+        """
+        if obj and obj.id and getattr(obj, 'file', None):
+            try:
+                view_url = f"/api/documents/{obj.id}/view/"
+                download_url = f"/api/documents/{obj.id}/download/"
+                return format_html(
+                    '<div>'
+                    '<a href="{}" target="_blank" '
+                    'style="background-color: #4CAF50; color: white; '
+                    'padding: 5px 10px; text-decoration: none; '
+                    'border-radius: 3px; margin-right: 5px;">'
+                    '📄 View</a>'
+                    '<a href="{}" '
+                    'style="background-color: #008CBA; color: white; '
+                    'padding: 5px 10px; text-decoration: none; '
+                    'border-radius: 3px;">'
+                    '⬇️ Download</a>'
+                    '</div>',
+                    view_url, download_url,
+                )
+            except Exception:
+                return "Error loading document"
         return "No file uploaded"
 
     document_links.short_description = 'Document Actions'
 
+    # ---------------------------------------------------------------- #
+    # Storage badge
+    # ---------------------------------------------------------------- #
+
+    @admin.display(description='Storage')
+    def storage_badge(self, obj):
+        backend = (getattr(obj, 'storage_backend', '') or 'unknown').lower()
+        if backend == 'sharepoint':
+            return mark_safe(
+                '<span style="color:#0d6efd; font-weight:600;">'
+                '☁️ SharePoint</span>'
+            )
+        return mark_safe('<span style="color:#6c757d;">💾 Local</span>')
+
+    # ---------------------------------------------------------------- #
+    # Save / delete
+    # ---------------------------------------------------------------- #
+
     def save_model(self, request, obj, form, change):
         if 'file' in form.changed_data and obj.file:
-            obj.file_size = obj.file.size
-            obj.file_extension = os.path.splitext(obj.file.name)[1].lower().lstrip('.')
+            # Mark the backend so the badge reflects reality.
+            obj.storage_backend = 'sharepoint'
+            try:
+                obj.file_size = obj.file.size
+                obj.file_extension = (
+                    os.path.splitext(obj.file.name)[1].lower().lstrip('.')
+                )
+            except Exception:
+                # Don't let a Graph hiccup block the DB write.
+                pass
         super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
@@ -1168,19 +1412,27 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
             try:
                 if not doc.claim or not doc.claim.no:
                     skipped_total += 1
-                    errors.append(f"Doc {doc.id}: no parent claim or claim number")
+                    errors.append(
+                        f"Doc {doc.id}: no parent claim or claim number"
+                    )
                     continue
 
                 claim_no = doc.claim.no
                 if claim_no not in claim_cache:
-                    claim_cache[claim_no] = LiveDatabaseService.claim_exists_in_live(claim_no)
+                    claim_cache[claim_no] = (
+                        LiveDatabaseService.claim_exists_in_live(claim_no)
+                    )
 
                 if not claim_cache[claim_no]:
                     skipped_total += 1
-                    errors.append(f"{claim_no}: Header not in live — push header first")
+                    errors.append(
+                        f"{claim_no}: Header not in live — push header first"
+                    )
                     continue
 
-                result = LiveDatabaseService.push_claim_documents_to_live(doc.claim.id)
+                result = LiveDatabaseService.push_claim_documents_to_live(
+                    doc.claim.id
+                )
 
                 pushed_total += result.get("pushed", 0)
                 failed_total += result.get("failed", 0)
@@ -1216,7 +1468,9 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
             if len(errors) > 10:
                 preview += f"<br>... and {len(errors) - 10} more"
             self.message_user(
-                request, mark_safe(f"<b>Details:</b><br>{preview}"), level="ERROR",
+                request,
+                mark_safe(f"<b>Details:</b><br>{preview}"),
+                level="ERROR",
             )
 
     push_documents_action.short_description = (
@@ -1248,8 +1502,13 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
                 exists = cursor.fetchone()[0] > 0
 
             if exists:
-                return mark_safe('<span style="color: green; font-weight: bold;">✅ In Live</span>')
-            return mark_safe('<span style="color: orange;">⏳ Not Pushed</span>')
+                return mark_safe(
+                    '<span style="color: green; font-weight: bold;">'
+                    '✅ In Live</span>'
+                )
+            return mark_safe(
+                '<span style="color: orange;">⏳ Not Pushed</span>'
+            )
         except Exception:
             return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
 
@@ -1257,18 +1516,27 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
 
     def push_document_button(self, obj):
         if not obj or not obj.claim or not obj.claim.no:
-            return mark_safe('<span style="color: gray; font-size: 12px;">-</span>')
+            return mark_safe(
+                '<span style="color: gray; font-size: 12px;">-</span>'
+            )
 
         try:
             from apps.live_operations.services import LiveDatabaseService
-            header_exists = LiveDatabaseService.claim_exists_in_live(obj.claim.no)
+            header_exists = LiveDatabaseService.claim_exists_in_live(
+                obj.claim.no
+            )
         except Exception:
             header_exists = False
 
         if not header_exists:
-            return mark_safe('<span style="color: gray; font-size: 12px;">Header not in live</span>')
+            return mark_safe(
+                '<span style="color: gray; font-size: 12px;">'
+                'Header not in live</span>'
+            )
 
-        url = reverse("admin:claims_claimdocument_push_document", args=[obj.id])
+        url = reverse(
+            "admin:claims_claimdocument_push_document", args=[obj.id]
+        )
         return format_html(
             '<a class="button" href="{}" '
             'style="background-color: #6f42c1; color: white; '
@@ -1311,26 +1579,37 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
             if not LiveDatabaseService.claim_exists_in_live(doc.claim.no):
                 self.message_user(
                     request,
-                    f"⚠️ Claim header {doc.claim.no} is not in the live database. Push the header first.",
+                    f"⚠️ Claim header {doc.claim.no} is not in the live "
+                    f"database. Push the header first.",
                     level="WARNING",
                 )
                 return HttpResponseRedirect(
                     reverse("admin:claims_claimdocument_changelist")
                 )
 
-            result = LiveDatabaseService.push_claim_documents_to_live(doc.claim.id)
+            result = LiveDatabaseService.push_claim_documents_to_live(
+                doc.claim.id
+            )
 
             if result.get("failed", 0) > 0:
-                self.message_user(request, f"⚠️ {result.get('message')}", level="WARNING")
+                self.message_user(
+                    request, f"⚠️ {result.get('message')}", level="WARNING"
+                )
             else:
-                self.message_user(request, f"✅ {result.get('message')}", level="SUCCESS")
+                self.message_user(
+                    request, f"✅ {result.get('message')}", level="SUCCESS"
+                )
 
         except ClaimDocument.DoesNotExist:
-            self.message_user(request, f"Document {doc_id} not found", level="ERROR")
+            self.message_user(
+                request, f"Document {doc_id} not found", level="ERROR"
+            )
         except Exception as e:
             self.message_user(request, f"Error: {str(e)}", level="ERROR")
 
-        return HttpResponseRedirect(reverse("admin:claims_claimdocument_changelist"))
+        return HttpResponseRedirect(
+            reverse("admin:claims_claimdocument_changelist")
+        )
 
 
 # ============================================================
@@ -1339,11 +1618,17 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
 
 @admin.register(ClaimNote)
 class ClaimNoteAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'note_type', 'content_preview', 'created_by', 'created_at']
+    list_display = [
+        'id', 'claim_link', 'note_type', 'content_preview',
+        'created_by', 'created_at',
+    ]
     list_filter = ['note_type', 'is_public', 'created_at']
     search_fields = ['content', 'claim__no', 'created_by__username']
     readonly_fields = ['created_at', 'created_by']
-    fields = ['claim', 'note_type', 'content', 'is_public', 'created_by', 'created_at']
+    fields = [
+        'claim', 'note_type', 'content', 'is_public',
+        'created_by', 'created_at',
+    ]
 
     def claim_link(self, obj):
         if obj and obj.claim:
@@ -1355,7 +1640,10 @@ class ClaimNoteAdmin(admin.ModelAdmin):
 
     def content_preview(self, obj):
         if obj and obj.content:
-            return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+            return (
+                obj.content[:50] + '...'
+                if len(obj.content) > 50 else obj.content
+            )
         return ""
 
     content_preview.short_description = 'Content'
@@ -1369,11 +1657,17 @@ class ClaimNoteAdmin(admin.ModelAdmin):
 
 @admin.register(ClaimStatusHistory)
 class ClaimStatusHistoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'previous_status', 'new_status', 'changed_by', 'changed_at']
+    list_display = [
+        'id', 'claim_link', 'previous_status', 'new_status',
+        'changed_by', 'changed_at',
+    ]
     list_filter = ['previous_status', 'new_status', 'changed_at']
     search_fields = ['claim__no', 'reason', 'changed_by__username']
     readonly_fields = ['changed_at', 'changed_by']
-    fields = ['claim', 'previous_status', 'new_status', 'changed_by', 'reason', 'changed_at']
+    fields = [
+        'claim', 'previous_status', 'new_status',
+        'changed_by', 'reason', 'changed_at',
+    ]
 
     def claim_link(self, obj):
         if obj and obj.claim:
@@ -1392,14 +1686,22 @@ class ClaimStatusHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(JointOwner)
 class JointOwnerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'full_name', 'id_number', 'phone_number', 'has_consented']
+    list_display = [
+        'id', 'claim_link', 'full_name', 'id_number',
+        'phone_number', 'has_consented',
+    ]
     list_filter = ['nationality', 'gender', 'has_disability', 'has_consented']
-    search_fields = ['full_name', 'id_number', 'email', 'phone_number', 'claim__no']
-    fields = ['claim', 'surname', 'given_name', 'full_name', 'id_number', 'kra_pin',
-              'birth_date', 'phone_number', 'email', 'nationality', 'gender',
-              'physical_address', 'postal_address', 'county', 'has_disability',
-              'disability_category', 'ownership_percentage', 'is_primary_claimant',
-              'has_consented', 'consent_date', 'consent_form_uploaded']
+    search_fields = [
+        'full_name', 'id_number', 'email', 'phone_number', 'claim__no',
+    ]
+    fields = [
+        'claim', 'surname', 'given_name', 'full_name', 'id_number',
+        'kra_pin', 'birth_date', 'phone_number', 'email', 'nationality',
+        'gender', 'physical_address', 'postal_address', 'county',
+        'has_disability', 'disability_category', 'ownership_percentage',
+        'is_primary_claimant', 'has_consented', 'consent_date',
+        'consent_form_uploaded',
+    ]
 
     def claim_link(self, obj):
         if obj and obj.claim:
@@ -1418,15 +1720,24 @@ class JointOwnerAdmin(admin.ModelAdmin):
 
 @admin.register(JointOwnerConsent)
 class JointOwnerConsentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'joint_owner_link', 'claim_link', 'status', 'requested_at', 'responded_at']
+    list_display = [
+        'id', 'joint_owner_link', 'claim_link', 'status',
+        'requested_at', 'responded_at',
+    ]
     list_filter = ['status', 'notification_sent', 'reminder_sent']
-    search_fields = ['joint_owner__full_name', 'claim__no', 'consent_token']
+    search_fields = [
+        'joint_owner__full_name', 'claim__no', 'consent_token',
+    ]
     readonly_fields = ['requested_at', 'consent_token']
 
     def joint_owner_link(self, obj):
         if obj and obj.joint_owner:
-            url = reverse('admin:claims_jointowner_change', args=[obj.joint_owner.id])
-            return format_html('<a href="{}">{}</a>', url, obj.joint_owner.full_name)
+            url = reverse(
+                'admin:claims_jointowner_change', args=[obj.joint_owner.id]
+            )
+            return format_html(
+                '<a href="{}">{}</a>', url, obj.joint_owner.full_name
+            )
         return "-"
 
     joint_owner_link.short_description = 'Joint Owner'
@@ -1450,11 +1761,16 @@ class JointOwnerConsentAdmin(admin.ModelAdmin):
 class JointPaymentInstructionAdmin(admin.ModelAdmin):
     list_display = ['id', 'claim_link', 'payment_method', 'created_at']
     list_filter = ['payment_method']
-    search_fields = ['claim__no', 'joint_account_name', 'joint_account_number']
-    fields = ['claim', 'payment_method', 'split_percentages', 'joint_account_name',
-              'joint_account_number', 'joint_bank_name', 'joint_branch_name',
-              'nominee_owner_id', 'nominee_consent_received', 'no_objection_letter_path',
-              'joint_consent_form_path', 'additional_notes']
+    search_fields = [
+        'claim__no', 'joint_account_name', 'joint_account_number',
+    ]
+    fields = [
+        'claim', 'payment_method', 'split_percentages',
+        'joint_account_name', 'joint_account_number',
+        'joint_bank_name', 'joint_branch_name', 'nominee_owner_id',
+        'nominee_consent_received', 'no_objection_letter_path',
+        'joint_consent_form_path', 'additional_notes',
+    ]
 
     def claim_link(self, obj):
         if obj and obj.claim:

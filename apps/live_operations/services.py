@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 class LiveDatabaseService:
     """Service for live database operations using raw SQL only."""
 
-    # ==================== DATABASE CONFIGURATION ====================
-
     DATABASE_NAME = "UFAAv24"
     DATABASE_SCHEMA = "dbo"
 
@@ -47,16 +45,8 @@ class LiveDatabaseService:
 
     CREATED_BY_VALUE = "UFAA_Reunite_Mobile"
 
-    # Assets with a Status below this value are considered searchable /
-    # available to be claimed. On the live table:
-    #   1 = Unclaimed
-    #   2 = In Process
-    #   3 = Claimed
-    #   4 = Archived
     MAX_SEARCHABLE_ASSET_STATUS = 2
 
-    # Columns managed by SQL Server / Business Central. Never include
-    # these in an INSERT — the target system writes them.
     SYSTEM_MANAGED_COLUMNS = (
         "timestamp",
         "$systemId",
@@ -66,8 +56,6 @@ class LiveDatabaseService:
         "$systemModifiedBy",
     )
 
-    # Keys that should never receive None. If a None sneaks through,
-    # the sweep in push_* methods replaces it with a default.
     BOOLEAN_LIKE_KEYS = (
         "Rejected",
         "Posted",
@@ -90,8 +78,6 @@ class LiveDatabaseService:
         "Value LCY",
     )
 
-    # Maps ClaimDocument.document_type choice keys to the [Code] value
-    # written on the live Attached Documents table.
     DOCUMENT_TYPE_CODE_MAPPING = {
         "combined": "COMBINED",
         "form4a": "FORM4A",
@@ -120,22 +106,16 @@ class LiveDatabaseService:
 
     _NON_BMP_AND_EMOJI_RE = re.compile(
         "["
-        "\U0001F000-\U0001FAFF"   # emoji, symbols, pictographs
-        "\U0001F1E6-\U0001F1FF"   # regional indicators (flags)
-        "\U00002600-\U000027BF"   # misc symbols + dingbats
-        "\uFE00-\uFE0F"           # variation selectors
-        "\u200D"                  # zero-width joiner
+        "\U0001F000-\U0001FAFF"
+        "\U0001F1E6-\U0001F1FF"
+        "\U00002600-\U000027BF"
+        "\uFE00-\uFE0F"
+        "\u200D"
         "]"
     )
 
     @staticmethod
     def sanitize_for_sql(value):
-        """
-        Strip characters that break ODBC binding on SQL Server.
-
-        Removes emoji, non-BMP characters, and C0/C1 control chars
-        except tab, newline, carriage return.
-        """
         if value is None:
             return None
         if not isinstance(value, str):
@@ -151,7 +131,6 @@ class LiveDatabaseService:
 
     @staticmethod
     def sanitize_payload_strings(payload):
-        """Apply sanitize_for_sql to every string value in a payload dict."""
         for k, v in list(payload.items()):
             if isinstance(v, str):
                 payload[k] = LiveDatabaseService.sanitize_for_sql(v)
@@ -389,16 +368,236 @@ class LiveDatabaseService:
             )
             raise
 
-    # ==================== SEARCH METHODS ====================
+    # ==================== CLAIM SEARCH ====================
+
+    @staticmethod
+    def search_live_claims(identifier, search_type="claim_no"):
+        """
+        Search the live Online Claim table directly via SQL.
+
+        Returns a list of dicts with the same shape as the old ORM
+        serializers, plus `rejected` and `rejection_reason`
+        (from `[Send Remarks]`).
+        """
+        identifier = LiveDatabaseService.safe_string(identifier, 255)
+        search_type = LiveDatabaseService.safe_string(search_type, 20).lower()
+
+        if not identifier:
+            raise ValueError("Search identifier is required")
+
+        valid_types = {"id", "claim_no", "passport"}
+        if search_type not in valid_types:
+            raise ValueError(
+                f"Invalid search_type. Must be one of: {', '.join(sorted(valid_types))}"
+            )
+
+        selected_columns = """
+            [No_]                          AS claim_no,
+            [Name]                         AS claimant_name,
+            [ID Number_]                   AS id_number,
+            [ID Number]                    AS id_number_alt,
+            [Passport No_]                 AS passport_no,
+            [Phone No_]                    AS claimant_phone,
+            [E-Mail]                       AS claimant_email,
+            [Value]                        AS amount,
+            [Status]                       AS status,
+            [Payment Category]             AS payment_category,
+            [Bank Name]                    AS bank_name,
+            [Bank Account No_]             AS bank_account_no,
+            [Mpesa Mobile No_]             AS mpesa_mobile_no,
+            [Category]                     AS category,
+            [Sub Category]                 AS sub_category,
+            [Claim Type]                   AS claim_type,
+            [Agent Name]                   AS agent_name,
+            [Asset No_]                    AS asset_no,
+            [Asset Type]                   AS asset_type,
+            [Description]                  AS description,
+            [Rejected]                     AS rejected,
+            [Send Remarks]                 AS send_remarks,
+            [$systemCreatedAt]             AS created_at,
+            [$systemModifiedAt]            AS updated_at
+        """
+
+        if search_type == "id":
+            where = (
+                "("
+                "LTRIM(RTRIM(CAST([ID Number_] AS VARCHAR(100)))) = %s "
+                "OR LTRIM(RTRIM(CAST([ID Number] AS VARCHAR(100)))) = %s"
+                ")"
+            )
+            params = [identifier, identifier]
+        elif search_type == "passport":
+            where = (
+                "LTRIM(RTRIM(CAST([Passport No_] AS VARCHAR(100)))) = %s"
+            )
+            params = [identifier]
+        else:  # claim_no
+            where = "LTRIM(RTRIM(CAST([No_] AS VARCHAR(100)))) = %s"
+            params = [identifier]
+
+        sql = f"""
+            SELECT {selected_columns}
+            FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+            WHERE {where}
+        """
+
+        with connections["ereunify"].cursor() as cursor:
+            cursor.execute(sql, params)
+            columns = [c[0] for c in cursor.description]
+            rows = cursor.fetchall()
+
+        results = []
+        for row in rows:
+            raw = dict(zip(columns, row))
+            results.append(
+                LiveDatabaseService._serialize_live_claim_row(raw)
+            )
+        return results
+
+    @staticmethod
+    def get_live_claim(claim_no):
+        """Fetch a single live claim by its claim number."""
+        if not claim_no:
+            return None
+
+        claim_no = LiveDatabaseService.safe_string(claim_no, 100)
+
+        with connections["ereunify"].cursor() as cursor:
+            cursor.execute(
+                f"""
+                    SELECT
+                        [No_]                          AS claim_no,
+                        [Name]                         AS claimant_name,
+                        [ID Number_]                   AS id_number,
+                        [ID Number]                    AS id_number_alt,
+                        [Passport No_]                 AS passport_no,
+                        [Phone No_]                    AS claimant_phone,
+                        [E-Mail]                       AS claimant_email,
+                        [Value]                        AS amount,
+                        [Status]                       AS status,
+                        [Payment Category]             AS payment_category,
+                        [Bank Name]                    AS bank_name,
+                        [Bank Account No_]             AS bank_account_no,
+                        [Mpesa Mobile No_]             AS mpesa_mobile_no,
+                        [Category]                     AS category,
+                        [Sub Category]                 AS sub_category,
+                        [Claim Type]                   AS claim_type,
+                        [Agent Name]                   AS agent_name,
+                        [Asset No_]                    AS asset_no,
+                        [Asset Type]                   AS asset_type,
+                        [Description]                  AS description,
+                        [Rejected]                     AS rejected,
+                        [Send Remarks]                 AS send_remarks,
+                        [$systemCreatedAt]             AS created_at,
+                        [$systemModifiedAt]            AS updated_at
+                    FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                    WHERE [No_] = %s
+                """,
+                [claim_no],
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            columns = [c[0] for c in cursor.description]
+            return LiveDatabaseService._serialize_live_claim_row(
+                dict(zip(columns, row))
+            )
+
+    @staticmethod
+    def _serialize_live_claim_row(raw):
+        """Convert a raw DB row dict into the JSON-friendly payload."""
+        amount = raw.get("amount")
+        if amount is not None:
+            try:
+                amount = float(amount)
+            except (TypeError, ValueError):
+                amount = None
+
+        created_at = raw.get("created_at")
+        updated_at = raw.get("updated_at")
+
+        rejected = bool(raw.get("rejected"))
+        send_remarks = raw.get("send_remarks") or ""
+
+        return {
+            "claim_no": raw.get("claim_no"),
+            "claimant_name": raw.get("claimant_name"),
+            "id_number": raw.get("id_number") or "",
+            "id_number_alt": raw.get("id_number_alt") or "",
+            "passport_no": raw.get("passport_no") or "",
+            "claimant_phone": raw.get("claimant_phone"),
+            "claimant_email": raw.get("claimant_email"),
+            "amount": amount,
+            "status": raw.get("status"),
+            "payment_category": raw.get("payment_category"),
+            "bank_name": raw.get("bank_name"),
+            "bank_account_no": raw.get("bank_account_no"),
+            "mpesa_mobile_no": raw.get("mpesa_mobile_no"),
+            "category": raw.get("category"),
+            "sub_category": raw.get("sub_category"),
+            "claim_type": raw.get("claim_type"),
+            "agent_name": raw.get("agent_name"),
+            "asset_no": raw.get("asset_no"),
+            "asset_type": raw.get("asset_type"),
+            "description": raw.get("description"),
+            "rejected": rejected,
+            "rejection_reason": send_remarks,
+            "created_at": created_at.isoformat() if created_at else None,
+            "updated_at": updated_at.isoformat() if updated_at else None,
+        }
+
+    # ==================== REJECTION DETAILS ====================
+
+    @staticmethod
+    def get_claim_rejection_details(claim_no):
+        """
+        Fetch the rejection state for a single live claim.
+
+        Returns a dict:
+            {
+                "claim_no": "...",
+                "rejected": True/False,
+                "rejection_reason": "[Send Remarks] text",
+                "status": ...,
+            }
+        or None if the claim is not found.
+        """
+        if not claim_no:
+            return None
+
+        claim_no = LiveDatabaseService.safe_string(claim_no, 100)
+
+        with connections["ereunify"].cursor() as cursor:
+            cursor.execute(
+                f"""
+                    SELECT
+                        [No_]          AS claim_no,
+                        [Rejected]     AS rejected,
+                        [Send Remarks] AS send_remarks,
+                        [Status]       AS status
+                    FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                    WHERE [No_] = %s
+                """,
+                [claim_no],
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            columns = [c[0] for c in cursor.description]
+            raw = dict(zip(columns, row))
+
+        return {
+            "claim_no": raw.get("claim_no"),
+            "rejected": bool(raw.get("rejected")),
+            "rejection_reason": raw.get("send_remarks") or "",
+            "status": raw.get("status"),
+        }
+
+    # ==================== ASSET SEARCH ====================
 
     @staticmethod
     def search_unclaimed_assets(identifier, search_type="id"):
-        """
-        Search for unclaimed assets in the live Business Central table.
-
-        Only assets whose [Status] is strictly less than
-        MAX_SEARCHABLE_ASSET_STATUS (default 2) are returned.
-        """
         identifier = LiveDatabaseService.safe_string(identifier, 255)
         search_type = LiveDatabaseService.safe_string(search_type, 20).lower()
 

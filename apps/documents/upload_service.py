@@ -1,136 +1,240 @@
-from django.db import transaction
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from apps.live_operations.services import LiveDatabaseService
-from .sharepoint_service import SharePointUploadService
-from .models import SharePointDocument
+# apps/documents/upload_service.py
+"""
+Document upload service for claim documents.
+
+The bytes go to SharePoint (via ClaimDocument.file → SharePointStorage).
+Only metadata is kept in Postgres. This service never touches
+``FileField.path`` — SharePointStorage raises ``NotImplementedError``
+for cloud files, so only ``.url``, ``.open('rb')``, ``.storage.exists``,
+``.storage.size``, and ``.storage.delete`` are used.
+"""
+
+import logging
+import mimetypes
+import os
+
 from django.utils import timezone
 
+from apps.claims.models import Claim, ClaimDocument
+
+logger = logging.getLogger(__name__)
+
+
 class DocumentUploadService:
-    """Service for uploading documents to SharePoint and saving references"""
-    
-    def __init__(self):
-        self.sharepoint_service = SharePointUploadService()
-    
-    def upload_claim_document(self, file, document_type, claim, user, claim_number=None):
+    """Handles document upload, listing, and verification for claims."""
+
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+    ALLOWED_EXTENSIONS = [
+        'pdf', 'jpg', 'jpeg', 'png',
+        'doc', 'docx', 'xls', 'xlsx', 'txt',
+    ]
+
+    # ---------------------------------------------------------------- #
+    # UPLOAD
+    # ---------------------------------------------------------------- #
+
+    def upload_claim_document(
+        self,
+        *,
+        file,
+        document_type: str,
+        claim: Claim,
+        user,
+        claim_number: str = None,
+    ) -> dict:
         """
-        Upload document for a claim and save references in both databases
-        
-        Args:
-            file: Uploaded file object
-            document_type: Type of document
-            claim: Claim object (PostgreSQL)
-            user: User object
-            claim_number: Claim number for MSSQL reference
-        
+        Persist a document for a claim.
+
+        The bytes are written through ``ClaimDocument.file``, which is
+        backed by ``SharePointStorage``. Postgres only stores the
+        relative path plus metadata.
+
         Returns:
-            dict: Upload result with file information
-        """
-        
-        # Generate folder path
-        folder_path = f"claims/{claim.created_at.year}/{claim.id}"
-        
-        # Upload to SharePoint
-        upload_result = self.sharepoint_service.upload_file(
-            file_content=file.read(),
-            filename=file.name,
-            folder_path=folder_path,
-            claim_id=str(claim.id)
-        )
-        
-        if not upload_result['success']:
-            return upload_result
-        
-        # Save to PostgreSQL
-        postgres_doc = self._save_to_postgresql(
-            upload_result, file, document_type, claim, user
-        )
-        
-        # Save to MSSQL (if claim_number provided)
-        if claim_number:
-            self._save_to_mssql(
-                upload_result, file, document_type, claim_number, user
-            )
-        
-        return {
-            'success': True,
-            'document_id': postgres_doc.id,
-            'file_url': upload_result['file_url'],
-            'file_name': upload_result['file_name'],
-            'message': 'Document uploaded successfully'
-        }
-    
-    def _save_to_postgresql(self, upload_result, file, document_type, claim, user):
-        """Save document reference to PostgreSQL"""
-        
-        doc = SharePointDocument.objects.create(
-            file_id=upload_result['file_id'],
-            file_name=upload_result['file_name'],
-            original_name=upload_result['original_name'],
-            file_url=upload_result['file_url'],
-            file_path=upload_result['file_path'],
-            file_size=file.size,
-            mime_type=file.content_type or 'application/octet-stream',
-            document_type=document_type,
-            claim=claim,
-            uploaded_by=user,
-            sharepoint_site=self.sharepoint_service.sharepoint_url,
-            sharepoint_library=self.sharepoint_service.document_library,
-            sharepoint_folder=f"claims/{claim.created_at.year}/{claim.id}",
-        )
-        
-        return doc
-    
-    def _save_to_mssql(self, upload_result, file, document_type, claim_number, user):
-        """Save document reference to MSSQL live database"""
-        
-        from apps.live_operations.services import LiveDatabaseService
-        
-        LiveDatabaseService.add_claim_document(
-            claim_no=claim_number,
-            document_type=document_type,
-            sharepoint_url=upload_result['file_url'],
-            file_name=upload_result['file_name'],
-            file_size=file.size,
-            uploaded_by=user.username
-        )
-    
-    def get_claim_documents(self, claim_id, claim_number=None):
-        """Get all documents for a claim from both databases"""
-        
-        documents = {
-            'postgresql': [],
-            'mssql': []
-        }
-        
-        # Get from PostgreSQL
-        postgres_docs = SharePointDocument.objects.filter(claim_id=claim_id)
-        documents['postgresql'] = [
-            {
-                'id': doc.id,
-                'name': doc.original_name,
-                'type': doc.document_type,
-                'url': doc.file_url,
-                'size': doc.formatted_size,
-                'uploaded_at': doc.created_at,
-                'verified': doc.is_verified,
+            dict: {
+                "success": True,
+                "document_id": int,
+                "file_url": str,
+                "file_name": str,
+                "message": str,
             }
-            for doc in postgres_docs
-        ]
-        
-        # Get from MSSQL if claim_number provided
-        if claim_number:
-            mssql_docs = LiveDatabaseService.get_claim_documents(claim_number)
-            documents['mssql'] = mssql_docs
-        
-        return documents
-    
-    def verify_document(self, document_id, user):
-        """Mark document as verified in PostgreSQL"""
-        
-        doc = SharePointDocument.objects.get(id=document_id)
+            or
+            {"success": False, "error": "..."}
+        """
+        try:
+            # ---- Validate ----
+            if file is None:
+                return {"success": False, "error": "No file provided."}
+
+            size = getattr(file, "size", None) or 0
+            if size <= 0:
+                return {"success": False, "error": "File is empty."}
+
+            if size > self.MAX_FILE_SIZE:
+                return {
+                    "success": False,
+                    "error": (
+                        f"File too large. Maximum size is "
+                        f"{self.MAX_FILE_SIZE // (1024 * 1024)}MB."
+                    ),
+                }
+
+            ext = self._extension(file.name)
+            if ext not in self.ALLOWED_EXTENSIONS:
+                return {
+                    "success": False,
+                    "error": (
+                        f"File type '{ext}' is not allowed. "
+                        f"Allowed: {', '.join(self.ALLOWED_EXTENSIONS)}"
+                    ),
+                }
+
+            document_name = os.path.basename(file.name)
+
+            # ---- Persist ----
+            # The FileField's storage (SharePointStorage) uploads the
+            # bytes; the DB stores the relative path returned by
+            # get_available_name().
+            with transaction.atomic():
+                doc = ClaimDocument.objects.create(
+                    claim=claim,
+                    document_type=document_type,
+                    document_name=document_name,
+                    file=file,
+                    file_size=size,
+                    file_extension=ext,
+                    uploaded_by=(
+                        user
+                        if getattr(user, "is_authenticated", False)
+                        else None
+                    ),
+                )
+
+            # ---- Build the download URL ----
+            file_url = None
+            try:
+                file_url = doc.file.url
+            except Exception:
+                logger.exception(
+                    "Could not resolve URL for uploaded document %s", doc.id
+                )
+
+            logger.info(
+                "Uploaded document %s for claim %s (%s, %d bytes, backend=%s)",
+                doc.id, claim.no, document_name, size,
+                getattr(doc, "storage_backend", "sharepoint"),
+            )
+
+            return {
+                "success": True,
+                "document_id": doc.id,
+                "claim_id": claim.id,
+                "claim_no": claim.no,
+                "claim_number": claim_number,
+                "document_type": doc.document_type,
+                "document_type_display": doc.get_document_type_display(),
+                "document_name": doc.document_name,
+                "file_name": doc.document_name,
+                "file_size": doc.file_size,
+                "file_extension": doc.file_extension,
+                "storage_backend": getattr(
+                    doc, "storage_backend", "sharepoint"
+                ),
+                "file_url": file_url,
+                "uploaded_at": doc.uploaded_at.isoformat(),
+                "message": "Document uploaded successfully",
+            }
+
+        except Exception as exc:
+            logger.exception(
+                "Document upload failed for claim %s", getattr(claim, "id", "?")
+            )
+            return {"success": False, "error": str(exc)}
+
+    # ---------------------------------------------------------------- #
+    # LIST
+    # ---------------------------------------------------------------- #
+
+    def get_claim_documents(self, claim_id: int, claim_number: str = None):
+        """
+        Return a list of dicts describing the documents attached to a
+        claim. Never touches ``file.path``.
+        """
+        docs = (
+            ClaimDocument.objects
+            .filter(claim_id=claim_id)
+            .select_related("claim", "uploaded_by", "verified_by")
+            .order_by("-uploaded_at")
+        )
+
+        results = []
+        for doc in docs:
+            url = None
+            if doc.file:
+                try:
+                    url = doc.file.url
+                except Exception:
+                    logger.warning(
+                        "Could not resolve URL for document %s", doc.id
+                    )
+
+            results.append({
+                "id": doc.id,
+                "claim": doc.claim_id,
+                "claim_no": doc.claim.no if doc.claim else None,
+                "document_type": doc.document_type,
+                "document_type_display": doc.get_document_type_display(),
+                "document_name": doc.document_name,
+                "file_name": doc.document_name,
+                "file_url": url,
+                "file_size": doc.file_size,
+                "file_extension": doc.file_extension,
+                "storage_backend": getattr(
+                    doc, "storage_backend", "sharepoint"
+                ),
+                "uploaded_by": doc.uploaded_by_id,
+                "uploaded_by_name": (
+                    doc.uploaded_by.get_full_name()
+                    if doc.uploaded_by else None
+                ),
+                "uploaded_at": doc.uploaded_at.isoformat(),
+                "is_verified": doc.is_verified,
+                "verified_by": doc.verified_by_id,
+                "verified_by_name": (
+                    doc.verified_by.get_full_name()
+                    if doc.verified_by else None
+                ),
+                "verified_at": (
+                    doc.verified_at.isoformat() if doc.verified_at else None
+                ),
+                "verification_notes": doc.verification_notes,
+                "is_rejected": doc.is_rejected,
+                "rejection_reason": doc.rejection_reason,
+                "version": doc.version,
+                "is_latest": doc.is_latest,
+            })
+
+        return results
+
+    # ---------------------------------------------------------------- #
+    # VERIFY
+    # ---------------------------------------------------------------- #
+
+    def verify_document(self, document_id: int, user) -> ClaimDocument:
+        """Mark a document as verified and return the instance."""
+        doc = ClaimDocument.objects.get(id=document_id)
         doc.is_verified = True
         doc.verified_by = user
         doc.verified_at = timezone.now()
-        doc.save()
-        
+        doc.save(update_fields=["is_verified", "verified_by", "verified_at"])
         return doc
+
+    # ---------------------------------------------------------------- #
+    # HELPERS
+    # ---------------------------------------------------------------- #
+
+    @staticmethod
+    def _extension(filename: str) -> str:
+        if not filename or "." not in filename:
+            return ""
+        return filename.rsplit(".", 1)[-1].lower()

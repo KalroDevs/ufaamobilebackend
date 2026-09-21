@@ -1,8 +1,31 @@
+# apps/asset_tracking/admin.py
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from .models import AssetLocationLog, AssetTrackingDocument, TrackedAsset
+
+
+class StorageBackendFilter(SimpleListFilter):
+    """Filter documents by which storage backend holds the bytes."""
+
+    title = 'Storage backend'
+    parameter_name = 'storage_backend'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('sharepoint', 'SharePoint'),
+            ('local', 'Local disk'),
+        )
+
+    def queryset(self, request, queryset):
+        val = self.value()
+        if val == 'sharepoint':
+            return queryset.filter(storage_backend='sharepoint')
+        if val == 'local':
+            return queryset.exclude(storage_backend='sharepoint')
+        return queryset
 
 
 class AssetLocationLogInline(admin.TabularInline):
@@ -39,12 +62,13 @@ class AssetTrackingDocumentInline(admin.TabularInline):
         'document_type',
         'document_name',
         'file',
+        'storage_backend',
         'file_size',
         'file_extension',
         'uploaded_by',
         'uploaded_at',
     )
-    readonly_fields = ('file_size', 'file_extension', 'uploaded_at')
+    readonly_fields = ('storage_backend', 'file_size', 'file_extension', 'uploaded_at')
 
 
 @admin.register(TrackedAsset)
@@ -198,17 +222,58 @@ class AssetTrackingDocumentAdmin(admin.ModelAdmin):
         'document_type',
         'document_name',
         'file',
+        'storage_badge',                     # 👈 NEW
         'file_size',
         'uploaded_by',
         'uploaded_at',
     )
-    list_filter = ('document_type', 'file_extension', 'uploaded_at')
+    list_filter = (
+        'document_type',
+        'file_extension',
+        StorageBackendFilter,                # 👈 NEW
+        'uploaded_at',
+    )
     search_fields = (
         'tracked_asset__asset_no',
         'document_name',
         'uploaded_by_email',
         'notes',
     )
-    readonly_fields = ('uploaded_at', 'file_size', 'file_extension')
+    readonly_fields = (
+        'uploaded_at',
+        'file_size',
+        'file_extension',
+        'storage_backend',                   # 👈 NEW
+    )
     raw_id_fields = ('tracked_asset', 'uploaded_by')
     date_hierarchy = 'uploaded_at'
+
+    # ---------------------------------------------------------------- #
+    # Storage badge
+    # ---------------------------------------------------------------- #
+
+    @admin.display(description='Storage')
+    def storage_badge(self, obj):
+        backend = (obj.storage_backend or 'unknown').lower()
+        if backend == 'sharepoint':
+            return format_html(
+                '<span style="color:#0d6efd; font-weight:600;">☁️ SharePoint</span>'
+            )
+        return format_html('<span style="color:#6c757d;">💾 Local</span>')
+
+    # ---------------------------------------------------------------- #
+    # Save / delete
+    # ---------------------------------------------------------------- #
+
+    def save_model(self, request, obj, form, change):
+        if 'file' in form.changed_data and obj.file:
+            obj.storage_backend = 'sharepoint'
+        super().save_model(request, obj, form, change)
+
+    def delete_model(self, request, obj):
+        if obj.file:
+            try:
+                obj.file.delete(save=False)
+            except Exception:
+                pass
+        super().delete_model(request, obj)
