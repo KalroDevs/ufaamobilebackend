@@ -1,11 +1,11 @@
 # apps/iprs/serializers.py
 from rest_framework import serializers
-from .models import IprsSearchLog, IprsCache
+from .models import IprsCache, IprsSearchLog
 
 
 class IprsLookupRequestSerializer(serializers.Serializer):
-    """Serializer for IPRS lookup requests (public - no auth required)"""
-    
+    """Serializer for IPRS lookup requests (public endpoint)."""
+
     id_card = serializers.CharField(
         required=True,
         max_length=20,
@@ -19,86 +19,103 @@ class IprsLookupRequestSerializer(serializers.Serializer):
     device_fingerprint = serializers.CharField(
         required=False,
         allow_blank=True,
+        default="",
         max_length=255,
         help_text="Optional device fingerprint from the mobile app"
     )
-    
+
     def validate_id_card(self, value):
-        """Validate and normalize the ID card number"""
-        # Convert to string and strip whitespace
-        value = str(value).strip()
-        
-        # Remove any non-digit characters
-        value = ''.join(c for c in value if c.isdigit())
-        
-        if not value:
-            raise serializers.ValidationError("ID card number is required")
-        
-        if len(value) < 7 or len(value) > 8:
+        """Validate and normalize the ID card number."""
+        cleaned_value = ''.join(c for c in str(value).strip() if c.isdigit())
+
+        if not cleaned_value:
+            raise serializers.ValidationError("ID card number must contain digits.")
+
+        if not (7 <= len(cleaned_value) <= 8):
             raise serializers.ValidationError(
                 f"Invalid ID card number. Kenyan National IDs must be 7-8 digits "
-                f"(received {len(value)} digits)."
+                f"(received {len(cleaned_value)} digits)."
             )
-        
-        return value
+
+        return cleaned_value
 
 
 class IprsPersonalDetailsSerializer(serializers.Serializer):
     """
-    Serializer for IPRS personal details response.
-    
-    Name conventions (Kenyan):
-        - surname: Family name
-        - other_names: first_Name + other_Name combined
-        - full_name: surname + other_names
+    Serializer for IPRS personal details output.
+    Handles both Python dictionaries (raw API responses) and Model instances safely.
     """
-    
+
     id = serializers.IntegerField(
         required=False,
         allow_null=True,
         help_text="IPRS internal ID"
     )
     idCard = serializers.CharField(
+        source='id_card',
+        required=False,
         help_text="National ID number"
     )
     surname = serializers.CharField(
+        required=False,
+        allow_blank=True,
         help_text="Surname (family name)"
     )
     other_names = serializers.CharField(
         required=False,
         allow_blank=True,
-        help_text="Other names (first name + other name combined)"
+        help_text="Other names (first name + middle name)"
     )
     gender = serializers.CharField(
+        required=False,
+        allow_blank=True,
         help_text="Gender (M/F)"
     )
     searchedAt = serializers.DateTimeField(
+        source='searched_at',
         required=False,
         allow_null=True,
         help_text="Timestamp of IPRS search"
     )
-    
-    # Computed fields
+
     full_name = serializers.SerializerMethodField()
     gender_display = serializers.SerializerMethodField()
-    
+
+    def _get_val(self, obj, key_snake, key_camel=None):
+        """Helper to retrieve attribute value whether obj is a dict or Model instance."""
+        if isinstance(obj, dict):
+            return obj.get(key_snake) or (obj.get(key_camel) if key_camel else None)
+        return getattr(obj, key_snake, None)
+
     def get_full_name(self, obj):
-        """Return the full name: Surname OtherNames"""
-        surname = (obj.get('surname') or '').strip()
-        other_names = (obj.get('other_names') or '').strip()
-        return ' '.join(p for p in [surname, other_names] if p).strip()
-    
+        """Return full name: Surname OtherNames."""
+        surname = (self._get_val(obj, 'surname') or '').strip()
+        other_names = (self._get_val(obj, 'other_names') or '').strip()
+        full_name = ' '.join(p for p in [surname, other_names] if p).strip()
+        return full_name or None
+
     def get_gender_display(self, obj):
-        """Return human-readable gender"""
-        gender = obj.get('gender', '').upper()
-        return {'M': 'Male', 'F': 'Female'}.get(gender, gender)
+        """Return human-readable gender."""
+        gender = (self._get_val(obj, 'gender') or '').upper()
+        mapping = {'M': 'Male', 'F': 'Female', 'MALE': 'Male', 'FEMALE': 'Female'}
+        return mapping.get(gender, gender if gender else None)
+
+    def to_representation(self, instance):
+        """Ensure camelCase keys fallback correctly if dictionary input has camelCase directly."""
+        ret = super().to_representation(instance)
+        if isinstance(instance, dict):
+            if not ret.get('idCard') and 'idCard' in instance:
+                ret['idCard'] = instance['idCard']
+            if not ret.get('searchedAt') and 'searchedAt' in instance:
+                ret['searchedAt'] = instance['searchedAt']
+        return ret
 
 
 class IprsSearchLogSerializer(serializers.ModelSerializer):
-    """Serializer for IPRS search logs (admin/staff view)"""
-    
+    """Serializer for IPRS search logs (audit view)."""
+
     full_name = serializers.CharField(read_only=True)
-    
+
     class Meta:
         model = IprsSearchLog
         fields = [
@@ -111,11 +128,11 @@ class IprsSearchLogSerializer(serializers.ModelSerializer):
 
 
 class IprsCacheSerializer(serializers.ModelSerializer):
-    """Serializer for IPRS cache entries"""
-    
+    """Serializer for IPRS cache entries."""
+
     full_name = serializers.CharField(read_only=True)
     is_expired = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
         model = IprsCache
         fields = [
@@ -127,8 +144,8 @@ class IprsCacheSerializer(serializers.ModelSerializer):
 
 
 class IprsBulkLookupSerializer(serializers.Serializer):
-    """Serializer for bulk IPRS lookups"""
-    
+    """Serializer for bulk IPRS lookups."""
+
     id_cards = serializers.ListField(
         child=serializers.CharField(max_length=20),
         required=True,
@@ -143,24 +160,25 @@ class IprsBulkLookupSerializer(serializers.Serializer):
     device_fingerprint = serializers.CharField(
         required=False,
         allow_blank=True,
+        default="",
         max_length=255
     )
-    
+
     def validate_id_cards(self, value):
-        """Validate and normalize all ID cards"""
+        """Validate, normalize, and deduplicate all ID cards."""
         validated = []
         errors = []
-        
-        for i, id_card in enumerate(value):
-            id_card = str(id_card).strip()
-            id_card = ''.join(c for c in id_card if c.isdigit())
-            
-            if len(id_card) < 7 or len(id_card) > 8:
-                errors.append(f"Invalid ID at position {i}: {id_card}")
+
+        for i, raw_id in enumerate(value):
+            cleaned_id = ''.join(c for c in str(raw_id).strip() if c.isdigit())
+
+            if not (7 <= len(cleaned_id) <= 8):
+                errors.append(f"Position {i}: '{raw_id}' is invalid. Kenyan IDs must be 7-8 digits.")
             else:
-                validated.append(id_card)
-        
+                validated.append(cleaned_id)
+
         if errors:
             raise serializers.ValidationError(errors)
-        
-        return validated
+
+        # Deduplicate while preserving order
+        return list(dict.fromkeys(validated))

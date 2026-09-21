@@ -1,14 +1,33 @@
 # apps/accounts/models.py
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
+class UserManager(BaseUserManager):
+    """
+    Manager that hides soft-deleted users by default.
+
+    - User.objects            → only active (non-deleted) users
+    - User.all_objects        → every user, including soft-deleted ones
+    - User.deleted_objects    → only soft-deleted users
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+    def all_with_deleted(self):
+        return super().get_queryset()
+
+    def deleted(self):
+        return super().get_queryset().filter(is_deleted=True)
+
+
 class User(AbstractUser):
     """Extended User model for UFAA Kenya"""
-    
+
     # Personal Information
     ROLE_CHOICES = [
         ('citizen', 'Citizen'),
@@ -16,61 +35,61 @@ class User(AbstractUser):
         ('admin', 'Administrator'),
         ('agent', 'Agent'),
     ]
-    
+
     RESIDENCE_CHOICES = [
         ('', 'Blank'),
         ('Kenyan', 'Kenyan'),
         ('Non_Kenyan', 'Non Kenyan'),
     ]
-    
+
     GENDER_CHOICES = [
         ('', 'Blank'),
         ('Male', 'Male'),
         ('Female', 'Female'),
     ]
-    
+
     phone_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
         message="Phone number must be entered in format: '+25412345678'"
     )
-    
+
     # Core fields from WSDL
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='citizen')
     no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     residence = models.CharField(max_length=20, choices=RESIDENCE_CHOICES, blank=True, default='')
-    
+
     # Identification - Primary identifiers
     id_number = models.CharField(
-        max_length=9, 
-        unique=True, 
-        null=True, 
+        max_length=9,
+        unique=True,
+        null=True,
         blank=True,
         verbose_name=_('National ID Number'),
         help_text=_('Kenyan National ID Card Number (8 digits)')
     )
     passport_no = models.CharField(
-        max_length=20, 
-        unique=True, 
-        null=True, 
+        max_length=20,
+        unique=True,
+        null=True,
         blank=True,
         verbose_name=_('Passport Number'),
         help_text=_('For non-Kenyan residents')
     )
-    
+
     # Name Information
     name = models.CharField(max_length=200, blank=True, help_text="Full name")
     iprs_name = models.CharField(max_length=200, blank=True, help_text="Name from IPRS verification")
-    
+
     # Demographic Information
     claimant_birth_date = models.DateField(null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True, help_text="Alias for birth date")
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, default='')
-    
+
     # Disability Information
     person_living_with_disability = models.BooleanField(default=False)
     disability_category = models.CharField(
-        max_length=100, 
-        blank=True, 
+        max_length=100,
+        blank=True,
         choices=[
             ('physical', 'Physical Disability'),
             ('visual', 'Visual Impairment'),
@@ -83,86 +102,116 @@ class User(AbstractUser):
             ('albinism', 'Albinism'),
             ('other', 'Other'),
         ]
-    )  
+    )
     disability_certificate_no = models.CharField(max_length=50, blank=True)
-    
+
     # Tax and Business Information
     kra_pin = models.CharField(max_length=20, null=True, blank=True)
     business_registration_no = models.CharField(max_length=50, blank=True)
-    
+
     # Contact Information
     address = models.TextField(blank=True)
     address_2 = models.TextField(blank=True)
-    phone_no = models.CharField(validators=[phone_regex], max_length=17, unique=True)
+    phone_no = models.CharField(validators=[phone_regex], max_length=17, null=True, unique=True)
     secondary_phone_no = models.CharField(max_length=17, blank=True)
     e_mail = models.EmailField(blank=True)
-    
+
     # Postal Information
     post_code = models.CharField(max_length=20, blank=True)
     postal_address = models.CharField(max_length=200, blank=True, help_text="P.O. Box address")
-    
 
     # Password reset fields
     reset_token = models.CharField(max_length=100, blank=True, default='', db_index=True)
     reset_token_created_at = models.DateTimeField(null=True, blank=True)
-
-
-
 
     # Address Information
     county = models.CharField(max_length=50, blank=True, help_text="County of residence")
     city = models.CharField(max_length=100, blank=True, help_text="Town/City of residence")
     home_county = models.CharField(max_length=50, blank=True)
     estate_name = models.CharField(max_length=200, blank=True)
-    
+
     # Location fields from WSDL
     county_code = models.CharField(max_length=20, blank=True)
     county_name = models.CharField(max_length=100, blank=True)
     gps_location = models.JSONField(null=True, blank=True)
-    
+
     # Additional Information
     citizenship = models.CharField(max_length=50, blank=True, default='Kenyan')
     organization_name = models.CharField(max_length=200, blank=True)
     institution = models.CharField(max_length=200, blank=True)
-    
+
     # Profile
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
-    
+
     # ==================== EMAIL VERIFICATION FIELDS ====================
     is_verified = models.BooleanField(
-        default=False, 
+        default=False,
         help_text="Designates whether the user's email has been verified."
     )
     verification_token = models.CharField(
-        max_length=100, 
-        blank=True, 
+        max_length=100,
+        blank=True,
         help_text="Token for email verification link"
     )
     temporary_verification_code = models.CharField(
-        max_length=10, 
-        blank=True, 
+        max_length=10,
+        blank=True,
         null=True,
         help_text="6-digit code for manual email verification"
     )
     verification_sent_at = models.DateTimeField(
-        null=True, 
+        null=True,
         blank=True,
         help_text="Timestamp when verification email was last sent"
     )
     verified_at = models.DateTimeField(
-        null=True, 
+        null=True,
         blank=True,
         help_text="Timestamp when email was verified"
     )
-    
+
     # Security
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     device_fingerprint = models.CharField(max_length=255, blank=True)
-    
+
+    # ==================== SOFT DELETE FIELDS ====================
+    is_deleted = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Designates whether the user has deleted their account."
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the account was soft-deleted."
+    )
+    deletion_reason = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        default='',
+        help_text="Reason code provided at deletion time."
+    )
+    deletion_reason_details = models.TextField(
+        blank=True,
+        null=True,
+        default='',
+        help_text="Free-text explanation provided by the user."
+    )
+    deletion_requested_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address from which deletion was requested."
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    # ==================== MANAGERS ====================
+    objects = UserManager()            # default — hides soft-deleted
+    all_objects = BaseUserManager()    # unfiltered
+
     class Meta:
         db_table = 'users'
         ordering = ['-date_joined']
@@ -173,11 +222,13 @@ class User(AbstractUser):
             models.Index(fields=['no']),
             models.Index(fields=['role']),
             models.Index(fields=['email']),
-            models.Index(fields=['is_verified']),  # Index for verification queries
-            models.Index(fields=['verification_token']),  # Index for token lookups
-            models.Index(fields=['verification_sent_at']),  # Index for expiry checks
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['verification_token']),
+            models.Index(fields=['verification_sent_at']),
+            models.Index(fields=['is_deleted']),
+            models.Index(fields=['deleted_at']),
         ]
-    
+
     def save(self, *args, **kwargs):
         """Override save to set name and sync date fields"""
         if not self.name and self.first_name and self.last_name:
@@ -185,41 +236,65 @@ class User(AbstractUser):
         if self.claimant_birth_date and not self.date_of_birth:
             self.date_of_birth = self.claimant_birth_date
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
         identifier = self.id_number or self.passport_no or self.username
         verified_status = "✓" if self.is_verified else "✗"
-        return f"{self.name or self.username} - {identifier} [{verified_status}]"
-    
+        deleted_status = " [DELETED]" if self.is_deleted else ""
+        return f"{self.name or self.username} - {identifier} [{verified_status}]{deleted_status}"
+
+    # ==================== ROLE / STAFF PROPERTIES ====================
+
+    @property
+    def is_staff_role(self):
+        """
+        Return True if the user has a staff-level role on the custom
+        `role` field.
+
+        This is the app-level equivalent of Django's is_staff flag.
+        Mobile-app staff users are created with role='staff' but Django
+        leaves is_staff=False (that flag is only set by createsuperuser
+        or by the admin). Every staff-only endpoint in the app should
+        use this property instead of user.is_staff.
+        """
+        return self.role in ('staff', 'admin')
+
     @property
     def is_staff_member(self):
         return self.role in ['staff', 'admin']
-    
+
+    # ==================== DISPLAY HELPERS ====================
+
     @property
     def get_full_name_display(self):
         """Return full name or fallback to username"""
+        if self.is_deleted:
+            return "Deleted User"
         return self.name or self.get_full_name() or self.username
-    
+
+    @property
+    def display_name(self):
+        """Safe display name — never leaks anonymized data for deleted users."""
+        if self.is_deleted:
+            return "Deleted User"
+        return self.name or self.get_full_name() or self.username
+
     @property
     def get_primary_phone(self):
-        """Return primary phone number"""
         return self.phone_no
-    
+
     @property
     def get_secondary_phone(self):
-        """Return secondary phone number"""
         return self.secondary_phone_no or None
-    
+
     @property
     def get_disability_status(self):
-        """Return disability status as readable text"""
         if not self.person_living_with_disability:
             return "No Disability"
         return f"Disabled - {self.get_disability_category_display() or 'Not Specified'}"
-    
+
     @property
     def formatted_address(self):
-        """Return formatted full address"""
         parts = []
         if self.address:
             parts.append(self.address)
@@ -228,99 +303,108 @@ class User(AbstractUser):
         if self.county:
             parts.append(self.county)
         return ", ".join(parts) if parts else "No address provided"
-    
+
+    # ==================== VERIFICATION HELPERS ====================
+
     @property
     def is_verification_expired(self):
-        """Check if verification token has expired (24 hours)"""
         if not self.verification_sent_at:
             return True
         expiry_time = self.verification_sent_at + timezone.timedelta(hours=24)
         return timezone.now() > expiry_time
-    
+
     @property
     def verification_status_display(self):
-        """Return human-readable verification status"""
         if self.is_verified:
             return "Verified"
         if self.is_verification_expired:
             return "Verification Expired"
         return "Pending Verification"
-    
+
     def mark_as_verified(self):
-        """Mark user as verified and clear verification data"""
         self.is_verified = True
         self.verified_at = timezone.now()
         self.verification_token = ''
         self.temporary_verification_code = ''
-        self.save(update_fields=['is_verified', 'verified_at', 'verification_token', 'temporary_verification_code'])
-    
+        self.save(update_fields=[
+            'is_verified', 'verified_at',
+            'verification_token', 'temporary_verification_code',
+        ])
+
     def generate_new_verification_token(self):
-        """Generate new verification token and update timestamp"""
         from django.utils.crypto import get_random_string
         self.verification_token = get_random_string(length=64)
         self.verification_sent_at = timezone.now()
         self.save(update_fields=['verification_token', 'verification_sent_at'])
         return self.verification_token
-    
+
     def generate_new_verification_code(self):
-        """Generate new 6-digit verification code"""
         import random
-        self.temporary_verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.temporary_verification_code = ''.join(
+            [str(random.randint(0, 9)) for _ in range(6)]
+        )
         self.save(update_fields=['temporary_verification_code'])
         return self.temporary_verification_code
-    
+
+    # ==================== LOOKUP HELPERS ====================
+
     @classmethod
     def get_by_identifier(cls, identifier):
-        """Find user by any identifier (ID, email, phone, passport)"""
         if not identifier:
             return None
-            
-        # Try email
         if '@' in identifier:
             return cls.objects.filter(email=identifier).first()
-        
-        # Try ID number (8 digits)
         if identifier.isdigit() and len(identifier) == 8:
             return cls.objects.filter(id_number=identifier).first()
-        
-        # Try phone number
         if identifier.startswith('0') or identifier.startswith('+'):
             clean_phone = identifier
             if clean_phone.startswith('+254'):
                 clean_phone = '0' + clean_phone[4:]
             return cls.objects.filter(phone_no__icontains=clean_phone[-9:]).first()
-        
-        # Try passport number
         return cls.objects.filter(passport_no=identifier).first()
-    
+
     @classmethod
     def get_unverified_users(cls, older_than_hours=24):
-        """Get users who haven't verified their email within time limit"""
         cutoff_time = timezone.now() - timezone.timedelta(hours=older_than_hours)
         return cls.objects.filter(
             is_verified=False,
-            verification_sent_at__lte=cutoff_time
+            verification_sent_at__lte=cutoff_time,
         )
-    
+
     @classmethod
     def cleanup_expired_verifications(cls):
-        """Delete or cleanup expired unverified users"""
         expired_users = cls.get_unverified_users()
-        # Option 1: Delete expired unverified users
-        # expired_users.delete()
-        
-        # Option 2: Just clear their verification tokens
         expired_users.update(
             verification_token='',
             temporary_verification_code='',
-            verification_sent_at=None
+            verification_sent_at=None,
         )
         return expired_users.count()
+
+    # ==================== STAFF LOOKUP HELPERS ====================
+
+    @classmethod
+    def get_staff_users(cls):
+        """Return every active, non-deleted user with a staff/admin role."""
+        return cls.objects.filter(
+            role__in=('staff', 'admin'),
+            is_active=True,
+        )
+
+    @classmethod
+    def get_staff_by_email(cls, email):
+        """Look up a staff user by email — returns None if not staff."""
+        if not email:
+            return None
+        return cls.objects.filter(
+            email__iexact=email.strip(),
+            role__in=('staff', 'admin'),
+        ).first()
 
 
 class StaffProfile(models.Model):
     """Staff profile matching WSDL Location_Source enum"""
-    
+
     STAFF_DEPARTMENTS = [
         ('initiator', 'Initiator'),
         ('document_verification', 'Document Verification'),
@@ -333,7 +417,7 @@ class StaffProfile(models.Model):
         ('it', 'IT'),
         ('customer_service', 'Customer Service'),
     ]
-    
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
     employee_id = models.CharField(max_length=20, unique=True)
     department = models.CharField(max_length=50, choices=STAFF_DEPARTMENTS)
@@ -343,25 +427,31 @@ class StaffProfile(models.Model):
     profile_id = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'staff_profiles'
-    
+
     def __str__(self):
         return f"{self.user.name or self.user.username} - {self.employee_id}"
 
 
 class LoginAttempt(models.Model):
     """Track login attempts for security monitoring"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='login_attempts')
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='login_attempts',
+    )
     identifier = models.CharField(max_length=100, db_index=True)
     ip_address = models.GenericIPAddressField(db_index=True)
     success = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     user_agent = models.TextField(blank=True)
     device_fingerprint = models.CharField(max_length=255, blank=True)
-    
+
     class Meta:
         db_table = 'login_attempts'
         ordering = ['-timestamp']
@@ -370,54 +460,53 @@ class LoginAttempt(models.Model):
             models.Index(fields=['ip_address']),
             models.Index(fields=['timestamp']),
         ]
-    
+
     def __str__(self):
         status = "Success" if self.success else "Failed"
         return f"{self.identifier} - {status} at {self.timestamp}"
-    
+
     @classmethod
     def get_recent_failures(cls, identifier, minutes=15):
-        """Get recent failed login attempts for an identifier"""
         time_threshold = timezone.now() - timezone.timedelta(minutes=minutes)
         return cls.objects.filter(
             identifier=identifier,
             success=False,
-            timestamp__gte=time_threshold
+            timestamp__gte=time_threshold,
         ).count()
-    
+
     @classmethod
     def is_locked_out(cls, identifier, max_attempts=5, lockout_minutes=15):
-        """Check if an identifier is locked out due to too many failed attempts"""
         recent_failures = cls.get_recent_failures(identifier, lockout_minutes)
         return recent_failures >= max_attempts
 
 
 class PasswordResetToken(models.Model):
     """Store password reset tokens"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reset_tokens')
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reset_tokens'
+    )
     token = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
-    
+
     class Meta:
         db_table = 'password_reset_tokens'
         indexes = [
             models.Index(fields=['token']),
             models.Index(fields=['expires_at']),
         ]
-    
+
     def is_valid(self):
-        """Check if token is still valid"""
         return not self.is_used and timezone.now() < self.expires_at
-    
+
     def __str__(self):
         return f"Reset token for {self.user.username} - Expires: {self.expires_at}"
 
 
 class UserActivityLog(models.Model):
-    """Track user activities for audit purposes"""    
+    """Track user activities for audit purposes"""
     ACTIVITY_TYPES = [
         ('register', 'Registration'),
         ('login', 'Login'),
@@ -428,8 +517,9 @@ class UserActivityLog(models.Model):
         ('document_upload', 'Document Uploaded'),
         ('email_verify', 'Email Verified'),
         ('verification_resend', 'Verification Email Resent'),
+        ('account_delete', 'Account Deleted'),
     ]
-    
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
     activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES)
     description = models.TextField(blank=True)
@@ -437,7 +527,7 @@ class UserActivityLog(models.Model):
     user_agent = models.TextField(blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = 'user_activity_logs'
         ordering = ['-created_at']
@@ -446,22 +536,24 @@ class UserActivityLog(models.Model):
             models.Index(fields=['activity_type']),
             models.Index(fields=['created_at']),
         ]
-    
+
     def __str__(self):
         return f"{self.user.username} - {self.activity_type} at {self.created_at}"
 
 
 class LoginHistory(models.Model):
     """Track user login history"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='login_history')
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='login_history'
+    )
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField(blank=True)
     device_info = models.JSONField(default=dict, blank=True)
     login_time = models.DateTimeField(auto_now_add=True)
     logout_time = models.DateTimeField(null=True, blank=True)
     session_key = models.CharField(max_length=100, blank=True)
-    
+
     class Meta:
         db_table = 'login_history'
         ordering = ['-login_time']
@@ -469,24 +561,146 @@ class LoginHistory(models.Model):
             models.Index(fields=['user', '-login_time']),
             models.Index(fields=['login_time']),
         ]
-    
+
     def __str__(self):
         return f"{self.user.username} - {self.login_time}"
 
 
 class UserDevice(models.Model):
     """Track user devices for fingerprinting"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='devices'
+    )
     device_fingerprint = models.CharField(max_length=255)
     device_name = models.CharField(max_length=200, blank=True)
     platform = models.CharField(max_length=50, blank=True)
     last_seen = models.DateTimeField(auto_now=True)
     is_trusted = models.BooleanField(default=False)
-    
+
     class Meta:
         db_table = 'user_devices'
         unique_together = ['user', 'device_fingerprint']
-    
+
     def __str__(self):
-        return f"{self.user.username} - {self.device_name or self.device_fingerprint[:20]}"
+        return (
+            f"{self.user.username} - "
+            f"{self.device_name or self.device_fingerprint[:20]}"
+        )
+
+
+# ==================== NOTIFICATIONS ====================
+
+class Notification(models.Model):
+    """
+    In-app notification for a user.
+
+    Created by background tasks (e.g. the rejected-claims sync) and
+    read by the mobile app through the /api/notifications/ endpoints.
+    """
+
+    CATEGORY_CHOICES = [
+        ('claim_status', 'Claim Status Update'),
+        ('claim_rejected', 'Claim Rejected'),
+        ('claim_approved', 'Claim Approved'),
+        ('claim_paid', 'Claim Paid'),
+        ('claim_action_required', 'Claim Action Required'),
+        ('document_request', 'Document Requested'),
+        ('system', 'System Message'),
+        ('account', 'Account Update'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+    )
+    category = models.CharField(
+        max_length=30,
+        choices=CATEGORY_CHOICES,
+        default='system',
+    )
+    title = models.CharField(max_length=200)
+    body = models.TextField(blank=True)
+
+    # Optional link to a domain object. We store both the model name
+    # and the object id so the client can navigate without needing a
+    # GenericForeignKey.
+    related_model = models.CharField(max_length=50, blank=True)
+    related_object_id = models.CharField(max_length=100, blank=True)
+
+    # Structured payload the mobile app can act on.
+    metadata = models.JSONField(default=dict, blank=True)
+
+    is_read = models.BooleanField(default=False, db_index=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'notifications'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['category']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title} [{self.created_at}]"
+
+    def mark_as_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['is_read', 'read_at'])
+
+
+# ==================== ACCOUNT DELETION AUDIT ====================
+
+class AccountDeletionRequest(models.Model):
+    """
+    Immutable audit trail of account deletions.
+
+    No ForeignKey to User — the row survives even if the user row is
+    physically purged by `purge_deleted_users`.
+    """
+
+    REASON_CHOICES = [
+        ('no_longer_needed', 'No longer needed'),
+        ('privacy_concerns', 'Privacy concerns'),
+        ('duplicate_account', 'Duplicate account'),
+        ('created_by_mistake', 'Created by mistake'),
+        ('too_many_emails', 'Too many emails/notifications'),
+        ('switching_service', 'Switching to another service'),
+        ('other', 'Other'),
+    ]
+
+    user_id = models.IntegerField(db_index=True)
+    username = models.CharField(max_length=150, blank=True)
+    email = models.EmailField(blank=True)
+    id_number = models.CharField(max_length=9, blank=True)
+    phone_no = models.CharField(max_length=17, blank=True)
+
+    reason = models.CharField(max_length=50, choices=REASON_CHOICES, blank=True)
+    reason_details = models.TextField(blank=True)
+
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'account_deletion_requests'
+        ordering = ['-requested_at']
+        indexes = [
+            models.Index(fields=['user_id']),
+            models.Index(fields=['email']),
+            models.Index(fields=['requested_at']),
+        ]
+
+    def __str__(self):
+        return (
+            f"Deleted user {self.username or self.user_id} "
+            f"at {self.requested_at}"
+        )

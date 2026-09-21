@@ -12,7 +12,7 @@ User = get_user_model()
 
 class ClaimAssetSerializer(serializers.ModelSerializer):
     asset_details = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = ClaimAsset
         fields = [
@@ -30,7 +30,7 @@ class ClaimAssetSerializer(serializers.ModelSerializer):
             'broker_code': {'required': False, 'allow_null': True},
             'stock_exchange': {'required': False, 'allow_null': True},
         }
-    
+
     def get_asset_details(self, obj):
         """Get asset details from the live database using asset_no"""
         if obj.asset_no:
@@ -59,7 +59,7 @@ class ClaimDocumentSerializer(serializers.ModelSerializer):
     document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
     file_url = serializers.SerializerMethodField(read_only=True)
     file_name = serializers.SerializerMethodField(read_only=True)
-    
+
     class Meta:
         model = ClaimDocument
         fields = [
@@ -70,17 +70,23 @@ class ClaimDocumentSerializer(serializers.ModelSerializer):
             'verification_notes', 'is_rejected', 'rejection_reason',
             'rejected_at', 'rejected_by', 'version', 'is_latest'
         ]
-        read_only_fields = ['id', 'uploaded_at', 'file_size', 'file_extension', 'file_url', 'file_name']
+        read_only_fields = [
+            'id', 'uploaded_at', 'file_size', 'file_extension',
+            'file_url', 'file_name',
+        ]
         extra_kwargs = {
-            'file': {'write_only': True}  # Make file write-only in API responses
+            'file': {'write_only': True}  # file is write-only in API responses
         }
-    
+
     def get_file_url(self, obj):
         """Get the URL to access the file"""
         if obj.file:
-            return obj.file.url
+            try:
+                return obj.file.url
+            except Exception:
+                return None
         return None
-    
+
     def get_file_name(self, obj):
         """Get the original filename"""
         if obj.file:
@@ -91,7 +97,7 @@ class ClaimDocumentSerializer(serializers.ModelSerializer):
 class ClaimNoteSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     note_type_display = serializers.CharField(source='get_note_type_display', read_only=True)
-    
+
     class Meta:
         model = ClaimNote
         fields = [
@@ -103,7 +109,7 @@ class ClaimNoteSerializer(serializers.ModelSerializer):
 
 class ClaimStatusHistorySerializer(serializers.ModelSerializer):
     changed_by_name = serializers.CharField(source='changed_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = ClaimStatusHistory
         fields = [
@@ -118,20 +124,22 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
     progress_percentage = serializers.IntegerField(read_only=True)
     current_step = serializers.SerializerMethodField()
     next_step = serializers.SerializerMethodField()
-    total_assets_value = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    documents_uploaded = serializers.IntegerField(read_only=True)
-    documents_verified = serializers.IntegerField(read_only=True)
-    
+    total_assets_value = serializers.SerializerMethodField()
+    documents_uploaded = serializers.SerializerMethodField()
+    documents_verified = serializers.SerializerMethodField()
+
     class Meta:
         model = Claim
         fields = [
             'no', 'status', 'status_display', 'progress_percentage',
             'current_step', 'next_step', 'total_assets_value',
             'documents_uploaded', 'documents_verified',
-            'created_at', 'updated_at', 'submitted_at', 'approved_at', 'paid_at',
-            'amount', 'internal_remarks', 'portal_comments', 'rejection_reason'
+            'created_at', 'updated_at', 'submitted_at',
+            'approved_at', 'paid_at', 'completed_at',
+            'amount', 'internal_remarks', 'portal_comments',
+            'rejection_reason', 'rejected', 'claimant_action_required',
         ]
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if representation.get('amount') is not None:
@@ -140,7 +148,7 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
             except (ValueError, TypeError):
                 representation['amount'] = 0.0
         return representation
-    
+
     def get_current_step(self, obj):
         step_map = {
             'Draft': 'Claim Created',
@@ -150,10 +158,10 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
             'Paid': 'Payment Processing',
             'Completed': 'Claim Closed',
             'Rejected': 'Claim Rejected',
-            'Archived': 'Claim Archived'
+            'Archived': 'Claim Archived',
         }
         return step_map.get(obj.status, 'Unknown')
-    
+
     def get_next_step(self, obj):
         next_map = {
             'Draft': 'Submit for Review',
@@ -163,9 +171,27 @@ class ClaimStatusSerializer(serializers.ModelSerializer):
             'Paid': 'Payment Confirmation',
             'Completed': 'Claim Closed',
             'Rejected': 'Review Rejection Reason',
-            'Archived': 'Claim Archived'
+            'Archived': 'Claim Archived',
         }
         return next_map.get(obj.status, 'Contact Support')
+
+    def get_total_assets_value(self, obj):
+        try:
+            return float(obj.get_total_assets_value() or 0)
+        except Exception:
+            return 0.0
+
+    def get_documents_uploaded(self, obj):
+        try:
+            return obj.get_uploaded_documents_count()
+        except Exception:
+            return 0
+
+    def get_documents_verified(self, obj):
+        try:
+            return obj.get_verified_documents_count()
+        except Exception:
+            return 0
 
 
 class ClaimSerializer(serializers.ModelSerializer):
@@ -173,23 +199,26 @@ class ClaimSerializer(serializers.ModelSerializer):
     documents = ClaimDocumentSerializer(many=True, read_only=True)
     notes = ClaimNoteSerializer(many=True, read_only=True)
     status_history = ClaimStatusHistorySerializer(many=True, read_only=True)
+
     asset_ids = serializers.ListField(write_only=True, required=False)
+
     status_display = serializers.CharField(read_only=True)
     progress_percentage = serializers.IntegerField(read_only=True)
-    
-    user_id = serializers.IntegerField(source='claimant.id', read_only=True)
-    user_name = serializers.CharField(source='claimant.get_full_name', read_only=True)
-    user_email = serializers.EmailField(source='claimant.email', read_only=True)
-    
+
+    user_id = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+
     class Meta:
         model = Claim
         fields = '__all__'
         read_only_fields = [
-            'id', 'no', 'claimant', 'created_at', 'updated_at', 'submitted_at', 
-            'approved_at', 'paid_at', 'status_display', 'progress_percentage',
-            'user_id', 'user_name', 'user_email'
+            'id', 'no', 'claimant', 'created_at', 'updated_at',
+            'submitted_at', 'approved_at', 'paid_at',
+            'status_display', 'progress_percentage',
+            'user_id', 'user_name', 'user_email',
         ]
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if representation.get('amount') is not None:
@@ -198,29 +227,47 @@ class ClaimSerializer(serializers.ModelSerializer):
             except (ValueError, TypeError):
                 representation['amount'] = 0.0
         return representation
-    
+
     def validate(self, attrs):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             if self.instance and self.instance.claimant != request.user:
-                if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
+                if not (
+                    request.user.is_staff
+                    or getattr(request.user, 'role', '') in ['staff', 'admin']
+                ):
                     raise serializers.ValidationError(
                         "You do not have permission to modify this claim."
                     )
         return attrs
-    
+
+    def get_user_id(self, obj):
+        return obj.claimant.id if obj.claimant else None
+
+    def get_user_name(self, obj):
+        if obj.claimant:
+            return (
+                obj.claimant.get_full_name()
+                or obj.claimant.name
+                or obj.claimant.username
+            )
+        return None
+
+    def get_user_email(self, obj):
+        return obj.claimant.email if obj.claimant else None
+
     def create(self, validated_data):
         asset_ids = validated_data.pop('asset_ids', [])
         request = self.context.get('request')
-        
+
         if 'amount' in validated_data and validated_data['amount'] is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
-        
+
         if request and request.user.is_authenticated:
             validated_data['claimant'] = request.user
-        
+
         claim = Claim.objects.create(**validated_data)
-        
+
         for asset_id in asset_ids:
             try:
                 from apps.live_operations.models import LiveUnclaimedAsset
@@ -237,47 +284,50 @@ class ClaimSerializer(serializers.ModelSerializer):
                     description=asset.description,
                     cds_account_no=asset.cds_account_no,
                 )
-            except Exception as e:
+            except Exception:
                 continue
-        
+
         ClaimStatusHistory.objects.create(
             claim=claim,
             previous_status='',
             new_status=claim.status,
             changed_by=request.user if request else None,
-            reason='Claim created'
+            reason='Claim created',
         )
-        
+
         return claim
-    
+
     def update(self, instance, validated_data):
         asset_ids = validated_data.pop('asset_ids', None)
         old_status = instance.status
         request = self.context.get('request')
-        
+
         if request and request.user.is_authenticated:
             if instance.claimant != request.user:
-                if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
+                if not (
+                    request.user.is_staff
+                    or getattr(request.user, 'role', '') in ['staff', 'admin']
+                ):
                     raise serializers.ValidationError(
                         "You do not have permission to modify this claim."
                     )
-        
+
         if 'amount' in validated_data and validated_data['amount'] is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
-        
+
         for key, value in validated_data.items():
             setattr(instance, key, value)
         instance.save()
-        
+
         if old_status != instance.status:
             ClaimStatusHistory.objects.create(
                 claim=instance,
                 previous_status=old_status,
                 new_status=instance.status,
                 changed_by=request.user if request else None,
-                reason=f'Status changed from {old_status} to {instance.status}'
+                reason=f'Status changed from {old_status} to {instance.status}',
             )
-        
+
         if asset_ids is not None:
             instance.claim_assets.all().delete()
             for asset_id in asset_ids:
@@ -296,15 +346,15 @@ class ClaimSerializer(serializers.ModelSerializer):
                         description=asset.description,
                         cds_account_no=asset.cds_account_no,
                     )
-                except Exception as e:
+                except Exception:
                     continue
-        
+
         return instance
 
 
 class ClaimCreateSerializer(serializers.ModelSerializer):
     asset_ids = serializers.ListField(write_only=True, required=True)
-    
+
     class Meta:
         model = Claim
         fields = [
@@ -322,41 +372,51 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
             'bank_name', 'branch_code', 'branch_name', 'account_currency',
             'swift_code', 'international_payment', 'international_bank_name',
             'international_branch_name', 'sort_code', 'country_region_code',
-            'mpesa_mobile_no', 'asset_ids'
+            'mpesa_mobile_no', 'asset_ids',
         ]
         read_only_fields = ['no']
-    
+
     def validate(self, attrs):
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
-            raise serializers.ValidationError("Authentication required to create a claim.")
-        
+            raise serializers.ValidationError(
+                "Authentication required to create a claim."
+            )
+
         asset_ids = attrs.get('asset_ids', [])
         if not asset_ids:
-            raise serializers.ValidationError({"asset_ids": "At least one asset is required to create a claim."})
-        
-        # Validate that all asset_ids exist in the live MSSQL database
+            raise serializers.ValidationError({
+                "asset_ids": "At least one asset is required to create a claim."
+            })
+
         for asset_id in asset_ids:
             try:
                 from apps.live_operations.models import LiveUnclaimedAsset
-                if not LiveUnclaimedAsset.objects.using('ereunify').filter(no=str(asset_id)).exists():
-                    raise serializers.ValidationError({"asset_ids": f"Asset with id {asset_id} does not exist."})
+                if not LiveUnclaimedAsset.objects.using('ereunify').filter(
+                    no=str(asset_id)
+                ).exists():
+                    raise serializers.ValidationError({
+                        "asset_ids": f"Asset with id {asset_id} does not exist."
+                    })
+            except serializers.ValidationError:
+                raise
             except Exception as e:
-                raise serializers.ValidationError({"asset_ids": f"Error validating asset {asset_id}: {e}"})
-        
+                raise serializers.ValidationError({
+                    "asset_ids": f"Error validating asset {asset_id}: {e}"
+                })
+
         attrs['claimant'] = request.user
         return attrs
-    
+
     def create(self, validated_data):
         asset_ids = validated_data.pop('asset_ids', [])
         request = self.context.get('request')
-        
+
         if 'amount' in validated_data and validated_data['amount'] is not None:
             validated_data['amount'] = Decimal(str(validated_data['amount']))
-        
+
         claim = Claim.objects.create(**validated_data)
-        
-        linked_count = 0
+
         for asset_id in asset_ids:
             try:
                 from apps.live_operations.models import LiveUnclaimedAsset
@@ -373,25 +433,24 @@ class ClaimCreateSerializer(serializers.ModelSerializer):
                     description=asset.description,
                     cds_account_no=asset.cds_account_no,
                 )
-                linked_count += 1
-            except Exception as e:
+            except Exception:
                 continue
-        
+
         ClaimStatusHistory.objects.create(
             claim=claim,
             previous_status='',
             new_status=claim.status,
             changed_by=request.user if request else None,
-            reason='Claim created'
+            reason='Claim created',
         )
-        
+
         return claim
 
 
 class ClaimActionSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=[
-        'approve', 'reject', 'submit', 'archive', 'review', 
-        'process_payment', 'complete'
+        'approve', 'reject', 'submit', 'archive', 'review',
+        'process_payment', 'complete',
     ])
     reason = serializers.CharField(required=False, allow_blank=True)
     notes = serializers.CharField(required=False, allow_blank=True)
@@ -401,17 +460,20 @@ class ClaimSearchSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True)
     search_type = serializers.ChoiceField(
         choices=['claim_no', 'id_number', 'phone_no', 'name'],
-        required=True
+        required=True,
     )
-    
+
     def validate(self, attrs):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
+            if not (
+                request.user.is_staff
+                or getattr(request.user, 'role', '') in ['staff', 'admin']
+            ):
                 identifier = attrs.get('identifier')
                 search_type = attrs.get('search_type')
                 user_claims = Claim.objects.filter(claimant=request.user)
-                
+
                 if search_type == 'claim_no':
                     if not user_claims.filter(no=identifier).exists():
                         raise serializers.ValidationError(
@@ -436,40 +498,98 @@ class ClaimSearchSerializer(serializers.Serializer):
 
 
 class ClaimDocumentUploadSerializer(serializers.Serializer):
-    """Serializer for document upload validation"""
-    document_type = serializers.ChoiceField(choices=[choice[0] for choice in ClaimDocument.DOCUMENT_TYPES])
+    """
+    Validates a document upload and, if used with `.save()`, creates
+    the corresponding ClaimDocument row.
+
+    Usage in a view:
+
+        serializer = ClaimDocumentUploadSerializer(
+            data=request.data,
+            context={'request': request, 'claim_id': claim_id},
+        )
+        serializer.is_valid(raise_exception=True)
+        document = serializer.save()
+    """
+
+    document_type = serializers.ChoiceField(
+        choices=[choice[0] for choice in ClaimDocument.DOCUMENT_TYPES]
+    )
     file = serializers.FileField()
     document_name = serializers.CharField(required=False, allow_blank=True)
-    
+
     def validate_file(self, value):
-        """Validate file size and type"""
-        # Max file size: 10MB
-        max_size = 10 * 1024 * 1024
+        """Validate file size and type."""
+        max_size = 10 * 1024 * 1024  # 10 MB
         if value.size > max_size:
-            raise serializers.ValidationError(f"File too large. Maximum size is 10MB.")
-        
-        # Allowed file extensions
-        allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'txt']
-        ext = value.name.split('.')[-1].lower()
+            raise serializers.ValidationError(
+                "File too large. Maximum size is 10MB."
+            )
+
+        allowed_extensions = [
+            'pdf', 'jpg', 'jpeg', 'png',
+            'doc', 'docx', 'xls', 'xlsx', 'txt',
+        ]
+        ext = value.name.split('.')[-1].lower() if '.' in value.name else ''
         if ext not in allowed_extensions:
-            raise serializers.ValidationError(f"File type '{ext}' not allowed. Allowed types: {', '.join(allowed_extensions)}")
-        
+            raise serializers.ValidationError(
+                f"File type '{ext}' not allowed. "
+                f"Allowed types: {', '.join(allowed_extensions)}"
+            )
         return value
-    
+
     def validate(self, attrs):
         request = self.context.get('request')
         claim_id = self.context.get('claim_id')
-        
+
         if claim_id:
             try:
                 claim = Claim.objects.get(id=claim_id)
-                if request and request.user.is_authenticated:
-                    if claim.claimant != request.user:
-                        if not (request.user.is_staff or getattr(request.user, 'role', '') in ['staff', 'admin']):
-                            raise serializers.ValidationError(
-                                "You do not have permission to upload documents for this claim."
-                            )
             except Claim.DoesNotExist:
                 raise serializers.ValidationError("Claim does not exist.")
-        
+
+            if request and request.user.is_authenticated:
+                if claim.claimant != request.user:
+                    if not (
+                        request.user.is_staff
+                        or getattr(request.user, 'role', '') in ['staff', 'admin']
+                    ):
+                        raise serializers.ValidationError(
+                            "You do not have permission to upload documents for this claim."
+                        )
+
+            attrs['claim'] = claim
+
         return attrs
+
+    def create(self, validated_data):
+        """
+        Persist the ClaimDocument. Requires `claim` to have been set
+        by `validate()` (i.e. `claim_id` must be in the serializer
+        context).
+        """
+        claim = validated_data.get('claim')
+        if claim is None:
+            raise serializers.ValidationError(
+                "claim_id is required in the serializer context."
+            )
+
+        upload = validated_data['file']
+        request = self.context.get('request')
+
+        name = validated_data.get('document_name') or upload.name
+        ext = upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+
+        return ClaimDocument.objects.create(
+            claim=claim,
+            document_type=validated_data['document_type'],
+            document_name=name,
+            file=upload,
+            file_size=upload.size,
+            file_extension=ext,
+            uploaded_by=(
+                request.user
+                if request and request.user.is_authenticated
+                else None
+            ),
+        )

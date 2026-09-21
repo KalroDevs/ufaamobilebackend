@@ -1,4 +1,6 @@
+# apps/claims/admin.py
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -6,6 +8,7 @@ from django.utils.safestring import mark_safe
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from django.db import connections
 import os
 
 from .models import (
@@ -13,6 +16,66 @@ from .models import (
     JointOwner, JointOwnerConsent, JointPaymentInstruction
 )
 
+
+# ============================================================
+# FILTERS
+# ============================================================
+
+class LiveRejectedFilter(SimpleListFilter):
+    """
+    Filter claims by whether they are flagged as rejected
+    ([Rejected] = 1) on the live Online Claim table.
+    """
+
+    title = 'Live rejection'
+    parameter_name = 'live_rejected'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Rejected in live'),
+            ('no', 'Not rejected'),
+        )
+
+    def queryset(self, request, queryset):
+        val = self.value()
+        if val not in ('yes', 'no'):
+            return queryset
+
+        from apps.live_operations.services import LiveDatabaseService
+
+        claim_numbers = list(queryset.values_list('no', flat=True))
+        if not claim_numbers:
+            return queryset
+
+        matching = []
+        try:
+            with connections["ereunify"].cursor() as cursor:
+                CHUNK = 500
+                for start in range(0, len(claim_numbers), CHUNK):
+                    chunk = claim_numbers[start:start + CHUNK]
+                    placeholders = ','.join(['%s'] * len(chunk))
+                    cursor.execute(
+                        f"""
+                            SELECT [No_], [Rejected]
+                            FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                            WHERE [No_] IN ({placeholders})
+                        """,
+                        chunk,
+                    )
+                    for claim_no, rejected in cursor.fetchall():
+                        if val == 'yes' and bool(rejected):
+                            matching.append(claim_no)
+                        elif val == 'no' and not bool(rejected):
+                            matching.append(claim_no)
+        except Exception:
+            return queryset.none()
+
+        return queryset.filter(no__in=matching)
+
+
+# ============================================================
+# INLINES
+# ============================================================
 
 class ClaimAssetInline(admin.TabularInline):
     model = ClaimAsset
@@ -28,7 +91,6 @@ class ClaimDocumentInline(admin.TabularInline):
     readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']
 
     def document_links(self, obj):
-        """Create a clickable link to view/download the document."""
         if obj and obj.id:
             if hasattr(obj, 'file') and obj.file:
                 try:
@@ -70,25 +132,36 @@ class JointOwnerInline(admin.TabularInline):
     fields = ['full_name', 'id_number', 'phone_number', 'email', 'ownership_percentage', 'has_consented']
 
 
+# ============================================================
+# CLAIM ADMIN
+# ============================================================
+
 @admin.register(Claim)
 class ClaimAdmin(admin.ModelAdmin):
     list_display = [
-        'no', 
-        'name', 
-        'id_number', 
-        'status', 
-        'claim_type', 
-        'amount', 
-        'document_count', 
+        'no',
+        'name',
+        'id_number',
+        'status',
+        'claim_type',
+        'amount',
+        'document_count',
         'push_status_display',
         'live_status_display',
-        'created_at'
+        'live_rejected_display',
+        'created_at',
     ]
-    list_filter = ['status', 'claim_type', 'category', 'payment_category', 'created_at']
+    list_filter = [
+        'status', 'claim_type', 'category', 'payment_category', 'created_at',
+        LiveRejectedFilter,
+    ]
     search_fields = ['no', 'name', 'id_number', 'phone_no', 'e_mail', 'claimant__username']
     readonly_fields = ['no', 'created_at', 'updated_at', 'submitted_at', 'approved_at', 'paid_at', 'completed_at']
 
-    actions = ['push_to_live_action']
+    actions = [
+        'push_to_live_action',
+        'check_rejected_claims_action',
+    ]
 
     fieldsets = (
         ('Claim Information', {
@@ -117,8 +190,11 @@ class ClaimAdmin(admin.ModelAdmin):
 
     inlines = [ClaimAssetInline, ClaimDocumentInline, ClaimNoteInline, ClaimStatusHistoryInline, JointOwnerInline]
 
+    # ---------------------------------------------------------------- #
+    # Display columns
+    # ---------------------------------------------------------------- #
+
     def document_count(self, obj):
-        """Display the number of documents for the claim."""
         if obj:
             count = obj.documents.count()
             if count > 0:
@@ -132,7 +208,6 @@ class ClaimAdmin(admin.ModelAdmin):
     document_count.short_description = 'Documents'
 
     def push_status_display(self, obj):
-        """Display push status with icon."""
         if obj.status in ['Pending', 'Under_Review']:
             return mark_safe('<span style="color: orange;">⏳ Pushable</span>')
         elif obj.status in ['Approved', 'Paid', 'Completed']:
@@ -144,11 +219,9 @@ class ClaimAdmin(admin.ModelAdmin):
     push_status_display.short_description = 'Push Status'
 
     def live_status_display(self, obj):
-        """Display live database status with check."""
         try:
             from apps.live_operations.services import LiveDatabaseService
-            
-            # Check if claim exists in live database
+
             if obj.no:
                 exists = LiveDatabaseService.claim_exists_in_live(obj.no)
                 if exists:
@@ -157,10 +230,48 @@ class ClaimAdmin(admin.ModelAdmin):
                     return mark_safe('<span style="color: gray;">⏳ Not Pushed</span>')
             return mark_safe('<span style="color: gray;">-</span>')
         except Exception:
-            # If live_operations app is not available or error occurs
             return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
-    
+
     live_status_display.short_description = 'Live Status'
+
+    def live_rejected_display(self, obj):
+        """Show whether the claim is rejected in the live Online Claim table."""
+        if not obj or not obj.no:
+            return mark_safe('<span style="color: gray;">-</span>')
+
+        try:
+            from apps.live_operations.services import LiveDatabaseService
+
+            with connections["ereunify"].cursor() as cursor:
+                cursor.execute(
+                    f"""
+                        SELECT TOP 1 [Rejected]
+                        FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                        WHERE [No_] = %s
+                    """,
+                    [obj.no],
+                )
+                row = cursor.fetchone()
+
+            if row is None:
+                return mark_safe('<span style="color: gray;">Not in live</span>')
+
+            if bool(row[0]):
+                return mark_safe(
+                    '<span style="color: red; font-weight: bold;">'
+                    '❌ Rejected in live</span>'
+                )
+            return mark_safe(
+                '<span style="color: green;">✅ Not rejected</span>'
+            )
+        except Exception:
+            return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
+
+    live_rejected_display.short_description = 'Live Rejection'
+
+    # ---------------------------------------------------------------- #
+    # Save
+    # ---------------------------------------------------------------- #
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -168,7 +279,9 @@ class ClaimAdmin(admin.ModelAdmin):
                 obj.no = obj.generate_fallback_claim_number()
         super().save_model(request, obj, form, change)
 
-    # ==================== PUSH TO LIVE METHODS ====================
+    # ---------------------------------------------------------------- #
+    # Push-to-live action
+    # ---------------------------------------------------------------- #
 
     def push_to_live_action(self, request, queryset):
         """Admin action to push selected claims to live."""
@@ -252,16 +365,178 @@ class ClaimAdmin(admin.ModelAdmin):
 
     push_to_live_action.short_description = "Push selected claims to live database"
 
+    # ---------------------------------------------------------------- #
+    # Check rejected claims action
+    # ---------------------------------------------------------------- #
+
+    def check_rejected_claims_action(self, request, queryset):
+        """
+        Run the rejected-claims sync on the selected claims.
+
+        For each claim, look up its row in the live Online Claim table.
+        If [Rejected] = 1, move the local claim back to Draft, record
+        the claimant-facing remark from [Send Remarks], and create a
+        notification for the claimant.
+        """
+        from apps.accounts.models import Notification
+        from apps.live_operations.services import LiveDatabaseService
+        from django.db import transaction
+        from django.utils import timezone
+
+        processed = 0
+        notified = 0
+        skipped = 0
+        not_in_live = 0
+        errors = []
+
+        for claim in queryset:
+            try:
+                if not claim.no:
+                    skipped += 1
+                    errors.append(f"{claim.id}: Claim has no number")
+                    continue
+
+                with connections["ereunify"].cursor() as cursor:
+                    cursor.execute(
+                        f"""
+                            SELECT
+                                [Rejected]                 AS rejected,
+                                [Send Remarks]             AS reason,
+                                [Claimant Action Required] AS action_required,
+                                [$systemModifiedAt]        AS modified_at
+                            FROM {LiveDatabaseService.ONLINE_CLAIM_TABLE}
+                            WHERE [No_] = %s
+                        """,
+                        [claim.no],
+                    )
+                    row = cursor.fetchone()
+                    columns = [c[0] for c in cursor.description] if row else []
+
+                if not row:
+                    not_in_live += 1
+                    continue
+
+                live = dict(zip(columns, row))
+
+                if not bool(live.get('rejected')):
+                    skipped += 1
+                    continue
+
+                modified_at_str = str(live.get('modified_at'))
+                reason = (live.get('reason') or '').strip()
+                action_required = bool(live.get('action_required'))
+
+                existing = Notification.objects.filter(
+                    user=claim.claimant,
+                    category='claim_rejected',
+                    related_model='Claim',
+                    related_object_id=str(claim.id),
+                ).first()
+
+                if existing and existing.metadata.get('modified_at') == modified_at_str:
+                    skipped += 1
+                    continue
+
+                with transaction.atomic():
+                    previous_status = claim.status
+
+                    claim.status = 'Draft'
+                    claim.rejected = True
+                    if reason:
+                        claim.rejection_reason = reason
+                    if action_required:
+                        claim.claimant_action_required = True
+                    claim.submitted_at = None
+
+                    claim.save(update_fields=[
+                        'status', 'rejected', 'rejection_reason',
+                        'claimant_action_required', 'submitted_at',
+                        'updated_at',
+                    ])
+
+                    ClaimStatusHistory.objects.create(
+                        claim=claim,
+                        previous_status=previous_status,
+                        new_status='Draft',
+                        changed_by=request.user,
+                        reason=(
+                            "Rejected in live database (manual check): "
+                            f"{reason or 'no reason provided'}"
+                        ),
+                    )
+
+                    if claim.claimant:
+                        Notification.objects.update_or_create(
+                            user=claim.claimant,
+                            category='claim_rejected',
+                            related_model='Claim',
+                            related_object_id=str(claim.id),
+                            defaults={
+                                'title': f"Claim {claim.no} needs your attention",
+                                'body': (
+                                    reason
+                                    or 'Please review your claim and resubmit.'
+                                ),
+                                'metadata': {
+                                    'claim_no': claim.no,
+                                    'status': 'Draft',
+                                    'rejected': True,
+                                    'action_required': action_required,
+                                    'modified_at': modified_at_str,
+                                    'source': 'admin_manual_check',
+                                },
+                            },
+                        )
+                        notified += 1
+
+                    processed += 1
+
+            except Exception as e:
+                errors.append(f"{claim.no or claim.id}: {str(e)}")
+
+        if processed > 0:
+            self.message_user(
+                request,
+                (
+                    f"✅ Rejected {processed} claim(s); "
+                    f"{notified} claimant(s) notified. "
+                    f"Skipped: {skipped}, Not in live: {not_in_live}"
+                ),
+                level='SUCCESS',
+            )
+        else:
+            self.message_user(
+                request,
+                (
+                    f"⚠️ No claims were updated. "
+                    f"Skipped: {skipped}, Not in live: {not_in_live}"
+                ),
+                level='WARNING',
+            )
+
+        if errors:
+            preview = '<br>'.join(errors[:10])
+            if len(errors) > 10:
+                preview += f'<br>... and {len(errors) - 10} more'
+            self.message_user(
+                request,
+                mark_safe(f'<b>Errors:</b><br>{preview}'),
+                level='ERROR',
+            )
+
+    check_rejected_claims_action.short_description = "Check rejected claims in live database"
+
+    # ---------------------------------------------------------------- #
+    # Actions / URLs / helpers
+    # ---------------------------------------------------------------- #
+
     def get_actions(self, request):
-        """Remove delete action from the actions dropdown."""
         actions = super().get_actions(request)
-        # Remove the delete action
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
 
     def get_urls(self):
-        """Add custom URLs for push actions."""
         urls = super().get_urls()
         custom_urls = [
             path(
@@ -288,7 +563,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def push_to_live_single_view(self, request, claim_id):
-        """Single claim push view."""
         try:
             claim = Claim.objects.get(id=claim_id)
 
@@ -345,7 +619,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
 
     def push_to_live_bulk_view(self, request):
-        """Bulk push view with filters."""
         if request.method == 'POST':
             status_filter = request.POST.getlist('status')
             days_old = request.POST.get('days_old')
@@ -449,7 +722,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return self.admin_site.admin_view(self._render_bulk_push_form)(request, context)
 
     def push_all_pending_view(self, request):
-        """Push all pending claims view."""
         try:
             from apps.live_operations.services import LiveDatabaseService
 
@@ -495,7 +767,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse('admin:claims_claim_changelist'))
 
     def push_live_status_view(self, request):
-        """View live push status."""
         try:
             from apps.live_operations.models import LiveOnlineClaim
 
@@ -516,7 +787,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return self.admin_site.admin_view(self._render_status_page)(request, context)
 
     def _show_push_confirmation(self, request, queryset):
-        """Show confirmation page for push action."""
         context = {
             'title': 'Push to Live - Confirm',
             'queryset': queryset,
@@ -530,7 +800,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return self.admin_site.admin_view(self._render_confirmation)(request, context)
 
     def _render_confirmation(self, request, context):
-        """Render confirmation template."""
         return self.admin_site.admin_view(
             lambda r: self._render_template(
                 r,
@@ -540,7 +809,6 @@ class ClaimAdmin(admin.ModelAdmin):
         )(request)
 
     def _render_bulk_push_form(self, request, context):
-        """Render bulk push form."""
         return self.admin_site.admin_view(
             lambda r: self._render_template(
                 r,
@@ -550,7 +818,6 @@ class ClaimAdmin(admin.ModelAdmin):
         )(request)
 
     def _render_status_page(self, request, context):
-        """Render status page."""
         return self.admin_site.admin_view(
             lambda r: self._render_template(
                 r,
@@ -560,12 +827,10 @@ class ClaimAdmin(admin.ModelAdmin):
         )(request)
 
     def _render_template(self, request, template, context):
-        """Render a template with the admin base."""
         from django.template.response import TemplateResponse
         return TemplateResponse(request, template, context)
 
     def get_list_display(self, request):
-        """Add push button to list display."""
         list_display = super().get_list_display(request)
         if isinstance(list_display, tuple):
             list_display = list(list_display)
@@ -574,7 +839,6 @@ class ClaimAdmin(admin.ModelAdmin):
         return list_display
 
     def push_to_live_button(self, obj):
-        """Generate push to live button for each row."""
         if obj.status in ['Pending', 'Under_Review']:
             try:
                 from apps.live_operations.services import LiveDatabaseService
@@ -603,17 +867,32 @@ class ClaimAdmin(admin.ModelAdmin):
     push_to_live_button.allow_tags = True
 
 
+# ============================================================
+# CLAIM ASSET ADMIN
+# ============================================================
+
 @admin.register(ClaimAsset)
 class ClaimAssetAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'asset_no', 'holder_name', 'asset_type', 'value', 'added_at']
+    list_display = [
+        'id',
+        'claim_link',
+        'asset_no',
+        'holder_name',
+        'asset_type',
+        'value',
+        'line_push_status_display',
+        'push_line_button',
+        'added_at',
+    ]
     list_filter = ['asset_type', 'source']
     search_fields = ['asset_no', 'holder_name', 'name', 'id_number', 'claim__no']
     readonly_fields = ['added_at']
     fields = ['claim', 'asset_no', 'is_selected', 'value', 'holder_name', 'asset_type',
               'source', 'name', 'id_number', 'description', 'cds_account_no', 'added_at']
 
+    actions = ['push_selected_lines_to_live']
+
     def claim_link(self, obj):
-        """Link to the claim admin page."""
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
             return format_html('<a href="{}">{}</a>', url, obj.claim.no)
@@ -622,16 +901,198 @@ class ClaimAssetAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
 
+    def line_push_status_display(self, obj):
+        if not obj or not obj.asset_no or not obj.claim or not obj.claim.no:
+            return mark_safe('<span style="color: gray;">-</span>')
+
+        try:
+            from apps.live_operations.services import LiveDatabaseService
+
+            batch_no = LiveDatabaseService.safe_string(obj.claim.no, 50)
+
+            with connections["ereunify"].cursor() as cursor:
+                cursor.execute(
+                    f"""
+                        SELECT COUNT(*)
+                        FROM {LiveDatabaseService.ONLINE_CLAIM_LINE_TABLE}
+                        WHERE [Batch No_] = %s
+                          AND [Asset No_] = %s
+                    """,
+                    [batch_no, LiveDatabaseService.safe_string(obj.asset_no, 100)],
+                )
+                exists = cursor.fetchone()[0] > 0
+
+            if exists:
+                return mark_safe('<span style="color: green; font-weight: bold;">✅ In Live</span>')
+            return mark_safe('<span style="color: orange;">⏳ Not Pushed</span>')
+        except Exception:
+            return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
+
+    line_push_status_display.short_description = 'Line Status'
+
+    def push_line_button(self, obj):
+        if not obj or not obj.asset_no or not obj.claim or not obj.claim.no:
+            return mark_safe('<span style="color: gray; font-size: 12px;">-</span>')
+
+        try:
+            from apps.live_operations.services import LiveDatabaseService
+            header_exists = LiveDatabaseService.claim_exists_in_live(obj.claim.no)
+        except Exception:
+            header_exists = False
+
+        if not header_exists:
+            return mark_safe('<span style="color: gray; font-size: 12px;">Header not in live</span>')
+
+        url = reverse('admin:claims_claimasset_push_line', args=[obj.id])
+        return format_html(
+            '<a class="button" href="{}" '
+            'style="background-color: #0d6efd; color: white; '
+            'padding: 4px 8px; border-radius: 3px; '
+            'text-decoration: none; font-size: 12px;">'
+            '📋 Push Line</a>',
+            url,
+        )
+
+    push_line_button.short_description = 'Push Line'
+    push_line_button.allow_tags = True
+
+    def push_selected_lines_to_live(self, request, queryset):
+        from apps.live_operations.services import LiveDatabaseService
+
+        pushed_total = 0
+        failed_total = 0
+        skipped_total = 0
+        already_exists_total = 0
+        errors = []
+
+        claim_cache = {}
+
+        for asset in queryset:
+            try:
+                if not asset.claim or not asset.claim.no:
+                    skipped_total += 1
+                    errors.append(f"Asset {asset.id}: no parent claim or claim number")
+                    continue
+
+                claim_no = asset.claim.no
+                if claim_no not in claim_cache:
+                    claim_cache[claim_no] = LiveDatabaseService.claim_exists_in_live(claim_no)
+
+                if not claim_cache[claim_no]:
+                    skipped_total += 1
+                    errors.append(f"{claim_no}: Header not in live — push header first")
+                    continue
+
+                result = LiveDatabaseService.push_claim_lines_to_live(asset.claim.id)
+
+                pushed_total += result.get("pushed", 0)
+                failed_total += result.get("failed", 0)
+                skipped_total += result.get("skipped", 0)
+                already_exists_total += result.get("already_exists", 0)
+
+                if result.get("failed", 0) > 0:
+                    errors.append(f"{claim_no}: {result.get('message')}")
+
+            except Exception as e:
+                failed_total += 1
+                errors.append(f"Asset {asset.id}: {str(e)}")
+
+        if pushed_total > 0:
+            self.message_user(
+                request,
+                f"✅ Pushed {pushed_total} line(s). "
+                f"Failed: {failed_total}, Skipped: {skipped_total}, "
+                f"Already existed: {already_exists_total}",
+                level="SUCCESS",
+            )
+        else:
+            self.message_user(
+                request,
+                f"⚠️ No new lines pushed. "
+                f"Failed: {failed_total}, Skipped: {skipped_total}, "
+                f"Already existed: {already_exists_total}",
+                level="WARNING",
+            )
+
+        if errors:
+            preview = "<br>".join(errors[:10])
+            if len(errors) > 10:
+                preview += f"<br>... and {len(errors) - 10} more"
+            self.message_user(
+                request, mark_safe(f"<b>Details:</b><br>{preview}"), level="ERROR",
+            )
+
+    push_selected_lines_to_live.short_description = (
+        "Push selected assets to live (Online Claim Lines)"
+    )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:asset_id>/push-line/',
+                self.admin_site.admin_view(self.push_line_single_view),
+                name='claims_claimasset_push_line',
+            ),
+        ]
+        return custom_urls + urls
+
+    def push_line_single_view(self, request, asset_id):
+        from apps.live_operations.services import LiveDatabaseService
+        try:
+            asset = ClaimAsset.objects.select_related('claim').get(id=asset_id)
+
+            if not asset.claim or not asset.claim.no:
+                self.message_user(
+                    request, "⚠️ Asset has no parent claim or claim number",
+                    level="WARNING",
+                )
+                return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+
+            if not LiveDatabaseService.claim_exists_in_live(asset.claim.no):
+                self.message_user(
+                    request,
+                    f"⚠️ Claim header {asset.claim.no} is not in the live database. Push the header first.",
+                    level="WARNING",
+                )
+                return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+
+            result = LiveDatabaseService.push_claim_lines_to_live(asset.claim.id)
+
+            if result.get("failed", 0) > 0:
+                self.message_user(request, f"⚠️ {result.get('message')}", level="WARNING")
+            else:
+                self.message_user(request, f"✅ {result.get('message')}", level="SUCCESS")
+
+        except ClaimAsset.DoesNotExist:
+            self.message_user(request, f"Asset {asset_id} not found", level="ERROR")
+        except Exception as e:
+            self.message_user(request, f"Error: {str(e)}", level="ERROR")
+
+        return HttpResponseRedirect(reverse("admin:claims_claimasset_changelist"))
+
+
+# ============================================================
+# CLAIM DOCUMENT ADMIN
+# ============================================================
 
 @admin.register(ClaimDocument)
 class ClaimDocumentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'claim_link', 'document_type', 'document_name', 'is_verified', 'uploaded_at']
+    list_display = [
+        'id',
+        'claim_link',
+        'document_type',
+        'document_name',
+        'is_verified',
+        'live_document_status_display',
+        'push_document_button',
+        'uploaded_at',
+    ]
     list_filter = ['document_type', 'is_verified', 'is_rejected', 'uploaded_at']
     search_fields = ['document_name', 'claim__no', 'uploaded_by__username']
     readonly_fields = ['uploaded_at', 'uploaded_by', 'document_links']
@@ -639,8 +1100,9 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
               'uploaded_by', 'uploaded_at', 'is_verified', 'verified_by', 'verified_at',
               'verification_notes', 'is_rejected', 'rejection_reason', 'version', 'is_latest']
 
+    actions = ['push_documents_action']
+
     def claim_link(self, obj):
-        """Link to the claim admin page."""
         if obj and obj.claim:
             url = reverse('admin:claims_claim_change', args=[obj.claim.id])
             return format_html('<a href="{}">{}</a>', url, obj.claim.no)
@@ -649,13 +1111,11 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def document_links(self, obj):
-        """Create view and download links for the document."""
         if obj and obj.id:
             if hasattr(obj, 'file') and obj.file:
                 try:
                     view_url = f"/api/documents/{obj.id}/view/"
                     download_url = f"/api/documents/{obj.id}/download/"
-
                     return format_html(
                         '<div>'
                         '<a href="{}" target="_blank" '
@@ -665,8 +1125,7 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
                         'style="background-color: #008CBA; color: white; padding: 5px 10px; '
                         'text-decoration: none; border-radius: 3px;">⬇️ Download</a>'
                         '</div>',
-                        view_url,
-                        download_url,
+                        view_url, download_url,
                     )
                 except Exception:
                     return "Error loading document"
@@ -689,12 +1148,194 @@ class ClaimDocumentAdmin(admin.ModelAdmin):
         super().delete_model(request, obj)
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
 
+    def push_documents_action(self, request, queryset):
+        from apps.live_operations.services import LiveDatabaseService
+
+        pushed_total = 0
+        failed_total = 0
+        skipped_total = 0
+        already_exists_total = 0
+        errors = []
+
+        claim_cache = {}
+
+        for doc in queryset.select_related("claim"):
+            try:
+                if not doc.claim or not doc.claim.no:
+                    skipped_total += 1
+                    errors.append(f"Doc {doc.id}: no parent claim or claim number")
+                    continue
+
+                claim_no = doc.claim.no
+                if claim_no not in claim_cache:
+                    claim_cache[claim_no] = LiveDatabaseService.claim_exists_in_live(claim_no)
+
+                if not claim_cache[claim_no]:
+                    skipped_total += 1
+                    errors.append(f"{claim_no}: Header not in live — push header first")
+                    continue
+
+                result = LiveDatabaseService.push_claim_documents_to_live(doc.claim.id)
+
+                pushed_total += result.get("pushed", 0)
+                failed_total += result.get("failed", 0)
+                skipped_total += result.get("skipped", 0)
+                already_exists_total += result.get("already_exists", 0)
+
+                if result.get("failed", 0) > 0:
+                    errors.append(f"{claim_no}: {result.get('message')}")
+
+            except Exception as e:
+                failed_total += 1
+                errors.append(f"Doc {doc.id}: {str(e)}")
+
+        if pushed_total > 0:
+            self.message_user(
+                request,
+                f"✅ Pushed {pushed_total} document(s). "
+                f"Failed: {failed_total}, Skipped: {skipped_total}, "
+                f"Already existed: {already_exists_total}",
+                level="SUCCESS",
+            )
+        else:
+            self.message_user(
+                request,
+                f"⚠️ No new documents pushed. "
+                f"Failed: {failed_total}, Skipped: {skipped_total}, "
+                f"Already existed: {already_exists_total}",
+                level="WARNING",
+            )
+
+        if errors:
+            preview = "<br>".join(errors[:10])
+            if len(errors) > 10:
+                preview += f"<br>... and {len(errors) - 10} more"
+            self.message_user(
+                request, mark_safe(f"<b>Details:</b><br>{preview}"), level="ERROR",
+            )
+
+    push_documents_action.short_description = (
+        "Push selected documents to live (Attached Documents - Claims)"
+    )
+
+    def live_document_status_display(self, obj):
+        if not obj or not obj.claim or not obj.claim.no:
+            return mark_safe('<span style="color: gray;">-</span>')
+
+        try:
+            from apps.live_operations.services import LiveDatabaseService
+
+            document_no = LiveDatabaseService.safe_string(obj.claim.no, 50)
+            code = LiveDatabaseService.DOCUMENT_TYPE_CODE_MAPPING.get(
+                obj.document_type, (obj.document_type or "").upper()
+            )
+
+            with connections["ereunify"].cursor() as cursor:
+                cursor.execute(
+                    f"""
+                        SELECT COUNT(*)
+                        FROM {LiveDatabaseService.ATTACHED_DOCUMENT_TABLE}
+                        WHERE [Document No_] = %s
+                          AND [Code] = %s
+                    """,
+                    [document_no, code],
+                )
+                exists = cursor.fetchone()[0] > 0
+
+            if exists:
+                return mark_safe('<span style="color: green; font-weight: bold;">✅ In Live</span>')
+            return mark_safe('<span style="color: orange;">⏳ Not Pushed</span>')
+        except Exception:
+            return mark_safe('<span style="color: gray;">⚠️ Unknown</span>')
+
+    live_document_status_display.short_description = "Live Status"
+
+    def push_document_button(self, obj):
+        if not obj or not obj.claim or not obj.claim.no:
+            return mark_safe('<span style="color: gray; font-size: 12px;">-</span>')
+
+        try:
+            from apps.live_operations.services import LiveDatabaseService
+            header_exists = LiveDatabaseService.claim_exists_in_live(obj.claim.no)
+        except Exception:
+            header_exists = False
+
+        if not header_exists:
+            return mark_safe('<span style="color: gray; font-size: 12px;">Header not in live</span>')
+
+        url = reverse("admin:claims_claimdocument_push_document", args=[obj.id])
+        return format_html(
+            '<a class="button" href="{}" '
+            'style="background-color: #6f42c1; color: white; '
+            'padding: 4px 8px; border-radius: 3px; '
+            'text-decoration: none; font-size: 12px;">'
+            '📎 Push Document</a>',
+            url,
+        )
+
+    push_document_button.short_description = "Push Document"
+    push_document_button.allow_tags = True
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:doc_id>/push-document/",
+                self.admin_site.admin_view(self.push_document_single_view),
+                name="claims_claimdocument_push_document",
+            ),
+        ]
+        return custom_urls + urls
+
+    def push_document_single_view(self, request, doc_id):
+        from apps.live_operations.services import LiveDatabaseService
+
+        try:
+            doc = ClaimDocument.objects.select_related("claim").get(id=doc_id)
+
+            if not doc.claim or not doc.claim.no:
+                self.message_user(
+                    request,
+                    "⚠️ Document has no parent claim or claim number",
+                    level="WARNING",
+                )
+                return HttpResponseRedirect(
+                    reverse("admin:claims_claimdocument_changelist")
+                )
+
+            if not LiveDatabaseService.claim_exists_in_live(doc.claim.no):
+                self.message_user(
+                    request,
+                    f"⚠️ Claim header {doc.claim.no} is not in the live database. Push the header first.",
+                    level="WARNING",
+                )
+                return HttpResponseRedirect(
+                    reverse("admin:claims_claimdocument_changelist")
+                )
+
+            result = LiveDatabaseService.push_claim_documents_to_live(doc.claim.id)
+
+            if result.get("failed", 0) > 0:
+                self.message_user(request, f"⚠️ {result.get('message')}", level="WARNING")
+            else:
+                self.message_user(request, f"✅ {result.get('message')}", level="SUCCESS")
+
+        except ClaimDocument.DoesNotExist:
+            self.message_user(request, f"Document {doc_id} not found", level="ERROR")
+        except Exception as e:
+            self.message_user(request, f"Error: {str(e)}", level="ERROR")
+
+        return HttpResponseRedirect(reverse("admin:claims_claimdocument_changelist"))
+
+
+# ============================================================
+# OTHER ADMINS
+# ============================================================
 
 @admin.register(ClaimNote)
 class ClaimNoteAdmin(admin.ModelAdmin):
@@ -720,7 +1361,6 @@ class ClaimNoteAdmin(admin.ModelAdmin):
     content_preview.short_description = 'Content'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
@@ -744,7 +1384,6 @@ class ClaimStatusHistoryAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
@@ -771,7 +1410,6 @@ class JointOwnerAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
@@ -802,7 +1440,6 @@ class JointOwnerConsentAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
@@ -828,7 +1465,6 @@ class JointPaymentInstructionAdmin(admin.ModelAdmin):
     claim_link.short_description = 'Claim'
 
     def get_actions(self, request):
-        """Remove delete action."""
         actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
