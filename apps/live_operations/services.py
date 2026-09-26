@@ -2,7 +2,9 @@
 import logging
 import re
 from decimal import Decimal, InvalidOperation
+from urllib.parse import quote
 
+from django.conf import settings
 from django.db import connections, transaction
 from django.utils import timezone
 
@@ -46,6 +48,12 @@ class LiveDatabaseService:
     CREATED_BY_VALUE = "UFAA_Reunite_Mobile"
 
     MAX_SEARCHABLE_ASSET_STATUS = 2
+
+    # Column width caps for the live ``Attached Documents - Claims`` table.
+    # Both ``[Document MS Link]`` and ``[Path]`` are NVARCHAR(100).
+    # If you widen them in Business Central, bump these values accordingly.
+    DOCUMENT_LINK_MAX_LEN = 100
+    DOCUMENT_PATH_MAX_LEN = 100
 
     SYSTEM_MANAGED_COLUMNS = (
         "timestamp",
@@ -367,6 +375,47 @@ class LiveDatabaseService:
                 claim_no,
             )
             raise
+
+    # ==================== STABLE SHAREPOINT URL ====================
+
+    @staticmethod
+    def build_stable_sharepoint_url(relative_path):
+        """
+        Build a deterministic, human-readable SharePoint URL from settings.
+
+        Unlike ``SharePointStorage.url()``, this returns a **stable** URL
+        with no tempauth token and no expiry, so it is safe to store in
+        the live Business Central database.
+
+        The library name is intentionally omitted: SharePoint resolves
+        files in the site's default document library without it, which
+        keeps the URL short enough for the ``NVARCHAR(100)`` columns on
+        the live ``Attached Documents - Claims`` table.
+
+        Example output:
+            https://ufaakenya.sharepoint.com/sites/UFAA/claim_documents/2026/09/21/id_copy.pdf
+
+        Returns ``""`` when ``SHAREPOINT_URL`` is not configured or the
+        path is empty.
+        """
+        if not relative_path:
+            return ""
+
+        site_url = (getattr(settings, "SHAREPOINT_URL", "") or "").rstrip("/")
+        site_path = (getattr(settings, "SHAREPOINT_SITE", "") or "").strip("/")
+
+        if not site_url:
+            return ""
+
+        clean_path = str(relative_path).replace("\\", "/").lstrip("/")
+        encoded_path = quote(clean_path, safe="/")
+
+        parts = [site_url]
+        if site_path:
+            parts.append(site_path)
+        parts.append(encoded_path)
+
+        return "/".join(p.rstrip("/") for p in parts)
 
     # ==================== CLAIM SEARCH ====================
 
@@ -1612,12 +1661,64 @@ class LiveDatabaseService:
                                 })
                                 continue
 
-                            file_path = ""
+                            # ------------------------------------------------------
+                            # Build the storage-relative path and a stable
+                            # SharePoint URL from settings.
+                            #
+                            # Never use ``doc.file.url`` here. That returns a
+                            # short-lived tempauth URL (~1,500 chars) which
+                            # would:
+                            #   1. exceed the NVARCHAR(100) [Document MS Link]
+                            #      column on the live Attached Documents table;
+                            #   2. expire within the hour.
+                            #
+                            # ``build_stable_sharepoint_url()`` produces a
+                            # canonical URL that fits the column and remains
+                            # valid for as long as the file exists.
+                            # ------------------------------------------------------
+                            relative_path = ""
                             if doc.file:
                                 try:
-                                    file_path = doc.file.url or ""
+                                    relative_path = (
+                                        doc.file.name
+                                        .replace("\\", "/")
+                                        .lstrip("/")
+                                    )
                                 except Exception:
-                                    file_path = ""
+                                    relative_path = ""
+
+                            stable_link = (
+                                LiveDatabaseService
+                                .build_stable_sharepoint_url(relative_path)
+                            )
+
+                            if (
+                                stable_link
+                                and len(stable_link)
+                                > LiveDatabaseService.DOCUMENT_LINK_MAX_LEN
+                            ):
+                                logger.warning(
+                                    "Stable SharePoint URL for document %s "
+                                    "exceeds %d characters (%d). "
+                                    "Consider widening [Document MS Link] "
+                                    "in Business Central.",
+                                    doc.id,
+                                    LiveDatabaseService.DOCUMENT_LINK_MAX_LEN,
+                                    len(stable_link),
+                                )
+
+                            if (
+                                relative_path
+                                and len(relative_path)
+                                > LiveDatabaseService.DOCUMENT_PATH_MAX_LEN
+                            ):
+                                logger.warning(
+                                    "Relative path for document %s exceeds "
+                                    "%d characters (%d).",
+                                    doc.id,
+                                    LiveDatabaseService.DOCUMENT_PATH_MAX_LEN,
+                                    len(relative_path),
+                                )
 
                             payload = {
                                 "Document No_": document_no,
@@ -1626,10 +1727,12 @@ class LiveDatabaseService:
                                     doc_type, 200,
                                 ),
                                 "Document MS Link": LiveDatabaseService.safe_string(
-                                    file_path, 1000,
+                                    stable_link,
+                                    LiveDatabaseService.DOCUMENT_LINK_MAX_LEN,
                                 ),
                                 "Path": LiveDatabaseService.safe_string(
-                                    file_path, 1000,
+                                    relative_path,
+                                    LiveDatabaseService.DOCUMENT_PATH_MAX_LEN,
                                 ),
                                 "Attached": True,
                                 "Mandatory": False,
