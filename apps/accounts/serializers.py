@@ -133,10 +133,23 @@ class RegisterSerializer(serializers.ModelSerializer):
                 "id_number": "Either National ID Number or Passport Number is required"
             })
 
+        #if nationality == 'Kenyan' and id_number:
+        #    id_str = str(id_number)
+        #    if not id_str.isdigit() or len(id_str) < 9:
+        #        raise serializers.ValidationError({"id_number": "ID Number must be 7 or 8 digits"})
+
+
         if nationality == 'Kenyan' and id_number:
-            id_str = str(id_number)
-            if not id_str.isdigit() or len(id_str) != 8:
-                raise serializers.ValidationError({"id_number": "ID Number must be 8 digits"})
+            id_str = str(id_number).strip()
+            if not id_str.isdigit():
+               raise serializers.ValidationError({
+                   "id_number": "ID Number must contain digits only."
+               })
+            if len(id_str) not in (6, 7, 8):
+               raise serializers.ValidationError({
+                   "id_number": "ID Number must be 6, 7, or 8 digits."
+                })
+
 
         if passport_no_final:
             passport_str = str(passport_no_final)

@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 upload_service = DocumentUploadService()
 
 
-# ============================================================
+# ============================================================ #
 # UPLOAD
-# ============================================================
+# ============================================================ #
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -58,9 +58,9 @@ def upload_claim_document(request, claim_id):
     return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ============================================================
+# ============================================================ #
 # LIST
-# ============================================================
+# ============================================================ #
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -69,8 +69,7 @@ def get_claim_documents(request, claim_id):
     List all documents attached to a claim.
 
     Each entry includes a pre-resolved ``file_url``. The service layer
-    handles SharePoint URL resolution; this view never touches
-    ``.path``.
+    handles SharePoint URL resolution; this view never touches ``.path``.
     """
     claim = get_object_or_404(Claim, id=claim_id)
     claim_number = request.query_params.get('claim_number')
@@ -88,9 +87,40 @@ def get_claim_documents(request, claim_id):
     )
 
 
-# ============================================================
+# ============================================================ #
 # VIEW / DOWNLOAD / STREAM
-# ============================================================
+# ============================================================ #
+
+def _resolve_document_url(document):
+    """
+    Resolve the storage URL for a document.
+
+    Returns ``None`` if the storage backend cannot produce a URL or if
+    the document has no file attached.
+    """
+    if not document.file:
+        return None
+    try:
+        return document.file.url
+    except NotImplementedError:
+        logger.warning(
+            "Storage backend cannot produce a URL for document %s",
+            document.pk,
+        )
+        return None
+    except Exception as exc:
+        logger.exception(
+            "Error resolving URL for document %s: %s", document.pk, exc
+        )
+        return None
+
+
+def _check_document_access(document, user):
+    """Return True if the user may access this document."""
+    if user.is_staff or getattr(user, 'role', '') in ['staff', 'admin']:
+        return True
+    return document.claim.claimant == user
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -106,34 +136,20 @@ def view_document(request, document_id):
     """
     document = get_object_or_404(ClaimDocument, id=document_id)
 
-    if not document.file:
+    if not _check_document_access(document, request.user):
         return Response(
-            {"error": "Document has no file attached."},
+            {"error": "You do not have permission to view this document."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    file_url = _resolve_document_url(document)
+    if not file_url:
+        return Response(
+            {"error": "File not found on storage backend."},
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    try:
-        file_url = document.file.url
-    except NotImplementedError:
-        logger.warning(
-            "Storage backend cannot produce a URL for document %s",
-            document_id,
-        )
-        return Response(
-            {"error": "This storage engine cannot produce a download URL."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-    except Exception as exc:
-        logger.exception(
-            "Error resolving URL for document %s: %s", document_id, exc
-        )
-        return Response(
-            {"error": f"Error viewing file: {exc}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    # A 302 lets the browser/client follow the redirect straight to
-    # SharePoint without the bytes ever passing through Django.
+    # 302 sends the browser straight to SharePoint.
     return HttpResponseRedirect(file_url)
 
 
@@ -166,6 +182,12 @@ def stream_document(request, document_id):
     """
     document = get_object_or_404(ClaimDocument, id=document_id)
 
+    if not _check_document_access(document, request.user):
+        return Response(
+            {"error": "You do not have permission to view this document."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     if not document.file:
         return Response(
             {"error": "Document has no file attached."},
@@ -173,6 +195,7 @@ def stream_document(request, document_id):
         )
 
     try:
+        # ✅ Delegates to SharePointStorage._open() — no .path call.
         file_handle = document.file.open('rb')
     except FileNotFoundError:
         raise Http404("File not found on storage backend.")
@@ -200,19 +223,15 @@ def stream_document(request, document_id):
     return response
 
 
-# ============================================================
+# ============================================================ #
 # VERIFY
-# ============================================================
+# ============================================================ #
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def verify_document(request, document_id):
     """
     Mark a document as verified (staff only).
-
-    Permission check uses ``request.user.is_staff_member``. If your
-    ``User`` model uses a different flag (e.g. ``is_staff`` or a
-    ``role`` field), adjust this check accordingly.
     """
     if not getattr(request.user, 'is_staff_member', False):
         return Response(

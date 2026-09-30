@@ -6,8 +6,8 @@ to ensure admin login pages render instantly without Microsoft Graph dependencie
 
 Requires in settings.py (or .env):
     SHAREPOINT_URL              e.g. https://your-domain.sharepoint.com
-    SHAREPOINT_SITE             e.g. /sites/UFAA
-    SHAREPOINT_DOCUMENT_LIBRARY e.g. Claim Documents
+    SHAREPOINT_SITE             e.g. /sites/UFAA  or  /  for the root site
+    SHAREPOINT_DOCUMENT_LIBRARY e.g. APPLICATIONSDOCS
     SHAREPOINT_TENANT_ID
     SHAREPOINT_CLIENT_ID
     SHAREPOINT_CLIENT_SECRET
@@ -17,6 +17,16 @@ Requires in settings.py (or .env):
 Azure AD app must have APPLICATION permissions (admin-consented):
     Sites.ReadWrite.All
     Files.ReadWrite.All
+
+Storage layout convention
+-------------------------
+Given SHAREPOINT_DOCUMENT_LIBRARY = "APPLICATIONSDOCS":
+
+    ClaimDocument.file         -> APPLICATIONSDOCS/claim_documents/<Y>/<M>/<D>/<file>
+    AssetTrackingDocument.file -> APPLICATIONSDOCS/asset_tracking/<Y>/<M>/<D>/<file>
+
+The library name is *not* part of ``upload_to``; it is added by Graph when
+resolving the drive. ``web_url()`` prepends it back for display purposes.
 """
 
 import logging
@@ -59,12 +69,12 @@ class SharePointStorage(Storage):
     via Microsoft Graph API, with automatic local fallback for admin theme media.
     """
 
-    SIMPLE_UPLOAD_MAX = 4 * 1024 * 1024  # 4 MB limit for simple PUT
-    UPLOAD_CHUNK_SIZE = 16 * 320 * 1024  # 5.24 MB (must be multiple of 320 KiB)
-    
+    SIMPLE_UPLOAD_MAX = 4 * 1024 * 1024      # 4 MB limit for simple PUT
+    UPLOAD_CHUNK_SIZE = 16 * 320 * 1024      # 5.24 MB (multiple of 320 KiB)
+
     # Timeouts: (connect, read)
     HTTP_TIMEOUT = (10, 120)
-    URL_HTTP_TIMEOUT = (2, 4)  # Fast timeout for URL resolution to avoid hanging login pages
+    URL_HTTP_TIMEOUT = (2, 4)  # Short timeout for URL resolution so login pages never hang
 
     def __init__(self, **kwargs):
         self.site_url = (getattr(settings, "SHAREPOINT_URL", "") or "").rstrip("/")
@@ -75,25 +85,52 @@ class SharePointStorage(Storage):
         self.client_secret = getattr(settings, "SHAREPOINT_CLIENT_SECRET", "") or ""
         self.file_overwrite = getattr(settings, "SHAREPOINT_FILE_OVERWRITE", False)
 
-        # Paths that bypass SharePoint and remain on local disk (e.g. django-admin-interface assets)
+        # Paths that bypass SharePoint and remain on local disk
         default_local_prefixes = ["admin-interface/", "admin/"]
-        configured_prefixes = getattr(settings, "SHAREPOINT_LOCAL_PREFIXES", default_local_prefixes)
+        configured_prefixes = getattr(
+            settings, "SHAREPOINT_LOCAL_PREFIXES", default_local_prefixes
+        )
         self.local_prefixes = [p.strip("/") + "/" for p in configured_prefixes]
 
         self._local_storage = FileSystemStorage()
         self._site_id = None
         self._drive_id = None
 
+    # ------------------------------------------------------------------ #
+    # Prefix helpers
+    # ------------------------------------------------------------------ #
     def _is_local_path(self, name):
-        """Check if a path should be handled by local storage instead of SharePoint."""
+        """True if this path should be handled by local storage."""
         clean = self._clean_name(name)
         return any(clean.startswith(prefix) for prefix in self.local_prefixes)
+
+    def _strip_library_prefix(self, name):
+        """
+        Remove a leading ``<library>/`` segment if the caller accidentally
+        stored the library name as part of ``upload_to``.
+
+        Example:
+            name = 'APPLICATIONSDOCS/claim_documents/2026/09/21/kra_pin.pdf'
+            library = 'APPLICATIONSDOCS'
+            ->   'claim_documents/2026/09/21/kra_pin.pdf'
+
+        Graph already knows the drive from ``_get_drive_id()``, so the
+        library name must NOT appear in the item path.
+        """
+        clean = self._clean_name(name)
+        if not clean or not self.library_name:
+            return clean
+
+        prefix = self.library_name.strip("/") + "/"
+        if clean.lower().startswith(prefix.lower()):
+            return clean[len(prefix):]
+        return clean
 
     # ------------------------------------------------------------------ #
     # Authentication & Graph Setup
     # ------------------------------------------------------------------ #
     def _get_access_token(self):
-        """Get a valid Graph API access token using Django cache."""
+        """Get a valid Graph API access token (cached)."""
         cache_key = f"sharepoint_token_{self.client_id}"
         cached_token = cache.get(cache_key)
         if cached_token:
@@ -122,7 +159,7 @@ class SharePointStorage(Storage):
             )
 
         token = result["access_token"]
-        expires_in = int(result.get("expires_in", 3600)) - 120  # 2-minute safety margin
+        expires_in = int(result.get("expires_in", 3600)) - 120
         cache.set(cache_key, token, timeout=max(60, expires_in))
 
         return token
@@ -178,11 +215,12 @@ class SharePointStorage(Storage):
 
         available = [d.get("name") for d in drives]
         raise RuntimeError(
-            f"Document library '{self.library_name}' not found. Available libraries: {available}"
+            f"Document library '{self.library_name}' not found. "
+            f"Available libraries: {available}"
         )
 
     # ------------------------------------------------------------------ #
-    # Path Helpers
+    # Path helpers
     # ------------------------------------------------------------------ #
     @staticmethod
     def _clean_name(name):
@@ -190,20 +228,51 @@ class SharePointStorage(Storage):
 
     def _item_url(self, name):
         drive_id = self._get_drive_id()
-        clean = self._clean_name(name)
+        clean = self._strip_library_prefix(name)
         if not clean:
             return f"{GRAPH_BASE}/drives/{drive_id}/root"
         encoded = quote(clean, safe="/")
         return f"{GRAPH_BASE}/drives/{drive_id}/root:/{encoded}"
 
     # ------------------------------------------------------------------ #
-    # Django Storage API Implementation
+    # Public URL helpers
+    # ------------------------------------------------------------------ #
+    def web_url(self, name):
+        """
+        Return the human-readable SharePoint web URL for a stored file.
+
+        Example:
+            https://ufaakenya.sharepoint.com/APPLICATIONSDOCS/claim_documents/2026/09/21/kra_pin.pdf
+
+        Use this for display in admin, emails, logs, etc. It does NOT carry
+        an access token, so it only works for users who already have access
+        to the SharePoint site.
+
+        For immediate, token-bearing access use ``url()`` instead.
+        """
+        if self._is_local_path(name):
+            return self._local_storage.url(name)
+
+        clean = self._strip_library_prefix(name)
+        if not clean:
+            return ""
+
+        hostname = self._get_hostname()
+        library = (self.library_name or "").strip("/")
+        return f"https://{hostname}/{library}/{clean}"
+
+    # Alias for callers that prefer the naming convention used elsewhere
+    def get_sharepoint_url(self, name):
+        return self.web_url(name)
+
+    # ------------------------------------------------------------------ #
+    # Django Storage API
     # ------------------------------------------------------------------ #
     def _save(self, name, content):
         if self._is_local_path(name):
             return self._local_storage._save(name, content)
 
-        name = self._clean_name(name)
+        name = self._strip_library_prefix(name)
         content_type = (
             getattr(content, "content_type", None)
             or mimetypes.guess_type(name)[0]
@@ -237,7 +306,9 @@ class SharePointStorage(Storage):
         )
 
         if r.status_code not in (200, 201):
-            raise RuntimeError(f"SharePoint upload failed ({r.status_code}): {r.text}")
+            raise RuntimeError(
+                f"SharePoint upload failed ({r.status_code}): {r.text}"
+            )
 
     def _chunked_upload(self, name, content, size, content_type):
         session_resp = requests.post(
@@ -254,7 +325,8 @@ class SharePointStorage(Storage):
 
         if session_resp.status_code != 200:
             raise RuntimeError(
-                f"Could not create upload session ({session_resp.status_code}): {session_resp.text}"
+                f"Could not create upload session "
+                f"({session_resp.status_code}): {session_resp.text}"
             )
 
         upload_url = session_resp.json()["uploadUrl"]
@@ -281,7 +353,8 @@ class SharePointStorage(Storage):
 
             if r.status_code not in (200, 201, 202):
                 raise RuntimeError(
-                    f"Chunk upload failed at offset {offset} ({r.status_code}): {r.text}"
+                    f"Chunk upload failed at offset {offset} "
+                    f"({r.status_code}): {r.text}"
                 )
 
             offset += chunk_len
@@ -291,7 +364,9 @@ class SharePointStorage(Storage):
             return self._local_storage._open(name, mode)
 
         if "w" in mode or "a" in mode:
-            raise NotImplementedError("SharePointStorage does not support write modes on _open.")
+            raise NotImplementedError(
+                "SharePointStorage does not support write modes on _open."
+            )
 
         r = requests.get(
             f"{self._item_url(name)}:/content",
@@ -337,7 +412,9 @@ class SharePointStorage(Storage):
             timeout=self.HTTP_TIMEOUT,
         )
         if r.status_code not in (204, 404):
-            raise RuntimeError(f"SharePoint delete failed ({r.status_code}): {r.text}")
+            raise RuntimeError(
+                f"SharePoint delete failed ({r.status_code}): {r.text}"
+            )
 
     def size(self, name):
         if self._is_local_path(name):
@@ -355,19 +432,30 @@ class SharePointStorage(Storage):
     def path(self, name):
         if self._is_local_path(name):
             return self._local_storage.path(name)
-        raise NotImplementedError("This storage engine does not support local paths for cloud files.")
+        raise NotImplementedError(
+            "This storage engine does not support local paths for cloud files."
+        )
 
     def url(self, name):
         """
-        Return a accessible URL. Uses local storage for admin media, or fetches
-        a short-lived download link from Graph API for cloud files. Fully defensive
-        to prevent login page crashes if Graph API fails.
+        Return a directly accessible, token-bearing URL for a file.
+
+        For SharePoint-hosted files this is a short-lived Graph
+        ``@microsoft.graph.downloadUrl`` (cached ~50 minutes). For local
+        paths (admin media) this delegates to ``FileSystemStorage``.
+
+        On failure — when Graph is unreachable or the item is missing — the
+        pretty SharePoint web URL is returned as a best-effort fallback so
+        the caller never gets a bogus ``/media/...`` URL pointing at the
+        wrong place. Callers that need a hard error should use
+        ``file.storage.exists(name)`` first, or ``file.open('rb')`` and
+        handle ``FileNotFoundError``.
         """
         if self._is_local_path(name):
             return self._local_storage.url(name)
 
-        name = self._clean_name(name)
-        cache_key = f"sharepoint_url_{name}"
+        clean = self._strip_library_prefix(name)
+        cache_key = f"sharepoint_url_{clean}"
 
         try:
             cached_url = cache.get(cache_key)
@@ -378,9 +466,9 @@ class SharePointStorage(Storage):
 
         try:
             r = requests.get(
-                self._item_url(name),
+                self._item_url(clean),
                 headers=self._headers(),
-                timeout=self.URL_HTTP_TIMEOUT,  # Short timeout prevents HTTP hanging
+                timeout=self.URL_HTTP_TIMEOUT,  # short timeout — never block a page render
             )
 
             if r.status_code == 200:
@@ -392,24 +480,36 @@ class SharePointStorage(Storage):
                         pass
                     return download_url
 
-                logger.warning("[SharePoint] No downloadUrl found for '%s'", name)
+                logger.warning(
+                    "[SharePoint] No downloadUrl found for '%s'", clean
+                )
+            else:
+                logger.warning(
+                    "[SharePoint] url() got %s for '%s': %s",
+                    r.status_code, clean, r.text[:200],
+                )
 
         except Exception as e:
-            logger.error("[SharePoint] Safe fallback in url('%s'): %s", name, e)
+            logger.error("[SharePoint] Safe fallback in url('%s'): %s", clean, e)
 
-        # Defensive fallback: Returns local media URL so template rendering never raises 500
-        return self._local_storage.url(name)
+        # Last-resort fallback: pretty web URL. Viewers that already have
+        # SharePoint access can still open it.
+        return self.web_url(clean)
 
     def get_available_name(self, name, max_length=None):
         if self._is_local_path(name):
-            return self._local_storage.get_available_name(name, max_length=max_length)
+            return self._local_storage.get_available_name(
+                name, max_length=max_length
+            )
+
+        clean = self._strip_library_prefix(name)
 
         if self.file_overwrite:
-            self.delete(name)
-            return self._clean_name(name)
-        return super().get_available_name(self._clean_name(name), max_length=max_length)
+            self.delete(clean)
+            return clean
+        return super().get_available_name(clean, max_length=max_length)
 
     def get_valid_name(self, name):
         if self._is_local_path(name):
             return self._local_storage.get_valid_name(name)
-        return self._clean_name(name)
+        return self._strip_library_prefix(name)
